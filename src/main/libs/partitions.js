@@ -49,6 +49,11 @@ export const removeSession = async (_event, partition) => {
   await session.clearStorageData();
 
   /** Remove Partition Path */
-  const partitionPath = join(app.getPath("userData"), "Partitions", partition);
+  const partitionPath = join(
+    app.getPath("userData"),
+    "Partitions",
+    partition.replace(/^persist:/, "")
+  );
+
   await fs.rm(partitionPath, { recursive: true, force: true });
 };
