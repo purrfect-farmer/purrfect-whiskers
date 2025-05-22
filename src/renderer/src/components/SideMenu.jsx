@@ -1,9 +1,9 @@
-import { Dialog } from 'radix-ui'
-import { HiOutlineBars3, HiOutlineCog6Tooth } from 'react-icons/hi2'
+import { Dialog } from "radix-ui";
+import { HiOutlineBars3, HiOutlineCog6Tooth } from "react-icons/hi2";
 
-import AccountListDialog from './AccountListDialog'
-import Icon from '../assets/images/icon.png'
-import SettingsDialog from './SettingsDialog'
+import AccountListDialog from "./AccountListDialog";
+import Icon from "../assets/images/icon.png";
+import SettingsDialog from "./SettingsDialog";
 
 export default function SideMenu() {
   return (
@@ -11,7 +11,7 @@ export default function SideMenu() {
       {/* Account List */}
       <Dialog.Root>
         <Dialog.Trigger title="Accounts" className="p-2">
-          <HiOutlineBars3 className="size-5 text-blue-500" />
+          <HiOutlineBars3 className="size-5 text-orange-500" />
         </Dialog.Trigger>
 
         <AccountListDialog />
@@ -20,7 +20,7 @@ export default function SideMenu() {
       {/* Settings */}
       <Dialog.Root>
         <Dialog.Trigger title="Settings" className="p-2">
-          <HiOutlineCog6Tooth className="size-5 text-blue-500" />
+          <HiOutlineCog6Tooth className="size-5 text-orange-500" />
         </Dialog.Trigger>
 
         <SettingsDialog />
@@ -29,5 +29,5 @@ export default function SideMenu() {
       {/* App Icon */}
       <img src={Icon} alt="Icon" className="size-10 mt-auto" />
     </div>
-  )
+  );
 }

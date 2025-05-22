@@ -1,10 +1,10 @@
 {
   "name": "purrfect-whiskers",
   "version": "0.0.1",
-  "description": "An Electron application with React",
+  "description": "Multi-Account sessions for the Purrfect Farmer",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://electron-vite.org",
+  "author": "purrfectfarmer.com",
+  "homepage": "https://purrfectfarmer.com",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
