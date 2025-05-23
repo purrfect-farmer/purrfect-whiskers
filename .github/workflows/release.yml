@@ -48,10 +48,6 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get install --no-install-recommends -y libopenjp2-tools libarchive-tools rpm
 
-      - name: Setup Snapcraft
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo snap install snapcraft --classic
-
       - name: build-linux
         if: matrix.os == 'ubuntu-latest'
         run: pnpm build:linux
