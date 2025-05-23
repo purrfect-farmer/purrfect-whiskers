@@ -131,9 +131,6 @@ export default memo(function Webview({ account }) {
     webview.addEventListener("dom-ready", () => {
       // Set as ready
       webviewIsReadyRef.current = true;
-
-      // Send Account Data
-      sendWhiskerData();
     });
 
     // Context Menu
@@ -166,9 +163,8 @@ export default memo(function Webview({ account }) {
     };
   }, [partition, extensionPath, sendWhiskerData]);
 
-  /** Send Account Data */
+  /** Send Whisker Data */
   useEffect(() => {
-    /** Send Current Data */
     sendWhiskerData();
   }, [account, theme]);
 
