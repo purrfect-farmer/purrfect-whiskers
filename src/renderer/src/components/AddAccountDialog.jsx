@@ -3,6 +3,7 @@ import { LuUserRoundPlus } from "react-icons/lu";
 import { useCallback } from "react";
 
 import AccountForm from "./AccountForm";
+import AppDialogContent from "./AppDialogContent";
 import useAppStore from "../store/useAppStore";
 import { cn, uuid } from "../lib/utils";
 
@@ -21,34 +22,20 @@ export default function AddAccountDialog({ close }) {
   );
 
   return (
-    <Dialog.Portal>
-      <Dialog.Overlay className="fixed inset-0 bg-black/30" />
-      <Dialog.Content
+    <AppDialogContent
+      title={"Add Account"}
+      description={"Create a new Account"}
+      icon={LuUserRoundPlus}
+    >
+      <AccountForm handleFormSubmit={createAccount} />
+
+      <Dialog.Close
         className={cn(
-          "fixed top-1/2 left-1/2 w-[90vw] max-w-[450px]",
-          "-translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-6",
-          "flex flex-col gap-2"
+          "px-4 py-2.5 border border-orange-500 text-orange-500 font-bold rounded-xl"
         )}
       >
-        <LuUserRoundPlus className="size-10 mx-auto text-orange-500" />
-
-        <div className="mb-2">
-          <Dialog.Title className="text-lg font-turret-road text-orange-500 font-bold text-center">
-            Add Account
-          </Dialog.Title>
-          <Dialog.Description className="text-center text-neutral-500">
-            Create a new Account
-          </Dialog.Description>
-        </div>
-
-        <AccountForm handleFormSubmit={createAccount} />
-
-        <Dialog.Close
-          className={cn("px-4 py-2.5 bg-orange-100 text-orange-800 rounded-xl")}
-        >
-          Close
-        </Dialog.Close>
-      </Dialog.Content>
-    </Dialog.Portal>
+        Close
+      </Dialog.Close>
+    </AppDialogContent>
   );
 }

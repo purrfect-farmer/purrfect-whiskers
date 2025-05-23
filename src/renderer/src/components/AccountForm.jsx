@@ -49,7 +49,7 @@ export default memo(function AccountForm({ account, handleFormSubmit }) {
         <button
           type="submit"
           className={cn(
-            "px-4 py-2.5 border bg-orange-100 text-orange-700 rounded-xl",
+            "px-4 py-2.5 bg-orange-500 text-white rounded-xl",
             "font-bold",
             "disabled:opacity-50"
           )}

@@ -7,6 +7,7 @@ import {
 } from "react-icons/hi2";
 import { useCallback } from "react";
 
+import AppDialogContent from "./AppDialogContent";
 import Input from "./Input";
 import useSettingsStore from "../store/useSettingsStore";
 import { cn } from "../lib/utils";
@@ -61,68 +62,53 @@ export default function SettingsDialog() {
   }, [extensionPath, setExtensionPath]);
 
   return (
-    <Dialog.Portal>
-      <Dialog.Overlay className="fixed inset-0 bg-black/30" />
-      <Dialog.Content
-        className={cn(
-          "fixed top-1/2 left-1/2 w-[90vw] max-w-[450px]",
-          "-translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-6",
-          "flex flex-col gap-2"
-        )}
-      >
-        <HiOutlineCog6Tooth className="size-10 mx-auto text-orange-500" />
+    <AppDialogContent
+      title={"Settings"}
+      description={"Configure Settings"}
+      icon={HiOutlineCog6Tooth}
+    >
+      {/* Columns and Rows */}
+      <div className="grid grid-cols-2 gap-2 mt-4">
+        <NumberInput
+          label={"Columns"}
+          value={columns}
+          onChange={(newValue) => setColumns(newValue || 1)}
+        />
 
-        <div className="mb-4">
-          <Dialog.Title className="text-lg font-turret-road text-orange-500 font-bold text-center">
-            Settings
-          </Dialog.Title>
-          <Dialog.Description className="text-center text-neutral-500">
-            Configure Settings
-          </Dialog.Description>
-        </div>
+        <NumberInput
+          label={"Rows"}
+          value={rows}
+          onChange={(newValue) => setRows(newValue || 1)}
+        />
+      </div>
 
-        {/* Columns and Rows */}
-        <div className="grid grid-cols-2 gap-2">
-          <NumberInput
-            label={"Columns"}
-            value={columns}
-            onChange={(newValue) => setColumns(newValue || 1)}
-          />
+      {/* Extension Path */}
+      <label className="text-orange-500 mt-4">Extension Path</label>
+      <div className="flex gap-2">
+        <Input readOnly value={extensionPath} />
 
-          <NumberInput
-            label={"Rows"}
-            value={rows}
-            onChange={(newValue) => setRows(newValue || 1)}
-          />
-        </div>
-
-        {/* Extension Path */}
-        <label className="text-neutral-500 mt-4">Extension Path</label>
-        <div className="flex gap-2">
-          <Input readOnly value={extensionPath} />
-
-          <button
-            onClick={pickExtensionPath}
-            className={cn(
-              "bg-neutral-100",
-              "hover:bg-orange-100 hover:text-orange-700",
-              "flex items-center justify-center",
-              "p-1 px-3 rounded-lg"
-            )}
-          >
-            <AiOutlineSelect className="size-4" />
-          </button>
-        </div>
-
-        <Dialog.Close
+        <button
+          onClick={pickExtensionPath}
           className={cn(
-            "px-4 py-2.5 bg-orange-100 text-orange-700 rounded-xl",
-            "mt-4 font-bold"
+            "bg-neutral-100",
+            "hover:bg-orange-100 hover:text-orange-700",
+            "flex items-center justify-center",
+            "p-1 px-3 rounded-lg"
           )}
         >
-          Close
-        </Dialog.Close>
-      </Dialog.Content>
-    </Dialog.Portal>
+          <AiOutlineSelect className="size-4" />
+        </button>
+      </div>
+
+      {/* Close Dialog */}
+      <Dialog.Close
+        className={cn(
+          "px-4 py-2.5 bg-orange-500 text-white rounded-xl",
+          "mt-4 font-bold"
+        )}
+      >
+        Close
+      </Dialog.Close>
+    </AppDialogContent>
   );
 }

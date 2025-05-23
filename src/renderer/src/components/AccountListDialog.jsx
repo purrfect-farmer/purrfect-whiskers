@@ -53,6 +53,7 @@ export default function AccountListDialog() {
     <Dialog.Portal>
       <Dialog.Overlay className="fixed inset-0 bg-black/50" />
       <Dialog.Content
+        onOpenAutoFocus={(ev) => ev.preventDefault()}
         className={cn(
           "fixed inset-y-0 left-0",
           "w-5/6 max-w-xs",
