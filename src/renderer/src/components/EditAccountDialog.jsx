@@ -33,8 +33,8 @@ export default function EditAccountDialog({ account, close }) {
 
   return (
     <AppDialogContent
-      title={"Edit Account"}
-      description={"Update account data"}
+      title={"Modify Account"}
+      description={"Update Account Data"}
       icon={LuUserRoundPen}
     >
       <AccountForm account={account} handleFormSubmit={saveAccountData} />

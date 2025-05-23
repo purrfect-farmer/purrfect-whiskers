@@ -1,7 +1,13 @@
 import { Dialog } from "radix-ui";
-import { HiOutlineXCircle } from "react-icons/hi2";
+import {
+  HiOutlineArrowLeft,
+  HiOutlineArrowPath,
+  HiOutlineArrowRight,
+  HiOutlineStop,
+  HiOutlineXCircle,
+} from "react-icons/hi2";
 import { MdOutlineEditNote } from "react-icons/md";
-import { memo, useEffect, useRef } from "react";
+import { memo, useCallback, useEffect, useRef } from "react";
 
 import EditAccountDialog from "./EditAccountDialog";
 import useAppStore from "../store/useAppStore";
@@ -9,6 +15,19 @@ import useDialogState from "../hooks/useDialogState";
 import useRefCallback from "../hooks/useRefCallback";
 import useSettingsStore from "../store/useSettingsStore";
 import { cn } from "../lib/utils";
+
+const WebviewButton = memo((props) => (
+  <button
+    {...props}
+    className={cn(
+      "text-orange-800",
+      "hover:bg-orange-200",
+      "flex items-center justify-center",
+      "p-2 rounded-full shrink-0",
+      props.className
+    )}
+  />
+));
 
 export default memo(function Webview({ account }) {
   const extensionPath = useSettingsStore((state) => state.extensionPath);
@@ -18,22 +37,55 @@ export default memo(function Webview({ account }) {
   const webviewIsReadyRef = useRef(false);
   const closePartition = useAppStore((state) => state.closePartition);
 
+  /** Edit Account Dialog State */
   const {
     opened: openEditAccountDialog,
     setOpened: setOpenEditAccountDialog,
     closeDialog: closeEditAccountDialog,
   } = useDialogState();
 
-  const sendAccountData = useRefCallback(() => {
+  /** Call Webview Method */
+  const callWebviewMethod = useCallback((callback) => {
     const webview = webviewRef.current;
     const webviewIsReady = webviewIsReadyRef.current;
     if (webview && webviewIsReady) {
+      callback(webview);
+    }
+  }, []);
+
+  /** Go Back */
+  const goBack = useCallback(
+    () => callWebviewMethod((webview) => webview.goBack()),
+    [callWebviewMethod]
+  );
+
+  /** Go Forward */
+  const goForward = useCallback(
+    () => callWebviewMethod((webview) => webview.goForward()),
+    [callWebviewMethod]
+  );
+
+  /** Stop Webview */
+  const stop = useCallback(
+    () => callWebviewMethod((webview) => webview.stop()),
+    [callWebviewMethod]
+  );
+
+  /** Reload Webview */
+  const reload = useCallback(
+    () => callWebviewMethod((webview) => webview.reload()),
+    [callWebviewMethod]
+  );
+
+  /** Send Account Data */
+  const sendAccountData = useRefCallback(() => {
+    callWebviewMethod((webview) =>
       webview.send("WEBVIEW_CHANNEL", {
         action: "set-whisker-account",
         data: account,
-      });
-    }
-  }, [account]);
+      })
+    );
+  }, [account, callWebviewMethod]);
 
   /** Initialize Webview */
   useEffect(() => {
@@ -105,41 +157,62 @@ export default memo(function Webview({ account }) {
   }, [account]);
 
   return (
-    <div key={partition} className={cn("grow flex flex-col shrink-0")}>
-      <div className="flex items-center gap-2 p-1">
-        {/* Title */}
-        <div className="flex font-bold grow text-orange-500">{title}</div>
+    <div
+      key={partition}
+      className={cn("grow flex flex-col shrink-0", "bg-orange-100")}
+    >
+      {/* Title */}
+      <h1 className="text-orange-500 truncate font-bold text-center p-2 pb-0">
+        {title}
+      </h1>
 
-        {/* Edit Button */}
-        <Dialog.Root
-          open={openEditAccountDialog}
-          onOpenChange={setOpenEditAccountDialog}
-        >
-          <Dialog.Trigger
-            className={cn(
-              "bg-neutral-100",
-              "hover:bg-orange-100 hover:text-orange-700",
-              "flex items-center justify-center",
-              "p-2 px-3 rounded-xl shrink-0"
-            )}
+      <div className="flex shrink-0 justify-between p-1 gap-1">
+        <div className="flex gap-1">
+          {/* Back */}
+          <WebviewButton title="Go Back" onClick={goBack}>
+            <HiOutlineArrowLeft className="size-4" />
+          </WebviewButton>
+
+          {/* Forward */}
+          <WebviewButton title="Go Forward" onClick={goForward}>
+            <HiOutlineArrowRight className="size-4" />
+          </WebviewButton>
+
+          {/* Stop */}
+          <WebviewButton title="Stop" onClick={stop}>
+            <HiOutlineStop className="size-4" />
+          </WebviewButton>
+
+          {/* Reload */}
+          <WebviewButton title="Reload" onClick={reload}>
+            <HiOutlineArrowPath className="size-4" />
+          </WebviewButton>
+        </div>
+        <div className="flex gap-1">
+          {/* Edit Button */}
+          <Dialog.Root
+            open={openEditAccountDialog}
+            onOpenChange={setOpenEditAccountDialog}
           >
-            <MdOutlineEditNote className="size-4" />
-          </Dialog.Trigger>
-          <EditAccountDialog account={account} close={closeEditAccountDialog} />
-        </Dialog.Root>
+            <Dialog.Trigger asChild title="Edit Account">
+              <WebviewButton>
+                <MdOutlineEditNote className="size-4" />
+              </WebviewButton>
+            </Dialog.Trigger>
+            <EditAccountDialog
+              account={account}
+              close={closeEditAccountDialog}
+            />
+          </Dialog.Root>
 
-        {/* Close Button */}
-        <button
-          className={cn(
-            "bg-neutral-100",
-            "hover:bg-orange-100 hover:text-orange-700",
-            "flex items-center justify-center",
-            "p-2 px-3 rounded-xl shrink-0"
-          )}
-          onClick={() => closePartition(partition)}
-        >
-          <HiOutlineXCircle className="size-4" />
-        </button>
+          {/* Close Button */}
+          <WebviewButton
+            title="Close Account"
+            onClick={() => closePartition(partition)}
+          >
+            <HiOutlineXCircle className="size-4" />
+          </WebviewButton>
+        </div>
       </div>
       <div ref={containerRef} className="grow flex flex-col" />
     </div>
