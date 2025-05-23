@@ -1,10 +1,11 @@
 import { Dialog } from "radix-ui";
 import { HiOutlineXCircle } from "react-icons/hi2";
 import { MdOutlineEditNote } from "react-icons/md";
-import { memo, useCallback, useLayoutEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef } from "react";
 
 import EditAccountDialog from "./EditAccountDialog";
 import useAppStore from "../store/useAppStore";
+import useDialogState from "../hooks/useDialogState";
 import useRefCallback from "../hooks/useRefCallback";
 import useSettingsStore from "../store/useSettingsStore";
 import { cn } from "../lib/utils";
@@ -17,11 +18,11 @@ export default memo(function Webview({ account }) {
   const webviewIsReadyRef = useRef(false);
   const closePartition = useAppStore((state) => state.closePartition);
 
-  const [openEditAccountDialog, setOpenEditAccountDialog] = useState(false);
-  const closeEditAccountDialog = useCallback(
-    () => setOpenEditAccountDialog(false),
-    [setOpenEditAccountDialog]
-  );
+  const {
+    opened: openEditAccountDialog,
+    setOpened: setOpenEditAccountDialog,
+    closeDialog: closeEditAccountDialog,
+  } = useDialogState();
 
   const sendAccountData = useRefCallback(() => {
     const webview = webviewRef.current;
@@ -35,7 +36,7 @@ export default memo(function Webview({ account }) {
   }, [account]);
 
   /** Initialize Webview */
-  useLayoutEffect(() => {
+  useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
@@ -98,7 +99,7 @@ export default memo(function Webview({ account }) {
   }, [partition, extensionPath, sendAccountData]);
 
   /** Send Account Data */
-  useLayoutEffect(() => {
+  useEffect(() => {
     /** Send Current Data */
     sendAccountData();
   }, [account]);

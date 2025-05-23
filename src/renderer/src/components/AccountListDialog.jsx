@@ -2,20 +2,21 @@ import { Dialog } from "radix-ui";
 import { HiOutlineCheckBadge, HiOutlinePlus } from "react-icons/hi2";
 import { MdOutlineEditNote } from "react-icons/md";
 import { Reorder } from "motion/react";
-import { useCallback, useState } from "react";
 
 import AddAccountDialog from "./AddAccountDialog";
 import EditAccountDialog from "./EditAccountDialog";
 import ReorderItem from "./ReorderItem";
 import useAppStore from "../store/useAppStore";
+import useDialogState from "../hooks/useDialogState";
+import useLaunchPartition from "../hooks/useLaunchPartition";
 import { cn } from "../lib/utils";
 
 const AccountEditDialog = ({ account }) => {
-  const [openEditAccountDialog, setOpenEditAccountDialog] = useState(false);
-  const closeEditAccountDialog = useCallback(
-    () => setOpenEditAccountDialog(false),
-    [setOpenEditAccountDialog]
-  );
+  const {
+    opened: openEditAccountDialog,
+    setOpened: setOpenEditAccountDialog,
+    closeDialog: closeEditAccountDialog,
+  } = useDialogState();
 
   return (
     <Dialog.Root
@@ -41,13 +42,13 @@ export default function AccountListDialog() {
   const accounts = useAppStore((state) => state.accounts);
   const partitions = useAppStore((state) => state.partitions);
   const setAccounts = useAppStore((state) => state.setAccounts);
-  const launchPartition = useAppStore((state) => state.launchPartition);
+  const launchPartition = useLaunchPartition();
 
-  const [openAddAccountDialog, setOpenAddAccountDialog] = useState(false);
-  const closeAddAccountDialog = useCallback(
-    () => setOpenAddAccountDialog(false),
-    [setOpenAddAccountDialog]
-  );
+  const {
+    opened: openAddAccountDialog,
+    setOpened: setOpenAddAccountDialog,
+    closeDialog: closeAddAccountDialog,
+  } = useDialogState();
 
   return (
     <Dialog.Portal>

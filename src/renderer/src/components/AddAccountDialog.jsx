@@ -5,12 +5,14 @@ import { useCallback } from "react";
 import AccountForm from "./AccountForm";
 import AppDialogContent from "./AppDialogContent";
 import useAppStore from "../store/useAppStore";
+import useLaunchPartition from "../hooks/useLaunchPartition";
 import { cn, uuid } from "../lib/utils";
 
 export default function AddAccountDialog({ close }) {
   const addAccount = useAppStore((state) => state.addAccount);
-  const launchPartition = useAppStore((state) => state.launchPartition);
+  const launchPartition = useLaunchPartition();
 
+  /** Create Account */
   const createAccount = useCallback(
     (data) => {
       const partition = `persist:${uuid()}`;
