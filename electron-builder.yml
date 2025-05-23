@@ -30,11 +30,11 @@ dmg:
 linux:
   target:
     - AppImage
-    # - snap
-    # - deb
-    # - pacman
-    # - rpm
-    # - tar.gz
+    - snap
+    - deb
+    - pacman
+    - rpm
+    - tar.gz
   maintainer: purrfectfarmer.com
   category: Utility
 appImage:
