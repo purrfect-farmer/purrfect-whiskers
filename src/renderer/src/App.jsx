@@ -47,7 +47,7 @@ function App() {
       <div className="grow overflow-clip">
         <div
           className={cn(
-            "h-full gap-x-1 grid grid-cols-(--grid-cols) auto-rows-(--auto-rows)",
+            "h-full gap-x-0.5 grid grid-cols-(--grid-cols) auto-rows-(--auto-rows)",
             "-translate-y-(--current-page)",
             "transition-transform duration-500"
           )}
@@ -82,7 +82,12 @@ function App() {
       </div>
 
       {/* Pages */}
-      <div className="shrink-0 p-2 flex flex-col gap-2 overflow-auto empty:hidden">
+      <div
+        className={cn(
+          "shrink-0 p-2 flex flex-col gap-2",
+          "overflow-auto empty:hidden"
+        )}
+      >
         {Array.from({ length: pageCount }).map((_, pageIndex) => (
           <div key={pageIndex} className="flex gap-1">
             <button

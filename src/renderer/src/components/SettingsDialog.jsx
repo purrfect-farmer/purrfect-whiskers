@@ -83,7 +83,7 @@ export default function SettingsDialog() {
       </div>
 
       {/* Extension Path */}
-      <label className="text-orange-500 mt-4">Extension Path</label>
+      <label className="text-orange-500 mt-2">Extension Path</label>
       <div className="flex gap-2">
         <Input readOnly value={extensionPath} />
 
@@ -104,7 +104,7 @@ export default function SettingsDialog() {
       <Dialog.Close
         className={cn(
           "px-4 py-2.5 bg-orange-500 text-white rounded-xl",
-          "mt-4 font-bold"
+          "mt-2 font-bold"
         )}
       >
         Close

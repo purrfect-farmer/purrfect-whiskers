@@ -13,13 +13,13 @@ export default memo(function ({ icon: Icon, title, description, children }) {
           "fixed top-1/2 left-1/2 w-[90vw] max-w-[450px]",
           "-translate-x-1/2 -translate-y-1/2",
           "flex flex-col gap-2",
-          "rounded-xl p-6",
+          "rounded-2xl p-6",
           "bg-white"
         )}
       >
         <Icon className="size-10 mx-auto text-orange-500" />
 
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-px">
           <Dialog.Title className="text-xl font-bold font-turret-road text-orange-500 text-center">
             {title}
           </Dialog.Title>
