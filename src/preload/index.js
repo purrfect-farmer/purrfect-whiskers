@@ -22,8 +22,3 @@ if (process.contextIsolated) {
   window.electron = electronAPI;
   window.api = api;
 }
-
-/** Webview */
-electronAPI.ipcRenderer.on("WEBVIEW_CHANNEL", (_event, data) => {
-  window.postMessage(data);
-});

@@ -82,7 +82,7 @@ export default memo(function Webview({ account }) {
   /** Send Whisker Data */
   const sendWhiskerData = useRefCallback(() => {
     callWebviewMethod((webview) =>
-      webview.send("WEBVIEW_CHANNEL", {
+      webview.send("host-message", {
         action: "set-whisker-data",
         data: {
           account,
@@ -139,6 +139,17 @@ export default memo(function Webview({ account }) {
     // Context Menu
     webview.addEventListener("context-menu", () => {
       webview.openDevTools({ mode: "detach" });
+    });
+
+    // IPC Message
+    webview.addEventListener("ipc-message", (event) => {
+      if (event.channel === "webview-message") {
+        const { action } = event.args[0];
+
+        if (action === "get-whisker-data") {
+          sendWhiskerData();
+        }
+      }
     });
 
     // Append to container
