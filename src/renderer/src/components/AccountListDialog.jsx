@@ -25,8 +25,9 @@ const AccountEditDialog = ({ account }) => {
     >
       <Dialog.Trigger
         className={cn(
-          "bg-neutral-100",
+          "bg-neutral-100 dark:bg-neutral-700",
           "hover:bg-orange-100 hover:text-orange-700",
+          "dark:hover:bg-orange-200 dark:hover:text-orange-500",
           "flex items-center justify-center",
           "px-3 rounded-xl shrink-0"
         )}
@@ -58,7 +59,7 @@ export default function AccountListDialog() {
         className={cn(
           "fixed inset-y-0 left-0",
           "w-5/6 max-w-xs",
-          "bg-white",
+          "bg-white dark:bg-neutral-800",
           "flex flex-col"
         )}
       >
@@ -72,7 +73,7 @@ export default function AccountListDialog() {
             >
               Accounts
             </Dialog.Title>
-            <Dialog.Description className="text-neutral-500 leading-none">
+            <Dialog.Description className="text-neutral-500 dark:text-neutral-400 leading-none">
               Select an account
             </Dialog.Description>
           </div>
@@ -87,6 +88,7 @@ export default function AccountListDialog() {
               className={cn(
                 "shrink-0",
                 "bg-orange-100 text-orange-700",
+                "dark:bg-orange-200 dark:text-orange-500",
                 "flex items-center gap-2",
                 "p-2 px-3 rounded-xl text-left",
                 "font-bold"
@@ -112,8 +114,9 @@ export default function AccountListDialog() {
                     key={item.partition}
                     onClick={() => launchPartition(item.partition)}
                     className={cn(
-                      "bg-neutral-100",
+                      "bg-neutral-100 dark:bg-neutral-700",
                       "hover:bg-orange-100 hover:text-orange-700",
+                      "dark:hover:bg-orange-200 dark:hover:text-orange-500",
                       "grow flex items-center gap-2",
                       "p-2 px-3 rounded-xl text-left",
                       "font-bold"

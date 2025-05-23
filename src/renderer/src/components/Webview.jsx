@@ -20,8 +20,9 @@ const WebviewButton = memo((props) => (
   <button
     {...props}
     className={cn(
-      "text-orange-800",
-      "hover:bg-orange-200",
+      "bg-neutral-100 dark:bg-neutral-700",
+      "hover:bg-orange-100 hover:text-orange-500",
+      "dark:hover:bg-orange-200",
       "flex items-center justify-center",
       "p-2 rounded-full shrink-0",
       props.className
@@ -30,6 +31,7 @@ const WebviewButton = memo((props) => (
 ));
 
 export default memo(function Webview({ account }) {
+  const theme = useSettingsStore((state) => state.theme);
   const extensionPath = useSettingsStore((state) => state.extensionPath);
   const { title, partition } = account;
   const containerRef = useRef(null);
@@ -77,15 +79,18 @@ export default memo(function Webview({ account }) {
     [callWebviewMethod]
   );
 
-  /** Send Account Data */
-  const sendAccountData = useRefCallback(() => {
+  /** Send Whisker Data */
+  const sendWhiskerData = useRefCallback(() => {
     callWebviewMethod((webview) =>
       webview.send("WEBVIEW_CHANNEL", {
-        action: "set-whisker-account",
-        data: account,
+        action: "set-whisker-data",
+        data: {
+          account,
+          theme,
+        },
       })
     );
-  }, [account, callWebviewMethod]);
+  }, [account, theme, callWebviewMethod]);
 
   /** Initialize Webview */
   useEffect(() => {
@@ -128,7 +133,7 @@ export default memo(function Webview({ account }) {
       webviewIsReadyRef.current = true;
 
       // Send Account Data
-      sendAccountData();
+      sendWhiskerData();
     });
 
     // Context Menu
@@ -148,70 +153,75 @@ export default memo(function Webview({ account }) {
       webviewIsReadyRef.current = false;
       webviewRef.current = null;
     };
-  }, [partition, extensionPath, sendAccountData]);
+  }, [partition, extensionPath, sendWhiskerData]);
 
   /** Send Account Data */
   useEffect(() => {
     /** Send Current Data */
-    sendAccountData();
-  }, [account]);
+    sendWhiskerData();
+  }, [account, theme]);
 
   return (
     <div
       key={partition}
-      className={cn("grow flex flex-col shrink-0", "bg-orange-100")}
+      className={cn(
+        "grow flex flex-col shrink-0",
+        "divide-y dark:divide-neutral-700"
+      )}
     >
-      {/* Title */}
-      <h1 className="text-orange-500 truncate font-bold text-center p-2 pb-0">
-        {title}
-      </h1>
+      <div className="p-2 flex flex-col gap-2">
+        {/* Title */}
+        <h1 className="text-orange-500 truncate font-bold text-center">
+          {title}
+        </h1>
 
-      <div className="flex shrink-0 justify-between p-1 gap-1">
-        <div className="flex gap-1">
-          {/* Back */}
-          <WebviewButton title="Go Back" onClick={goBack}>
-            <HiOutlineArrowLeft className="size-4" />
-          </WebviewButton>
+        <div className="flex shrink-0 justify-between gap-1">
+          <div className="flex gap-1">
+            {/* Back */}
+            <WebviewButton title="Go Back" onClick={goBack}>
+              <HiOutlineArrowLeft className="size-4" />
+            </WebviewButton>
 
-          {/* Forward */}
-          <WebviewButton title="Go Forward" onClick={goForward}>
-            <HiOutlineArrowRight className="size-4" />
-          </WebviewButton>
+            {/* Forward */}
+            <WebviewButton title="Go Forward" onClick={goForward}>
+              <HiOutlineArrowRight className="size-4" />
+            </WebviewButton>
 
-          {/* Stop */}
-          <WebviewButton title="Stop" onClick={stop}>
-            <HiOutlineStop className="size-4" />
-          </WebviewButton>
+            {/* Stop */}
+            <WebviewButton title="Stop" onClick={stop}>
+              <HiOutlineStop className="size-4" />
+            </WebviewButton>
 
-          {/* Reload */}
-          <WebviewButton title="Reload" onClick={reload}>
-            <HiOutlineArrowPath className="size-4" />
-          </WebviewButton>
-        </div>
-        <div className="flex gap-1">
-          {/* Edit Button */}
-          <Dialog.Root
-            open={openEditAccountDialog}
-            onOpenChange={setOpenEditAccountDialog}
-          >
-            <Dialog.Trigger asChild title="Edit Account">
-              <WebviewButton>
-                <MdOutlineEditNote className="size-4" />
-              </WebviewButton>
-            </Dialog.Trigger>
-            <EditAccountDialog
-              account={account}
-              close={closeEditAccountDialog}
-            />
-          </Dialog.Root>
+            {/* Reload */}
+            <WebviewButton title="Reload" onClick={reload}>
+              <HiOutlineArrowPath className="size-4" />
+            </WebviewButton>
+          </div>
+          <div className="flex gap-1">
+            {/* Edit Button */}
+            <Dialog.Root
+              open={openEditAccountDialog}
+              onOpenChange={setOpenEditAccountDialog}
+            >
+              <Dialog.Trigger asChild title="Edit Account">
+                <WebviewButton>
+                  <MdOutlineEditNote className="size-4" />
+                </WebviewButton>
+              </Dialog.Trigger>
+              <EditAccountDialog
+                account={account}
+                close={closeEditAccountDialog}
+              />
+            </Dialog.Root>
 
-          {/* Close Button */}
-          <WebviewButton
-            title="Close Account"
-            onClick={() => closePartition(partition)}
-          >
-            <HiOutlineXCircle className="size-4" />
-          </WebviewButton>
+            {/* Close Button */}
+            <WebviewButton
+              title="Close Account"
+              onClick={() => closePartition(partition)}
+            >
+              <HiOutlineXCircle className="size-4" />
+            </WebviewButton>
+          </div>
         </div>
       </div>
       <div ref={containerRef} className="grow flex flex-col" />

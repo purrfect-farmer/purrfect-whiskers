@@ -14,7 +14,7 @@ export default memo(function ({ icon: Icon, title, description, children }) {
           "-translate-x-1/2 -translate-y-1/2",
           "flex flex-col gap-2",
           "rounded-2xl p-6",
-          "bg-white"
+          "bg-white dark:bg-neutral-800"
         )}
       >
         <Icon className="size-10 mx-auto text-orange-500" />
@@ -23,7 +23,7 @@ export default memo(function ({ icon: Icon, title, description, children }) {
           <Dialog.Title className="text-xl font-bold font-turret-road text-orange-500 text-center">
             {title}
           </Dialog.Title>
-          <Dialog.Description className="text-center text-neutral-500">
+          <Dialog.Description className="text-center text-neutral-500 dark:text-neutral-400">
             {description}
           </Dialog.Description>
         </div>

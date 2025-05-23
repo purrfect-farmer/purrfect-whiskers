@@ -16,8 +16,9 @@ const NumberInputButton = (props) => (
   <button
     {...props}
     className={cn(
-      "bg-neutral-100",
+      "bg-neutral-100 dark:bg-neutral-700",
       "hover:bg-orange-100 hover:text-orange-700",
+      "dark:hover:bg-orange-200 dark:hover:text-orange-500",
       "flex items-center justify-center",
       "p-1 px-3 rounded-lg"
     )}
@@ -42,10 +43,12 @@ const NumberInput = ({ value, label, onChange }) => (
 
 export default function SettingsDialog() {
   const extensionPath = useSettingsStore((state) => state.extensionPath);
+  const theme = useSettingsStore((state) => state.theme);
   const rows = useSettingsStore((state) => state.rows);
   const columns = useSettingsStore((state) => state.columns);
   const setColumns = useSettingsStore((state) => state.setColumns);
   const setRows = useSettingsStore((state) => state.setRows);
+  const setTheme = useSettingsStore((state) => state.setTheme);
   const setExtensionPath = useSettingsStore((state) => state.setExtensionPath);
 
   /** Pick Extension Path */
@@ -67,6 +70,27 @@ export default function SettingsDialog() {
       description={"Configure Settings"}
       icon={HiOutlineCog6Tooth}
     >
+      {/* Preferred Theme */}
+      <label className="text-orange-500 mt-2">Preferred Theme</label>
+      <div className="grid grid-cols-3 gap-2">
+        {["system", "light", "dark"].map((value) => (
+          <button
+            onClick={() => setTheme(value)}
+            key={value}
+            className={cn(
+              theme === value
+                ? ["bg-orange-100 text-orange-500", "dark:bg-orange-200"]
+                : ["bg-neutral-100 dark:bg-neutral-700"],
+              "p-2 rounded-xl",
+              "flex gap-1 items-center justify-center",
+              "uppercase"
+            )}
+          >
+            {value}
+          </button>
+        ))}
+      </div>
+
       {/* Columns and Rows */}
       <div className="grid grid-cols-2 gap-2 mt-4">
         <NumberInput
@@ -90,8 +114,9 @@ export default function SettingsDialog() {
         <button
           onClick={pickExtensionPath}
           className={cn(
-            "bg-neutral-100",
+            "bg-neutral-100 dark:bg-neutral-700",
             "hover:bg-orange-100 hover:text-orange-700",
+            "dark:hover:bg-orange-200 dark:hover:text-orange-500",
             "flex items-center justify-center",
             "p-1 px-3 rounded-lg"
           )}

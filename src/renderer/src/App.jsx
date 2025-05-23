@@ -6,6 +6,7 @@ import SideMenu from "./components/SideMenu";
 import Webview from "./components/Webview";
 import useAppStore from "./store/useAppStore";
 import useSettingsStore from "./store/useSettingsStore";
+import useTheme from "./hooks/useTheme";
 import { cn } from "./lib/utils";
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
   const partitions = useAppStore((state) => state.partitions);
   const setPartitions = useAppStore((state) => state.setPartitions);
 
+  const theme = useSettingsStore((state) => state.theme);
   const columns = useSettingsStore((state) => state.columns);
   const rows = useSettingsStore((state) => state.rows);
 
@@ -41,15 +43,18 @@ function App() {
     [partitions, itemsPerPage, setPartitions]
   );
 
+  useTheme(theme);
+
   return (
-    <div className="flex h-screen w-screen">
+    <div className="flex h-screen w-screen divide-x dark:divide-neutral-700">
       <SideMenu />
       <div className="grow overflow-clip">
         <div
           className={cn(
-            "h-full gap-x-0.5 grid grid-cols-(--grid-cols) auto-rows-(--auto-rows)",
+            "h-full grid grid-cols-(--grid-cols) auto-rows-(--auto-rows)",
             "-translate-y-(--current-page)",
-            "transition-transform duration-500"
+            "transition-transform duration-500",
+            "divide-x dark:divide-neutral-700"
           )}
           style={{
             "--current-page": `${currentPage * 100}%`,
@@ -94,8 +99,12 @@ function App() {
               className={cn(
                 "p-2 w-20 rounded-xl border border-transparent",
                 currentPage === pageIndex
-                  ? "border-orange-500 bg-orange-100 text-orange-500 font-bold"
-                  : "bg-neutral-100"
+                  ? [
+                      "border-orange-500 bg-orange-100 text-orange-500",
+                      "dark:bg-orange-200 dark:text-orange-500",
+                      "font-bold",
+                    ]
+                  : "bg-neutral-100 dark:bg-neutral-700"
               )}
               onClick={() => setPage(pageIndex)}
             >
@@ -106,7 +115,7 @@ function App() {
             <button
               className={cn(
                 "p-2 rounded-xl border border-transparent",
-                "bg-neutral-100 hover:bg-orange-100 hover:text-orange-500"
+                "bg-neutral-100 dark:bg-neutral-700 hover:bg-orange-100 hover:text-orange-500"
               )}
               onClick={() => closePage(pageIndex)}
             >

@@ -17,8 +17,9 @@ const ReorderItem = memo(function ReorderItem({
         <div className="min-w-0 min-h-0 grow flex flex-col">{children}</div>
         <button
           className={cn(
-            "bg-neutral-100",
+            "bg-neutral-100 dark:bg-neutral-700",
             "hover:bg-orange-100 hover:text-orange-700",
+            "dark:hover:bg-orange-200 dark:hover:text-orange-500",
             "flex items-center justify-center",
             "px-3 rounded-xl shrink-0",
             "touch-none",

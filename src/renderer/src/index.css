@@ -1,14 +1,14 @@
-@import './fonts.css' layer(base);
-@import 'tailwindcss' source('../src');
+@import "./fonts.css" layer(base);
+@import "tailwindcss" source("../src");
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   --font-sans:
-    'Noto Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-    'Segoe UI Symbol', 'Noto Color Emoji';
-  --font-noto-sans: 'Noto Sans';
-  --font-turret-road: 'Turret Road';
+    "Noto Sans", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-noto-sans: "Noto Sans";
+  --font-turret-road: "Turret Road";
 }
 
 @layer base {
@@ -35,12 +35,12 @@
 
   /* Set cursor to pointer for all buttons and elements with role="button" */
   button:not(:disabled),
-  [role='button']:not(:disabled) {
+  [role="button"]:not(:disabled) {
     @apply cursor-pointer;
   }
 }
 
 /* Override injected styles */
 body {
-  @apply font-sans text-xs;
+  @apply font-sans text-xs bg-white dark:bg-neutral-800 dark:text-white;
 }
