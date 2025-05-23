@@ -1,6 +1,6 @@
 import { Dialog } from "radix-ui";
-import { GoPerson } from "react-icons/go";
 import { HiOutlineTrash } from "react-icons/hi2";
+import { LuUserRoundPen } from "react-icons/lu";
 import { useCallback } from "react";
 
 import AccountForm from "./AccountForm";
@@ -41,13 +41,16 @@ export default function EditAccountDialog({ account, close }) {
           "flex flex-col gap-2"
         )}
       >
-        <GoPerson className="size-10 mx-auto text-orange-500" />
-        <Dialog.Title className="text-lg text-orange-500 font-light text-center">
-          Edit Account
-        </Dialog.Title>
-        <Dialog.Description className="sr-only">
-          Update Account Details
-        </Dialog.Description>
+        <LuUserRoundPen className="size-10 mx-auto text-orange-500" />
+
+        <div className="mb-2">
+          <Dialog.Title className="text-lg font-turret-road text-orange-500 font-bold text-center">
+            Edit Account
+          </Dialog.Title>
+          <Dialog.Description className="text-center text-neutral-500">
+            Update account data
+          </Dialog.Description>
+        </div>
 
         <AccountForm account={account} handleFormSubmit={saveAccountData} />
 
@@ -56,7 +59,7 @@ export default function EditAccountDialog({ account, close }) {
         <button
           onClick={deleteAccount}
           className={cn(
-            "px-4 py-2.5 bg-red-100 text-red-800 rounded-xl",
+            "px-4 py-2.5 border border-red-500 text-red-500 rounded-xl",
             "flex items-center justify-center gap-2"
           )}
         >

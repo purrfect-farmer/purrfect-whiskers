@@ -25,7 +25,7 @@ const NumberInputButton = (props) => (
 const NumberInput = ({ value, label, onChange }) => (
   <div className="flex gap-2">
     <div className="flex flex-col-reverse gap-2">
-      <label className="text-blue-500">{label}</label>
+      <label className="text-orange-500">{label}</label>
       <Input readOnly type="number" min="1" value={value} />
     </div>
     <div className="flex flex-col gap-1 shrink-0">
@@ -71,8 +71,9 @@ export default function SettingsDialog() {
         )}
       >
         <HiOutlineCog6Tooth className="size-10 mx-auto text-orange-500" />
+
         <div className="mb-4">
-          <Dialog.Title className="text-lg text-orange-500 font-light text-center">
+          <Dialog.Title className="text-lg font-turret-road text-orange-500 font-bold text-center">
             Settings
           </Dialog.Title>
           <Dialog.Description className="text-center text-neutral-500">

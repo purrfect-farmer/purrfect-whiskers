@@ -13,6 +13,17 @@ export const pickExtensionPath = async (_event, defaultPath) => {
 export const setupSession = async (_event, data) => {
   const session = electronSession.fromPartition(data.partition);
 
+  /** Remove preload scripts */
+  session
+    .getPreloadScripts()
+    .forEach((script) => session.unregisterPreloadScript(script.id));
+
+  /** Register preload script */
+  session.registerPreloadScript({
+    type: "frame",
+    filePath: join(__dirname, "../preload/index.js"),
+  });
+
   /** Register onHeadersReceived */
   session.webRequest.onHeadersReceived(
     { urls: ["<all_urls>"] },
