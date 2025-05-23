@@ -1,6 +1,9 @@
-# purrfect-whiskers
+<p align="center"><a href="https://t.me/purrfect_community" target="_blank"><img src="resources/icon.png" width="192" alt="Purrfect Logo"></a></p>
 
-An Electron application with React
+<h1 align="center">Purrfect Whiskers</h1>
+
+Multi-Account Electron application with React for the [Purrfect Farmer](https://github.com/purrfect-farmer/purrfect-farmer)
+
 
 ## Recommended IDE Setup
 
