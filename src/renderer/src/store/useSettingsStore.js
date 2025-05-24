@@ -8,6 +8,7 @@ export default create(
     combine(
       {
         extensionPath: import.meta.env.VITE_EXTENSION_PATH || "",
+        showWebviewToolbar: true,
         theme: "system",
         columns: 4,
         rows: 1,
@@ -17,6 +18,8 @@ export default create(
         setRows: (rows) => set({ rows }),
         setTheme: (theme) => set({ theme }),
         setExtensionPath: (extensionPath) => set({ extensionPath }),
+        setShowWebviewToolbar: (showWebviewToolbar) =>
+          set({ showWebviewToolbar }),
       })
     ),
     {

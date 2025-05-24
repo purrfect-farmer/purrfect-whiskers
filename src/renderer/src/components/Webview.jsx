@@ -33,6 +33,9 @@ const WebviewButton = memo((props) => (
 export default memo(function Webview({ account }) {
   const theme = useSettingsStore((state) => state.theme);
   const extensionPath = useSettingsStore((state) => state.extensionPath);
+  const showWebviewToolbar = useSettingsStore(
+    (state) => state.showWebviewToolbar
+  );
   const { title, partition } = account;
   const containerRef = useRef(null);
   const webviewRef = useRef(null);
@@ -182,54 +185,56 @@ export default memo(function Webview({ account }) {
           {title}
         </h1>
 
-        <div className="flex shrink-0 justify-between gap-1">
-          <div className="flex gap-1">
-            {/* Back */}
-            <WebviewButton title="Go Back" onClick={goBack}>
-              <HiOutlineArrowLeft className="size-4" />
-            </WebviewButton>
+        {showWebviewToolbar ? (
+          <div className="flex shrink-0 justify-between gap-1">
+            <div className="flex gap-1">
+              {/* Back */}
+              <WebviewButton title="Go Back" onClick={goBack}>
+                <HiOutlineArrowLeft className="size-4" />
+              </WebviewButton>
 
-            {/* Forward */}
-            <WebviewButton title="Go Forward" onClick={goForward}>
-              <HiOutlineArrowRight className="size-4" />
-            </WebviewButton>
+              {/* Forward */}
+              <WebviewButton title="Go Forward" onClick={goForward}>
+                <HiOutlineArrowRight className="size-4" />
+              </WebviewButton>
 
-            {/* Stop */}
-            <WebviewButton title="Stop" onClick={stop}>
-              <HiOutlineStop className="size-4" />
-            </WebviewButton>
+              {/* Stop */}
+              <WebviewButton title="Stop" onClick={stop}>
+                <HiOutlineStop className="size-4" />
+              </WebviewButton>
 
-            {/* Reload */}
-            <WebviewButton title="Reload" onClick={reload}>
-              <HiOutlineArrowPath className="size-4" />
-            </WebviewButton>
+              {/* Reload */}
+              <WebviewButton title="Reload" onClick={reload}>
+                <HiOutlineArrowPath className="size-4" />
+              </WebviewButton>
+            </div>
+            <div className="flex gap-1">
+              {/* Edit Button */}
+              <Dialog.Root
+                open={openEditAccountDialog}
+                onOpenChange={setOpenEditAccountDialog}
+              >
+                <Dialog.Trigger asChild title="Edit Account">
+                  <WebviewButton>
+                    <MdOutlineEditNote className="size-4" />
+                  </WebviewButton>
+                </Dialog.Trigger>
+                <EditAccountDialog
+                  account={account}
+                  close={closeEditAccountDialog}
+                />
+              </Dialog.Root>
+
+              {/* Close Button */}
+              <WebviewButton
+                title="Close Account"
+                onClick={() => closePartition(partition)}
+              >
+                <HiOutlineXCircle className="size-4" />
+              </WebviewButton>
+            </div>
           </div>
-          <div className="flex gap-1">
-            {/* Edit Button */}
-            <Dialog.Root
-              open={openEditAccountDialog}
-              onOpenChange={setOpenEditAccountDialog}
-            >
-              <Dialog.Trigger asChild title="Edit Account">
-                <WebviewButton>
-                  <MdOutlineEditNote className="size-4" />
-                </WebviewButton>
-              </Dialog.Trigger>
-              <EditAccountDialog
-                account={account}
-                close={closeEditAccountDialog}
-              />
-            </Dialog.Root>
-
-            {/* Close Button */}
-            <WebviewButton
-              title="Close Account"
-              onClick={() => closePartition(partition)}
-            >
-              <HiOutlineXCircle className="size-4" />
-            </WebviewButton>
-          </div>
-        </div>
+        ) : null}
       </div>
       <div ref={containerRef} className="grow flex flex-col" />
     </div>

@@ -9,6 +9,7 @@ import { useCallback } from "react";
 
 import AppDialogContent from "./AppDialogContent";
 import Input from "./Input";
+import LabelToggle from "./LabelToggle";
 import useSettingsStore from "../store/useSettingsStore";
 import { cn } from "../lib/utils";
 
@@ -42,14 +43,20 @@ const NumberInput = ({ value, label, onChange }) => (
 );
 
 export default function SettingsDialog() {
-  const extensionPath = useSettingsStore((state) => state.extensionPath);
   const theme = useSettingsStore((state) => state.theme);
   const rows = useSettingsStore((state) => state.rows);
   const columns = useSettingsStore((state) => state.columns);
+  const extensionPath = useSettingsStore((state) => state.extensionPath);
+  const showWebviewToolbar = useSettingsStore(
+    (state) => state.showWebviewToolbar
+  );
   const setColumns = useSettingsStore((state) => state.setColumns);
   const setRows = useSettingsStore((state) => state.setRows);
   const setTheme = useSettingsStore((state) => state.setTheme);
   const setExtensionPath = useSettingsStore((state) => state.setExtensionPath);
+  const setShowWebviewToolbar = useSettingsStore(
+    (state) => state.setShowWebviewToolbar
+  );
 
   /** Pick Extension Path */
   const pickExtensionPath = useCallback(async () => {
@@ -78,18 +85,26 @@ export default function SettingsDialog() {
             onClick={() => setTheme(value)}
             key={value}
             className={cn(
-              theme === value
-                ? ["bg-orange-100 text-orange-500", "dark:bg-orange-200"]
-                : ["bg-neutral-100 dark:bg-neutral-700"],
+              theme === value && "text-orange-500",
+              "bg-neutral-100 dark:bg-neutral-700",
               "p-2 rounded-xl",
               "flex gap-1 items-center justify-center",
-              "uppercase"
+              "uppercase font-bold"
             )}
           >
             {value}
           </button>
         ))}
       </div>
+
+      {/* Show Webview Toolbar */}
+      <label className="text-orange-500 mt-2">Show Webview Toolbar</label>
+      <LabelToggle
+        onChange={(ev) => setShowWebviewToolbar(ev.target.checked)}
+        checked={showWebviewToolbar}
+      >
+        Show Webview Toolbar
+      </LabelToggle>
 
       {/* Columns and Rows */}
       <div className="grid grid-cols-2 gap-2 mt-4">
