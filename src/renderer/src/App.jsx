@@ -1,4 +1,5 @@
 import { HiOutlineXMark } from "react-icons/hi2";
+import { Toaster } from "react-hot-toast";
 import { useCallback, useMemo } from "react";
 
 import Icon from "./assets/images/icon.png";
@@ -51,87 +52,101 @@ function App() {
   useExtensionUpdate();
 
   return (
-    <div className="flex h-screen w-screen divide-x dark:divide-neutral-700">
-      <SideMenu />
-      <div className="grow overflow-clip">
+    <>
+      {/* Application */}
+      <div className="flex h-screen w-screen divide-x dark:divide-neutral-700">
+        <SideMenu />
+        <div className="grow overflow-clip">
+          <div
+            className={cn(
+              "h-full grid grid-cols-(--grid-cols) auto-rows-(--auto-rows)",
+              "-translate-y-(--current-page)",
+              "transition-transform duration-500",
+              "divide-x dark:divide-neutral-700"
+            )}
+            style={{
+              "--current-page": `${currentPage * 100}%`,
+              "--grid-cols": `repeat(${columns}, minmax(0, 1fr))`,
+              "--auto-rows": `${100 / rows}%`,
+            }}
+          >
+            {webviews.length > 0 ? (
+              webviews.map((item) => (
+                <Webview key={item.partition} account={item} />
+              ))
+            ) : (
+              <div
+                className={cn(
+                  "flex flex-col justify-center items-center gap-4",
+                  "col-span-(--col-span) row-span-(--row-span)"
+                )}
+                style={{
+                  "--col-span": columns,
+                  "--row-span": rows,
+                }}
+              >
+                <img src={Icon} className="size-48" />
+                <h1 className="text-4xl font-turret-road text-orange-500">
+                  Purrfect Whiskers
+                </h1>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Pages */}
         <div
           className={cn(
-            "h-full grid grid-cols-(--grid-cols) auto-rows-(--auto-rows)",
-            "-translate-y-(--current-page)",
-            "transition-transform duration-500",
-            "divide-x dark:divide-neutral-700"
+            "shrink-0 p-2 flex flex-col gap-2",
+            "overflow-auto empty:hidden"
           )}
-          style={{
-            "--current-page": `${currentPage * 100}%`,
-            "--grid-cols": `repeat(${columns}, minmax(0, 1fr))`,
-            "--auto-rows": `${100 / rows}%`,
-          }}
         >
-          {webviews.length > 0 ? (
-            webviews.map((item) => (
-              <Webview key={item.partition} account={item} />
-            ))
-          ) : (
-            <div
-              className={cn(
-                "flex flex-col justify-center items-center gap-4",
-                "col-span-(--col-span) row-span-(--row-span)"
-              )}
-              style={{
-                "--col-span": columns,
-                "--row-span": rows,
-              }}
-            >
-              <img src={Icon} className="size-48" />
-              <h1 className="text-4xl font-turret-road text-orange-500">
-                Purrfect Whiskers
-              </h1>
+          {Array.from({ length: pageCount }).map((_, pageIndex) => (
+            <div key={pageIndex} className="flex gap-1">
+              <button
+                className={cn(
+                  "p-2 w-20 rounded-xl border border-transparent",
+                  currentPage === pageIndex
+                    ? [
+                        "border-orange-500 bg-orange-100 text-orange-500",
+                        "dark:bg-neutral-700 dark:text-orange-500",
+                        "font-bold",
+                      ]
+                    : "bg-neutral-100 dark:bg-neutral-700"
+                )}
+                onClick={() => setPage(pageIndex)}
+              >
+                Page {pageIndex + 1}
+              </button>
+
+              {/* Close Page */}
+              <button
+                className={cn(
+                  "p-2 rounded-xl border border-transparent",
+                  "bg-neutral-100 dark:bg-neutral-700",
+                  "hover:bg-orange-100 hover:text-orange-500",
+                  "dark:hover:bg-neutral-600"
+                )}
+                onClick={() => closePage(pageIndex)}
+              >
+                <HiOutlineXMark className="size-4" />
+              </button>
             </div>
-          )}
+          ))}
         </div>
       </div>
 
-      {/* Pages */}
-      <div
-        className={cn(
-          "shrink-0 p-2 flex flex-col gap-2",
-          "overflow-auto empty:hidden"
-        )}
-      >
-        {Array.from({ length: pageCount }).map((_, pageIndex) => (
-          <div key={pageIndex} className="flex gap-1">
-            <button
-              className={cn(
-                "p-2 w-20 rounded-xl border border-transparent",
-                currentPage === pageIndex
-                  ? [
-                      "border-orange-500 bg-orange-100 text-orange-500",
-                      "dark:bg-neutral-700 dark:text-orange-500",
-                      "font-bold",
-                    ]
-                  : "bg-neutral-100 dark:bg-neutral-700"
-              )}
-              onClick={() => setPage(pageIndex)}
-            >
-              Page {pageIndex + 1}
-            </button>
-
-            {/* Close Page */}
-            <button
-              className={cn(
-                "p-2 rounded-xl border border-transparent",
-                "bg-neutral-100 dark:bg-neutral-700",
-                "hover:bg-orange-100 hover:text-orange-500",
-                "dark:hover:bg-neutral-600"
-              )}
-              onClick={() => closePage(pageIndex)}
-            >
-              <HiOutlineXMark className="size-4" />
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
+      {/* Toaster */}
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 2000,
+          loading: {
+            duration: Infinity,
+          },
+        }}
+      />
+    </>
   );
 }
 

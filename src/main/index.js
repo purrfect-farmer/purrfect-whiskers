@@ -9,9 +9,10 @@ import {
   getExtensionVersion,
   pickExtensionPath,
   removeSession,
+  saveBackupFile,
   setupSession,
   updateExtension,
-} from "./libs/partitions";
+} from "./libs/handles";
 import { startMirrorServer, stopMirrorServer } from "./server";
 
 async function createWindow() {
@@ -66,7 +67,8 @@ app.whenReady().then(async () => {
   // Register conf listener
   new Conf().registerRendererListener();
 
-  // Session Partitions
+  // Handles
+  ipcMain.handle("save-backup-file", saveBackupFile);
   ipcMain.handle("update-extension", updateExtension);
   ipcMain.handle("get-extension-version", getExtensionVersion);
   ipcMain.handle("get-default-extension-path", getDefaultExtensionPath);

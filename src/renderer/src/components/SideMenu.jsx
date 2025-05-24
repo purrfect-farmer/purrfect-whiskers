@@ -4,8 +4,10 @@ import {
   HiOutlineBars3,
   HiOutlineCog6Tooth,
 } from "react-icons/hi2";
+import { LuDatabaseBackup } from "react-icons/lu";
 
 import AccountListDialog from "./AccountListDialog";
+import BackupAndRestoreDialog from "./BackupAndRestoreDialog";
 import Icon from "../assets/images/icon.png";
 import SettingsDialog from "./SettingsDialog";
 
@@ -28,6 +30,15 @@ export default function SideMenu() {
         </Dialog.Trigger>
 
         <SettingsDialog />
+      </Dialog.Root>
+
+      {/* Backup and Restore */}
+      <Dialog.Root>
+        <Dialog.Trigger title="Backup and Restore" className="p-2">
+          <LuDatabaseBackup className="size-5 text-orange-500" />
+        </Dialog.Trigger>
+
+        <BackupAndRestoreDialog />
       </Dialog.Root>
 
       {/* App Icon */}

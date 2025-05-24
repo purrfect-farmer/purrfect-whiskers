@@ -8,6 +8,7 @@ import {
   app,
   dialog,
   session as electronSession,
+  shell,
 } from "electron";
 import { createWriteStream } from "fs";
 import { deleteAsync } from "del";
@@ -221,4 +222,19 @@ export const removeSession = async (_event, partition) => {
   );
 
   await fs.rm(partitionPath, { recursive: true, force: true });
+};
+
+/** Save Backup File */
+export const saveBackupFile = async (_event, filename, content) => {
+  const backupDir = join(app.getPath("documents"), "Purrfect Whiskers Backup");
+  const backupFile = join(backupDir, filename);
+
+  /** Ensure backup directory exists */
+  await fs.mkdir(backupDir, { recursive: true });
+
+  /** Write to Backup */
+  await fs.writeFile(backupFile, content);
+
+  /** Show Backup File */
+  shell.showItemInFolder(backupFile);
 };
