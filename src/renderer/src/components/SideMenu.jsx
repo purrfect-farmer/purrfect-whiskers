@@ -1,5 +1,9 @@
 import { Dialog } from "radix-ui";
-import { HiOutlineBars3, HiOutlineCog6Tooth } from "react-icons/hi2";
+import {
+  HiOutlineArrowPath,
+  HiOutlineBars3,
+  HiOutlineCog6Tooth,
+} from "react-icons/hi2";
 
 import AccountListDialog from "./AccountListDialog";
 import Icon from "../assets/images/icon.png";
@@ -27,7 +31,16 @@ export default function SideMenu() {
       </Dialog.Root>
 
       {/* App Icon */}
-      <img src={Icon} alt="Icon" className="size-10 mt-auto" />
+      <img src={Icon} alt="Purrfect Whiskers" className="size-10 mt-auto" />
+
+      {/* Reload */}
+      <button
+        title="Reload App"
+        className="p-2"
+        onClick={() => window.location.reload()}
+      >
+        <HiOutlineArrowPath className="size-5 text-orange-500" />
+      </button>
     </div>
   );
 }
