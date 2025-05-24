@@ -5,9 +5,12 @@ import { join } from "path";
 
 import icon from "../../resources/icon.png?asset";
 import {
+  getDefaultExtensionPath,
+  getExtensionVersion,
   pickExtensionPath,
   removeSession,
   setupSession,
+  updateExtension,
 } from "./libs/partitions";
 import { startMirrorServer, stopMirrorServer } from "./server";
 
@@ -64,6 +67,9 @@ app.whenReady().then(async () => {
   new Conf().registerRendererListener();
 
   // Session Partitions
+  ipcMain.handle("update-extension", updateExtension);
+  ipcMain.handle("get-extension-version", getExtensionVersion);
+  ipcMain.handle("get-default-extension-path", getDefaultExtensionPath);
   ipcMain.handle("pick-extension-path", pickExtensionPath);
   ipcMain.handle("setup-session", setupSession);
   ipcMain.handle("remove-session", removeSession);

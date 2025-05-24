@@ -5,6 +5,7 @@ import Icon from "./assets/images/icon.png";
 import SideMenu from "./components/SideMenu";
 import Webview from "./components/Webview";
 import useAppStore from "./store/useAppStore";
+import useExtensionUpdate from "./hooks/useExtensionUpdate";
 import useSettingsStore from "./store/useSettingsStore";
 import useTheme from "./hooks/useTheme";
 import { cn } from "./lib/utils";
@@ -43,7 +44,11 @@ function App() {
     [partitions, itemsPerPage, setPartitions]
   );
 
+  /** Set Preferred Theme */
   useTheme(theme);
+
+  /** Update Extension */
+  useExtensionUpdate();
 
   return (
     <div className="flex h-screen w-screen divide-x dark:divide-neutral-700">
