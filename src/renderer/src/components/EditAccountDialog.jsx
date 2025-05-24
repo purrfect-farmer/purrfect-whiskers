@@ -39,7 +39,7 @@ export default function EditAccountDialog({ account, close }) {
     >
       <AccountForm account={account} handleFormSubmit={saveAccountData} />
 
-      <p className="text-center text-neutral-500">OR</p>
+      <p className="text-center text-neutral-500 dark:text-neutral-400">OR</p>
 
       <button
         onClick={deleteAccount}
