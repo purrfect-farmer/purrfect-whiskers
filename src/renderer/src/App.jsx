@@ -106,7 +106,7 @@ function App() {
                 currentPage === pageIndex
                   ? [
                       "border-orange-500 bg-orange-100 text-orange-500",
-                      "dark:bg-orange-200 dark:text-orange-500",
+                      "dark:bg-neutral-700 dark:text-orange-500",
                       "font-bold",
                     ]
                   : "bg-neutral-100 dark:bg-neutral-700"
@@ -120,7 +120,9 @@ function App() {
             <button
               className={cn(
                 "p-2 rounded-xl border border-transparent",
-                "bg-neutral-100 dark:bg-neutral-700 hover:bg-orange-100 hover:text-orange-500"
+                "bg-neutral-100 dark:bg-neutral-700",
+                "hover:bg-orange-100 hover:text-orange-500",
+                "dark:hover:bg-neutral-600"
               )}
               onClick={() => closePage(pageIndex)}
             >
