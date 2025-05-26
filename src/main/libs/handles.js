@@ -3,6 +3,7 @@ import axios from "axios";
 import fs from "fs/promises";
 import os from "os";
 import semver from "semver";
+import setCookie from "set-cookie-parser";
 import {
   Notification,
   app,
@@ -166,18 +167,14 @@ export const updateExtension = async (_event, path) => {
 
 /** Setup Session */
 export const setupSession = async (_event, data) => {
+  let extension;
+  const preload = "file://" + join(__dirname, "../preload/index.js");
   const session = electronSession.fromPartition(data.partition);
 
   /** Remove preload scripts */
   session
     .getPreloadScripts()
     .forEach((script) => session.unregisterPreloadScript(script.id));
-
-  /** Register preload script */
-  session.registerPreloadScript({
-    type: "frame",
-    filePath: join(__dirname, "../preload/index.js"),
-  });
 
   /** Register onHeadersReceived */
   session.webRequest.onHeadersReceived(
@@ -186,6 +183,7 @@ export const setupSession = async (_event, data) => {
       const responseHeaders = Object.fromEntries(
         Object.entries(details.responseHeaders).filter(([key]) => {
           return ![
+            "set-cookie",
             "x-frame-options",
             "content-security-policy",
             "cross-origin-embedder-policy",
@@ -194,18 +192,52 @@ export const setupSession = async (_event, data) => {
           ].includes(key.toLowerCase());
         })
       );
+
+      const setCookieHeaders = details.responseHeaders["set-cookie"] || [];
+
+      /** Relax Cookies */
+      setCookieHeaders.forEach((header) => {
+        const parsed = setCookie.parseString(header);
+
+        /**
+         * @type {import("electron").CookiesSetDetails}
+         */
+        const cookie = {
+          url: details.url,
+          name: parsed.name,
+          domain: parsed.domain,
+          path: parsed.path,
+          value: parsed.value,
+          httpOnly: parsed.httpOnly,
+          secure: true,
+          sameSite: "no_restriction",
+        };
+
+        if (typeof parsed.maxAge !== "undefined") {
+          cookie.expirationDate = Math.floor(Date.now() / 1000) + parsed.maxAge;
+        } else if (parsed.expires instanceof Date) {
+          cookie.expirationDate = Math.floor(parsed.expires.getTime() / 1000);
+        }
+
+        /** Set Cookie */
+        session.cookies.set(cookie).catch(console.error);
+      });
+
       callback({ responseHeaders });
     }
   );
 
   if (data.extensionPath) {
-    /** Load Extension */
-    const extension = await session.loadExtension(data.extensionPath, {
-      allowFileAccess: true,
-    });
-
-    return extension;
+    try {
+      /** Load Extension */
+      extension = await session.loadExtension(data.extensionPath, {
+        allowFileAccess: true,
+      });
+    } catch (e) {
+      console.error(e);
+    }
   }
+  return { extension, preload };
 };
 
 /** Remove Session */

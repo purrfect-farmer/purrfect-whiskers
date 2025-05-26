@@ -8,7 +8,7 @@ export function createWebview(partition, extensionPath) {
   webview.setAttribute("allowpopups", "true");
   webview.setAttribute(
     "webpreferences",
-    "nodeIntegration, webSecurity=false, sandbox=false"
+    `nodeIntegration, webSecurity=false, sandbox=false, additionalArguments&#61--partition=${partition}`
   );
   webview.setAttribute(
     "useragent",
@@ -25,7 +25,8 @@ export function createWebview(partition, extensionPath) {
   /** Load extension URL */
   window.electron.ipcRenderer
     .invoke("setup-session", { partition, extensionPath })
-    .then((extension) => {
+    .then(({ extension, preload }) => {
+      webview.preload = preload;
       webview.src = extension
         ? extension.url + "index.html"
         : import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
