@@ -4,11 +4,10 @@ export function createWebview(partition, extensionPath) {
 
   webview.setAttribute("partition", partition);
   webview.setAttribute("plugins", "true");
-  webview.setAttribute("nodeintegration", "true");
   webview.setAttribute("allowpopups", "true");
   webview.setAttribute(
     "webpreferences",
-    `nodeIntegration, webSecurity=false, sandbox=false, additionalArguments&#61--partition=${partition}`
+    `nodeIntegration, webSecurity=false, sandbox=false`
   );
   webview.setAttribute(
     "useragent",
