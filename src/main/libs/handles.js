@@ -176,6 +176,18 @@ export const setupSession = async (_event, data) => {
     .getPreloadScripts()
     .forEach((script) => session.unregisterPreloadScript(script.id));
 
+  /** Register onBeforeSendHeaders */
+  session.webRequest.onBeforeSendHeaders(
+    { urls: ["<all_urls>"] },
+    async (details, callback) => {
+      const origin = new URL(details.url).origin;
+      const requestHeaders = details.requestHeaders;
+      requestHeaders["Origin"] = origin;
+      requestHeaders["Referer"] = origin + "/";
+      callback({ requestHeaders });
+    }
+  );
+
   /** Register onHeadersReceived */
   session.webRequest.onHeadersReceived(
     { urls: ["<all_urls>"] },
