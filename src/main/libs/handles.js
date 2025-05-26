@@ -201,9 +201,21 @@ export const setupSession = async (_event, data) => {
             "cross-origin-embedder-policy",
             "cross-origin-opener-policy",
             "cross-origin-resource-policy",
+            "access-control-allow-origin",
+            "access-control-allow-credentials",
+            "access-control-allow-methods",
           ].includes(key.toLowerCase());
         })
       );
+
+      /** Set Access Control Headers */
+      if (details.referrer) {
+        responseHeaders["Access-Control-Allow-Origin"] = new URL(
+          details.referrer
+        ).origin;
+        responseHeaders["Access-Control-Allow-Credentials"] = "true";
+        responseHeaders["Access-Control-Allow-Methods"] = "*";
+      }
 
       const setCookieHeaders = details.responseHeaders["set-cookie"] || [];
 
