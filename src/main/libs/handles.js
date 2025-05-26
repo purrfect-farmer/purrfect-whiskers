@@ -317,3 +317,8 @@ export function setSessionCookie(_event, partition, options) {
   const session = electronSession.fromPartition(partition);
   return session.cookies.set(options);
 }
+
+/** Get App Version */
+export function getAppVersion(_event) {
+  return app.getVersion();
+}

@@ -5,6 +5,7 @@ import { join } from "path";
 
 import icon from "../../resources/icon.png?asset";
 import {
+  getAppVersion,
   getDefaultExtensionPath,
   getExtensionVersion,
   getSessionCookie,
@@ -69,6 +70,7 @@ app.whenReady().then(async () => {
   new Conf().registerRendererListener();
 
   // Handles
+  ipcMain.handle("get-app-version", getAppVersion);
   ipcMain.handle("get-session-cookie", getSessionCookie);
   ipcMain.handle("set-session-cookie", setSessionCookie);
   ipcMain.handle("save-backup-file", saveBackupFile);

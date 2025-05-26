@@ -18,9 +18,15 @@ import SettingsDialog from "./SettingsDialog";
 import { cn } from "../lib/utils";
 
 export default function SideMenu() {
-  const currentVersion =
-    "v" + window.electron.process.env["npm_package_version"];
+  const [currentVersion, setCurrentVersion] = useState(null);
   const [latestVersion, setLatestVersion] = useState(null);
+
+  /** Get App Version */
+  useEffect(() => {
+    window.electron.ipcRenderer
+      .invoke("get-app-version")
+      .then((version) => setCurrentVersion(version));
+  }, [setCurrentVersion]);
 
   /** Get Latest Release */
   useEffect(() => {
