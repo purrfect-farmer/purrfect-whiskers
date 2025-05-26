@@ -35,3 +35,18 @@ $ pnpm build:mac
 # For Linux
 $ pnpm build:linux
 ```
+
+### Guides
+```bash
+# For macOS
+$ xattr -cr "/Applications/Purrfect*.app"
+
+# Debian / Ubuntu
+$ sudo apt install -y ./purrfect-whiskers-*.deb
+
+# Arch-Linux
+sudo pacman -U purrfect-whiskers-*.pacman
+
+# RPM
+sudo rpm -i purrfect-whiskers-*.rpm
+```
