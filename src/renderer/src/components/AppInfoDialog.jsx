@@ -1,9 +1,13 @@
+import semver from "semver";
 import { Dialog } from "radix-ui";
+import { MdOutlineBrowserUpdated } from "react-icons/md";
 
+import Alert from "./Alert";
 import BaseDialogContent from "./BaseDialogContent";
 import Icon from "../assets/images/icon.png";
+import PrimaryButton from "./PrimaryButton";
 
-export default function AppInfoDialog() {
+export default function AppInfoDialog({ currentVersion, latestVersion }) {
   return (
     <BaseDialogContent>
       {/* App Icon */}
@@ -14,15 +18,36 @@ export default function AppInfoDialog() {
         <Dialog.Title className="text-xl font-bold font-turret-road text-orange-500 text-center">
           Purrfect Whiskers
         </Dialog.Title>
+
+        {/* Version */}
+        <div className="text-base font-turret-road text-orange-500 text-center font-bold">
+          Version: {currentVersion}
+        </div>
+
+        {/* Description */}
         <Dialog.Description className="text-center text-neutral-500 dark:text-neutral-400">
           Multi-Account sessions for the Purrfect Farmer
         </Dialog.Description>
       </div>
 
-      {/* Version */}
-      <div className="text-lg font-turret-road text-orange-500 text-center font-bold">
-        v{window.electron.process.env["npm_package_version"]}
-      </div>
+      {/* Latest Version */}
+      {latestVersion && semver.gt(latestVersion, currentVersion) ? (
+        <>
+          <Alert variant={"danger"}>
+            You are using an old version of the application. Update to the
+            latest version.
+          </Alert>
+          <PrimaryButton
+            as="a"
+            target="_blank"
+            href={import.meta.env.VITE_APP_RELEASE_PAGE_URL}
+            className="flex justify-center items-center gap-2"
+          >
+            <MdOutlineBrowserUpdated className="size-5" /> Get Latest Version -{" "}
+            {latestVersion}
+          </PrimaryButton>
+        </>
+      ) : null}
     </BaseDialogContent>
   );
 }

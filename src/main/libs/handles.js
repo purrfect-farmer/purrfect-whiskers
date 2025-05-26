@@ -123,7 +123,7 @@ export const updateExtension = async (_event, path) => {
   try {
     const currentExtensionVersion = await getExtensionVersion(_event, path);
     const currentRelease = await axios
-      .get(import.meta.env.VITE_EXTENSION_RELEASE_URL)
+      .get(import.meta.env.VITE_EXTENSION_RELEASE_API_URL)
       .then((res) => res.data);
     const currentTag = currentRelease["tag_name"];
 

@@ -1,3 +1,5 @@
+import axios from "axios";
+import semver from "semver";
 import { Dialog } from "radix-ui";
 import {
   HiOutlineArrowPath,
@@ -5,14 +7,28 @@ import {
   HiOutlineCog6Tooth,
 } from "react-icons/hi2";
 import { LuDatabaseBackup } from "react-icons/lu";
+import { MdOutlineBrowserUpdated } from "react-icons/md";
+import { useEffect, useState } from "react";
 
 import AccountListDialog from "./AccountListDialog";
 import AppInfoDialog from "./AppInfoDialog";
 import BackupAndRestoreDialog from "./BackupAndRestoreDialog";
 import Icon from "../assets/images/icon.png";
 import SettingsDialog from "./SettingsDialog";
+import { cn } from "../lib/utils";
 
 export default function SideMenu() {
+  const currentVersion =
+    "v" + window.electron.process.env["npm_package_version"];
+  const [latestVersion, setLatestVersion] = useState(null);
+
+  /** Get Latest Release */
+  useEffect(() => {
+    axios
+      .get(import.meta.env.VITE_APP_RELEASE_API_URL)
+      .then((res) => setLatestVersion(res.data["tag_name"]));
+  }, [setLatestVersion]);
+
   return (
     <div className="shrink-0 w-14 p-2 h-full flex flex-col gap-2 items-center">
       {/* Account List */}
@@ -44,10 +60,26 @@ export default function SideMenu() {
 
       {/* App Icon */}
       <Dialog.Root>
-        <Dialog.Trigger className="mt-auto size-10 relative">
+        <Dialog.Trigger className="mt-auto size-10 relative flex">
           <img src={Icon} alt="Purrfect Whiskers" className="size-full " />
+
+          {/* Latest Version Alert */}
+          {latestVersion && semver.gt(latestVersion, currentVersion) ? (
+            <span
+              className={cn(
+                "absolute rounded-full size-5 bg-red-500",
+                "flex items-center justify-center",
+                "-left-1 -top-1"
+              )}
+            >
+              <MdOutlineBrowserUpdated className="size-4" />
+            </span>
+          ) : null}
         </Dialog.Trigger>
-        <AppInfoDialog />
+        <AppInfoDialog
+          currentVersion={currentVersion}
+          latestVersion={latestVersion}
+        />
       </Dialog.Root>
 
       {/* Reload */}
