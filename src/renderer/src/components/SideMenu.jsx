@@ -7,6 +7,7 @@ import {
 import { LuDatabaseBackup } from "react-icons/lu";
 
 import AccountListDialog from "./AccountListDialog";
+import AppInfoDialog from "./AppInfoDialog";
 import BackupAndRestoreDialog from "./BackupAndRestoreDialog";
 import Icon from "../assets/images/icon.png";
 import SettingsDialog from "./SettingsDialog";
@@ -42,7 +43,12 @@ export default function SideMenu() {
       </Dialog.Root>
 
       {/* App Icon */}
-      <img src={Icon} alt="Purrfect Whiskers" className="size-10 mt-auto" />
+      <Dialog.Root>
+        <Dialog.Trigger className="mt-auto size-10 relative">
+          <img src={Icon} alt="Purrfect Whiskers" className="size-full " />
+        </Dialog.Trigger>
+        <AppInfoDialog />
+      </Dialog.Root>
 
       {/* Reload */}
       <button
