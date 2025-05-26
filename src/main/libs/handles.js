@@ -179,7 +179,7 @@ export const setupSession = async (_event, data) => {
   /** Register onHeadersReceived */
   session.webRequest.onHeadersReceived(
     { urls: ["<all_urls>"] },
-    (details, callback) => {
+    async (details, callback) => {
       const responseHeaders = Object.fromEntries(
         Object.entries(details.responseHeaders).filter(([key]) => {
           return ![
@@ -196,7 +196,7 @@ export const setupSession = async (_event, data) => {
       const setCookieHeaders = details.responseHeaders["set-cookie"] || [];
 
       /** Relax Cookies */
-      setCookieHeaders.forEach((header) => {
+      for (const header of setCookieHeaders) {
         const parsed = setCookie.parseString(header);
 
         /**
@@ -219,9 +219,20 @@ export const setupSession = async (_event, data) => {
           cookie.expirationDate = Math.floor(parsed.expires.getTime() / 1000);
         }
 
-        /** Set Cookie */
-        session.cookies.set(cookie).catch(console.error);
-      });
+        /** If expired, then remove */
+        if (
+          cookie.expirationDate &&
+          cookie.expirationDate < Date.now() / 1000
+        ) {
+          /** Remove Cookie */
+          await session.cookies
+            .remove(cookie.url, cookie.name)
+            .catch(console.error);
+        } else {
+          /** Set Cookie */
+          await session.cookies.set(cookie).catch(console.error);
+        }
+      }
 
       callback({ responseHeaders });
     }
