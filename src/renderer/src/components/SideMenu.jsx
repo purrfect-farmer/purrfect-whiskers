@@ -25,7 +25,7 @@ export default function SideMenu() {
   useEffect(() => {
     window.electron.ipcRenderer
       .invoke("get-app-version")
-      .then((version) => setCurrentVersion(version));
+      .then((version) => setCurrentVersion("v" + version));
   }, [setCurrentVersion]);
 
   /** Get Latest Release */
