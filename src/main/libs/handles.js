@@ -270,3 +270,15 @@ export const saveBackupFile = async (_event, filename, content) => {
   /** Show Backup File */
   shell.showItemInFolder(backupFile);
 };
+
+/** Get Session Cookie */
+export function getSessionCookie(_event, partition, options) {
+  const session = electronSession.fromPartition(partition);
+  return session.cookies.get(options);
+}
+
+/** Set Session Cookie */
+export function setSessionCookie(_event, partition, options) {
+  const session = electronSession.fromPartition(partition);
+  return session.cookies.set(options);
+}

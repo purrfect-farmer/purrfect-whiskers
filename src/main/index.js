@@ -7,9 +7,11 @@ import icon from "../../resources/icon.png?asset";
 import {
   getDefaultExtensionPath,
   getExtensionVersion,
+  getSessionCookie,
   pickExtensionPath,
   removeSession,
   saveBackupFile,
+  setSessionCookie,
   setupSession,
   updateExtension,
 } from "./libs/handles";
@@ -68,6 +70,8 @@ app.whenReady().then(async () => {
   new Conf().registerRendererListener();
 
   // Handles
+  ipcMain.handle("get-session-cookie", getSessionCookie);
+  ipcMain.handle("set-session-cookie", setSessionCookie);
   ipcMain.handle("save-backup-file", saveBackupFile);
   ipcMain.handle("update-extension", updateExtension);
   ipcMain.handle("get-extension-version", getExtensionVersion);

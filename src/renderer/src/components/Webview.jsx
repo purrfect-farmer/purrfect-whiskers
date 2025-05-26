@@ -121,8 +121,10 @@ export default memo(function Webview({ account }) {
       if (event.channel === "webview-message") {
         const { action } = event.args[0];
 
-        if (action === "get-whisker-data") {
-          sendWhiskerData();
+        switch (action) {
+          case "get-whisker-data":
+            sendWhiskerData();
+            break;
         }
       }
     });
