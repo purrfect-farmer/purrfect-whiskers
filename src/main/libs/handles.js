@@ -139,11 +139,16 @@ export const removeProxyHandler = (partition) => {
 
 /** Configure Proxy */
 export const configureProxy = async (_event, partition, options) => {
+  /** Get Session */
   const session = getSession(partition);
-  if (options.proxyEnabled) {
-    /** Remove Handler */
-    removeProxyHandler(partition);
 
+  /** Close All Connection */
+  await session.closeAllConnections();
+
+  /** Remove Previous Handler */
+  removeProxyHandler(partition);
+
+  if (options.proxyEnabled) {
     /** Add new Handler */
     addProxyHandler(partition, options.proxyUsername, options.proxyPassword);
 
@@ -154,9 +159,6 @@ export const configureProxy = async (_event, partition, options) => {
   } else {
     /** Clear Proxy */
     await session.setProxy({ proxyRules: "" });
-
-    /** Remove Handler */
-    removeProxyHandler(partition);
   }
 };
 
@@ -192,13 +194,19 @@ export const setupSession = async (_event, data) => {
 
 /** Close Session */
 export const closeSession = async (_event, partition) => {
-  /** Remove Proxy Handler */
-  await removeProxyHandler(partition);
-
   /** Get Session */
   const session = getSession(partition);
 
-  /** Unregister Handlers */
+  /** Close All Connection */
+  await session.closeAllConnections();
+
+  /** Clear Proxy */
+  await session.setProxy({ proxyRules: "" });
+
+  /** Remove Handler */
+  removeProxyHandler(partition);
+
+  /** Unregister WebRequest Handlers */
   session.webRequest.onBeforeSendHeaders({ urls: ["<all_urls>"] }, null);
   session.webRequest.onHeadersReceived({ urls: ["<all_urls>"] }, null);
 
