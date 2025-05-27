@@ -200,7 +200,7 @@ export const closeSession = async (_event, partition) => {
   /** Clear Proxy */
   await session.setProxy({ proxyRules: "" });
 
-  /** Remove Handler */
+  /** Remove Proxy Handler */
   removeProxyHandler(partition);
 
   /** Unregister WebRequest Handlers */
