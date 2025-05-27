@@ -109,7 +109,7 @@ function App() {
             <div key={pageIndex} className="flex gap-1">
               <button
                 className={cn(
-                  "p-2 w-20 rounded-xl border border-transparent",
+                  "p-2 w-14 rounded-xl border border-transparent",
                   currentPage === pageIndex
                     ? [
                         "border-orange-500 bg-orange-100 text-orange-500",
@@ -120,7 +120,7 @@ function App() {
                 )}
                 onClick={() => setPage(pageIndex)}
               >
-                Page {pageIndex + 1}
+                {pageIndex + 1}
               </button>
 
               {/* Close Page */}
