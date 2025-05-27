@@ -151,7 +151,7 @@ export const configureProxy = async (_event, partition, options) => {
 
     /** Set Proxy */
     await session.setProxy({
-      proxyRules: `${options.proxyHost}:${options.proxyPort || 80}`,
+      proxyRules: `${options.proxyHost}:${options.proxyPort || 80},direct://`,
     });
   } else {
     /** Clear Proxy */

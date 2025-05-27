@@ -14,7 +14,12 @@ import useAppStore from "../store/useAppStore";
 import useDialogState from "../hooks/useDialogState";
 import useRefCallback from "../hooks/useRefCallback";
 import useSettingsStore from "../store/useSettingsStore";
-import { closeSession, configureProxy, createWebview } from "../lib/partitions";
+import {
+  closeSession,
+  configureProxy,
+  createWebview,
+  registerWebviewMessage,
+} from "../lib/partitions";
 import { cn } from "../lib/utils";
 
 const WebviewButton = memo((props) => (
@@ -32,6 +37,7 @@ const WebviewButton = memo((props) => (
 ));
 
 export default memo(function Webview({ account }) {
+  const updateAccount = useAppStore((state) => state.updateAccount);
   const theme = useSettingsStore((state) => state.theme);
   const extensionPath = useSettingsStore((state) => state.extensionPath);
   const showWebviewToolbar = useSettingsStore(
@@ -110,6 +116,17 @@ export default memo(function Webview({ account }) {
     );
   }, [getWhiskerData, callWebviewMethod]);
 
+  /** Update Proxy */
+  const updateProxy = useRefCallback(
+    (data) => {
+      updateAccount({
+        ...account,
+        ...data,
+      });
+    },
+    [account, updateAccount]
+  );
+
   /** Initialize Webview */
   useEffect(() => {
     const container = containerRef.current;
@@ -125,16 +142,9 @@ export default memo(function Webview({ account }) {
     });
 
     /** IPC Message */
-    webview.addEventListener("ipc-message", (event) => {
-      if (event.channel === "webview-message") {
-        const { action } = event.args[0];
-
-        switch (action) {
-          case "get-whisker-data":
-            sendWhiskerData();
-            break;
-        }
-      }
+    registerWebviewMessage(webview, {
+      "get-whisker-data": () => sendWhiskerData(),
+      "set-proxy": (data) => updateProxy(data),
     });
 
     /** Append to container */
@@ -150,7 +160,7 @@ export default memo(function Webview({ account }) {
       webviewIsReadyRef.current = false;
       webviewRef.current = null;
     };
-  }, [partition, extensionPath, sendWhiskerData]);
+  }, [partition, extensionPath, updateProxy, sendWhiskerData]);
 
   /** Configure Proxy */
   useEffect(() => {
@@ -168,6 +178,7 @@ export default memo(function Webview({ account }) {
     proxyPort,
     proxyUsername,
     proxyPassword,
+    configureProxy,
   ]);
 
   /** Send Whisker Data */

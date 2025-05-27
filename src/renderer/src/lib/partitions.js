@@ -1,3 +1,4 @@
+/** Configure Proxy */
 export function configureProxy(partition, options) {
   return window.electron.ipcRenderer.invoke(
     "configure-proxy",
@@ -6,10 +7,12 @@ export function configureProxy(partition, options) {
   );
 }
 
+/** Close Session */
 export function closeSession(partition) {
   return window.electron.ipcRenderer.invoke("close-session", partition);
 }
 
+/** Create Webview */
 export function createWebview(partition, extensionPath) {
   /** Create the <webview> element */
   const webview = document.createElement("webview");
@@ -47,4 +50,28 @@ export function createWebview(partition, extensionPath) {
     });
 
   return webview;
+}
+
+/**
+ * Register Webview Message
+ * @param {Electron.WebviewTag} webview
+ */
+export function registerWebviewMessage(webview, handlers) {
+  const reply = (data) => {
+    webview.send("host-message", data);
+  };
+
+  const listener = (event) => {
+    if (event.channel === "webview-message") {
+      const { action, data } = event.args[0];
+
+      if (typeof handlers[action] === "function") {
+        handlers[action](data, reply);
+      }
+    }
+  };
+
+  webview.addEventListener("ipc-message", listener);
+
+  return listener;
 }

@@ -12,7 +12,12 @@ import useAppStore from "../store/useAppStore";
 import useSettingsStore from "../store/useSettingsStore";
 import useTabs from "../hooks/useTabs";
 import { chunkArrayGenerator, cn } from "../lib/utils";
-import { closeSession, configureProxy, createWebview } from "../lib/partitions";
+import {
+  closeSession,
+  configureProxy,
+  createWebview,
+  registerWebviewMessage,
+} from "../lib/partitions";
 
 export default function BackupAndRestoreDialog() {
   const containerRef = useRef();
@@ -58,48 +63,48 @@ export default function BackupAndRestoreDialog() {
         const container = containerRef.current;
         const webview = createWebview(partition, extensionPath);
 
+        /** Send Host Message */
         const sendHostMessage = (data) => {
           webview.send("host-message", data);
         };
 
-        webview.addEventListener("ipc-message", (event) => {
-          if (event.channel === "webview-message") {
-            const { action, data } = event.args[0];
+        /** Handle Response */
+        const handleResponse = (data) => {
+          closeSession(partition);
+          webview.remove();
+          resolve(data);
+        };
 
-            switch (action) {
-              case "get-whisker-data":
-                /** Send Whisker Data */
-                sendHostMessage({
-                  action: "set-whisker-data",
-                  data: {
-                    account,
-                    theme,
-                  },
-                });
+        /** Register Webview Message */
+        registerWebviewMessage(webview, {
+          "get-whisker-data": () => {
+            /** Send Whisker Data */
+            sendHostMessage({
+              action: "set-whisker-data",
+              data: {
+                account,
+                theme,
+              },
+            });
 
-                if (backup) {
-                  /** Restore Backup Data */
-                  sendHostMessage({
-                    action: "restore-backup-data",
-                    data: backup,
-                  });
-                } else {
-                  /** Request for Backup Data */
-                  sendHostMessage({
-                    action: "get-backup-data",
-                  });
-                }
-
-                break;
-
-              case "response-get-backup-data":
-              case "response-restore-backup-data":
-                closeSession(partition);
-                webview.remove();
-                resolve(data);
-                break;
+            if (backup) {
+              /** Restore Backup Data */
+              sendHostMessage({
+                action: "restore-backup-data",
+                data: backup,
+              });
+            } else {
+              /** Request for Backup Data */
+              sendHostMessage({
+                action: "get-backup-data",
+              });
             }
-          }
+          },
+          "set-proxy": (data) => {
+            configureProxy(partition, data);
+          },
+          "response-get-backup-data": handleResponse,
+          "response-restore-backup-data": handleResponse,
         });
 
         /** Append to container */
