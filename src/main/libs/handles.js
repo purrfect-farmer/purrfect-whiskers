@@ -13,8 +13,8 @@ import { join } from "path";
 import { downloadAndExtract } from "./downloader";
 import { onBeforeSendHeaders, onHeadersReceived } from "./webRequest";
 
-/** Sessions Set */
-const sessionsSet = new Set();
+/** Session Map */
+const sessionMap = new Map();
 
 /** Proxy Handler Map */
 const proxyHandlerMap = new Map();
@@ -104,13 +104,10 @@ export const updateExtension = async (_event, path) => {
  * @returns {Electron.Session | undefined}
  */
 export const getSession = (partition) => {
-  const session = electronSession.fromPartition(partition);
-
-  if (!sessionsSet.has(partition)) {
-    sessionsSet.add(partition);
+  if (!sessionMap.has(partition)) {
+    sessionMap.set(partition, electronSession.fromPartition(partition));
   }
-
-  return session;
+  return sessionMap.get(partition);
 };
 
 /** Add Proxy Handler */
@@ -215,8 +212,8 @@ export const closeSession = async (_event, partition) => {
     .getAllExtensions()
     .forEach((extension) => session.removeExtension(extension.id));
 
-  /** Remove From Set */
-  sessionsSet.delete(partition);
+  /** Remove From Map */
+  sessionMap.delete(partition);
 };
 
 /** Remove Session */
@@ -262,12 +259,12 @@ export function setSessionCookie(_event, partition, options) {
 
 /** Close All Sessions */
 export async function closeAllSessions() {
-  for (const partition of sessionsSet.values()) {
+  for (const partition of sessionMap.keys()) {
     await closeSession(null, partition);
   }
 
-  /** Clear Session Set */
-  sessionsSet.clear();
+  /** Clear Session Map */
+  sessionMap.clear();
 
   /** Clear Proxy Handler Map */
   proxyHandlerMap.clear();
