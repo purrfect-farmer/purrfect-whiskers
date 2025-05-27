@@ -5,6 +5,9 @@ import { join } from "path";
 
 import icon from "../../resources/icon.png?asset";
 import {
+  closeAllSessions,
+  closeSession,
+  configureProxy,
   getAppVersion,
   getDefaultExtensionPath,
   getExtensionVersion,
@@ -32,6 +35,8 @@ async function createWindow() {
       webviewTag: true,
     },
   });
+
+  mainWindow.on("close", closeAllSessions);
 
   mainWindow.on("ready-to-show", async () => {
     mainWindow.maximize();
@@ -78,8 +83,11 @@ app.whenReady().then(async () => {
   ipcMain.handle("get-extension-version", getExtensionVersion);
   ipcMain.handle("get-default-extension-path", getDefaultExtensionPath);
   ipcMain.handle("pick-extension-path", pickExtensionPath);
+  ipcMain.handle("configure-proxy", configureProxy);
   ipcMain.handle("setup-session", setupSession);
+  ipcMain.handle("close-session", closeSession);
   ipcMain.handle("remove-session", removeSession);
+  ipcMain.handle("close-all-sessions", closeAllSessions);
 
   // Start Mirror Server
   await startMirrorServer();

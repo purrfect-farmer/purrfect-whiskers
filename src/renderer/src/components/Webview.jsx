@@ -14,8 +14,8 @@ import useAppStore from "../store/useAppStore";
 import useDialogState from "../hooks/useDialogState";
 import useRefCallback from "../hooks/useRefCallback";
 import useSettingsStore from "../store/useSettingsStore";
+import { closeSession, configureProxy, createWebview } from "../lib/partitions";
 import { cn } from "../lib/utils";
-import { createWebview } from "../lib/webview";
 
 const WebviewButton = memo((props) => (
   <button
@@ -37,7 +37,15 @@ export default memo(function Webview({ account }) {
   const showWebviewToolbar = useSettingsStore(
     (state) => state.showWebviewToolbar
   );
-  const { title, partition } = account;
+  const {
+    title,
+    partition,
+    proxyEnabled,
+    proxyHost,
+    proxyPort,
+    proxyUsername,
+    proxyPassword,
+  } = account;
   const containerRef = useRef(null);
   const webviewRef = useRef(null);
   const webviewIsReadyRef = useRef(false);
@@ -137,11 +145,30 @@ export default memo(function Webview({ account }) {
 
     /** Cleanup on unmount */
     return () => {
+      closeSession(partition);
       webview.remove();
       webviewIsReadyRef.current = false;
       webviewRef.current = null;
     };
   }, [partition, extensionPath, sendWhiskerData]);
+
+  /** Configure Proxy */
+  useEffect(() => {
+    configureProxy(partition, {
+      proxyEnabled,
+      proxyHost,
+      proxyPort,
+      proxyUsername,
+      proxyPassword,
+    });
+  }, [
+    partition,
+    proxyEnabled,
+    proxyHost,
+    proxyPort,
+    proxyUsername,
+    proxyPassword,
+  ]);
 
   /** Send Whisker Data */
   useEffect(() => {

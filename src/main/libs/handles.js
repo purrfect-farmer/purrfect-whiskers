@@ -1,9 +1,6 @@
-import AdmZip from "adm-zip";
 import axios from "axios";
 import fs from "fs/promises";
-import os from "os";
 import semver from "semver";
-import setCookie from "set-cookie-parser";
 import {
   Notification,
   app,
@@ -11,80 +8,16 @@ import {
   session as electronSession,
   shell,
 } from "electron";
-import { createWriteStream } from "fs";
-import { deleteAsync } from "del";
 import { join } from "path";
 
-/** Clean Directory */
-async function cleanDirectory(dir) {
-  try {
-    await deleteAsync(join(dir, "**"), { force: true });
-    console.log(`Cleaned up directory: ${dir}`);
-  } catch (error) {
-    console.error(`Failed to clean directory ${dir}:`, error);
-    throw error;
-  }
-}
+import { downloadAndExtract } from "./downloader";
+import { onBeforeSendHeaders, onHeadersReceived } from "./webRequest";
 
-/** Download Zip */
-async function downloadZip(url, outputPath) {
-  const writer = createWriteStream(outputPath);
+/** Session Map */
+const sessionMap = new Map();
 
-  const response = await axios({
-    url,
-    method: "GET",
-    responseType: "stream",
-  });
-
-  response.data.pipe(writer);
-
-  return new Promise((resolve, reject) => {
-    writer.on("finish", resolve);
-    writer.on("error", reject);
-  });
-}
-
-/** Extract Zip */
-async function extractZip(zipPath, extractToDir) {
-  const zip = new AdmZip(zipPath);
-  zip.extractAllTo(extractToDir, true);
-}
-
-/** Download and Extract */
-async function downloadAndExtract(url, extractToDir) {
-  const tempDir = await fs.mkdtemp(join(os.tmpdir(), "whiskers-"));
-  const zipPath = join(tempDir, "temp.zip");
-
-  try {
-    /** Download ZIP */
-    console.log("Downloading ZIP to temp dir...");
-    await downloadZip(url, zipPath);
-    console.log("Download complete:", zipPath);
-
-    /** Cleanup extract directory */
-    console.log("Cleaning target directory...");
-    await cleanDirectory(extractToDir);
-
-    /** Ensure extract directory exists */
-    await fs.mkdir(extractToDir, { recursive: true });
-
-    /** Extract ZIP */
-    console.log("Extracting zip...");
-    await extractZip(zipPath, extractToDir);
-    console.log("Extraction complete.");
-  } catch (err) {
-    console.error("Error:", err);
-  } finally {
-    /** Clean up the temp ZIP file and temp directory */
-    try {
-      await fs.unlink(zipPath);
-      await fs.rmdir(tempDir);
-      console.log("Cleaned up temp files");
-    } catch (e) {
-      console.warn("Failed to fully clean temp files:", e);
-    }
-  }
-}
+/** Proxy Handler Map */
+const proxyHandlerMap = new Map();
 
 /** Get Default Extension Path */
 export const getDefaultExtensionPath = async (_event) => {
@@ -165,11 +98,75 @@ export const updateExtension = async (_event, path) => {
   };
 };
 
+/**
+ * Get Session
+ * @param {string} partition
+ * @returns {Electron.Session | undefined}
+ */
+export const getSession = (partition) => {
+  if (sessionMap.has(partition)) {
+    return sessionMap.get(partition);
+  } else {
+    const session = electronSession.fromPartition(partition);
+
+    sessionMap.set(partition, session);
+
+    return session;
+  }
+};
+
+/** Add Proxy Handler */
+export const addProxyHandler = (partition, username, password) => {
+  const handler = (event, webContents, request, authInfo, callback) => {
+    if (authInfo.isProxy && webContents.session === getSession(partition)) {
+      event.preventDefault();
+      callback(username, password);
+    }
+  };
+
+  /** Store Handler */
+  proxyHandlerMap.set(partition, handler);
+
+  /** Add Listener */
+  app.addListener("login", handler);
+};
+
+/** Remove Proxy Handler */
+export const removeProxyHandler = (partition) => {
+  if (proxyHandlerMap.has(partition)) {
+    app.removeListener("login", proxyHandlerMap.get(partition));
+    proxyHandlerMap.delete(partition);
+  }
+};
+
+/** Configure Proxy */
+export const configureProxy = async (_event, partition, options) => {
+  const session = getSession(partition);
+  if (options.proxyEnabled) {
+    /** Remove Handler */
+    removeProxyHandler(partition);
+
+    /** Add new Handler */
+    addProxyHandler(partition, options.proxyUsername, options.proxyPassword);
+
+    /** Set Proxy */
+    await session.setProxy({
+      proxyRules: `${options.proxyHost}:${options.proxyPort || 80}`,
+    });
+  } else {
+    /** Clear Proxy */
+    await session.setProxy({ proxyRules: "" });
+
+    /** Remove Handler */
+    removeProxyHandler(partition);
+  }
+};
+
 /** Setup Session */
 export const setupSession = async (_event, data) => {
   let extension;
   const preload = "file://" + join(__dirname, "../preload/index.js");
-  const session = electronSession.fromPartition(data.partition);
+  const session = getSession(data.partition);
 
   /** Remove preload scripts */
   session
@@ -177,93 +174,10 @@ export const setupSession = async (_event, data) => {
     .forEach((script) => session.unregisterPreloadScript(script.id));
 
   /** Register onBeforeSendHeaders */
-  session.webRequest.onBeforeSendHeaders(
-    { urls: ["<all_urls>"] },
-    async (details, callback) => {
-      const origin = new URL(details.url).origin;
-      const requestHeaders = details.requestHeaders;
-      requestHeaders["Origin"] = origin;
-      requestHeaders["Referer"] = origin + "/";
-
-      callback({ requestHeaders });
-    }
-  );
+  onBeforeSendHeaders(session);
 
   /** Register onHeadersReceived */
-  session.webRequest.onHeadersReceived(
-    { urls: ["<all_urls>"] },
-    async (details, callback) => {
-      const responseHeaders = Object.fromEntries(
-        Object.entries(details.responseHeaders).filter(([key]) => {
-          return ![
-            "set-cookie",
-            "x-frame-options",
-            "content-security-policy",
-            "cross-origin-embedder-policy",
-            "cross-origin-opener-policy",
-            "cross-origin-resource-policy",
-            "access-control-allow-origin",
-            "access-control-allow-credentials",
-            "access-control-allow-methods",
-            "access-control-allow-header",
-          ].includes(key.toLowerCase());
-        })
-      );
-
-      /** Set Access Control Headers */
-      if (details.referrer) {
-        responseHeaders["Access-Control-Allow-Origin"] = new URL(
-          details.referrer
-        ).origin;
-        responseHeaders["Access-Control-Allow-Credentials"] = "true";
-        responseHeaders["Access-Control-Allow-Methods"] = "*";
-        responseHeaders["Access-Control-Allow-Headers"] = "*";
-      }
-
-      const setCookieHeaders = details.responseHeaders["set-cookie"] || [];
-
-      /** Relax Cookies */
-      for (const header of setCookieHeaders) {
-        const parsed = setCookie.parseString(header);
-
-        /**
-         * @type {import("electron").CookiesSetDetails}
-         */
-        const cookie = {
-          url: details.url,
-          name: parsed.name,
-          domain: parsed.domain,
-          path: parsed.path,
-          value: parsed.value,
-          httpOnly: parsed.httpOnly,
-          secure: true,
-          sameSite: "no_restriction",
-        };
-
-        if (typeof parsed.maxAge !== "undefined") {
-          cookie.expirationDate = Math.floor(Date.now() / 1000) + parsed.maxAge;
-        } else if (parsed.expires instanceof Date) {
-          cookie.expirationDate = Math.floor(parsed.expires.getTime() / 1000);
-        }
-
-        /** If expired, then remove */
-        if (
-          cookie.expirationDate &&
-          cookie.expirationDate < Date.now() / 1000
-        ) {
-          /** Remove Cookie */
-          await session.cookies
-            .remove(cookie.url, cookie.name)
-            .catch(console.error);
-        } else {
-          /** Set Cookie */
-          await session.cookies.set(cookie).catch(console.error);
-        }
-      }
-
-      callback({ responseHeaders });
-    }
-  );
+  onHeadersReceived(session);
 
   if (data.extensionPath) {
     try {
@@ -278,19 +192,40 @@ export const setupSession = async (_event, data) => {
   return { extension, preload };
 };
 
+/** Close Session */
+export const closeSession = async (_event, partition) => {
+  /** Remove Proxy Handler */
+  await removeProxyHandler(partition);
+
+  /** Get Session */
+  const session = getSession(partition);
+
+  /** Unregister Handlers */
+  session.webRequest.onBeforeSendHeaders({ urls: ["<all_urls>"] }, null);
+  session.webRequest.onHeadersReceived({ urls: ["<all_urls>"] }, null);
+
+  /** Remove Extensions */
+  session
+    .getAllExtensions()
+    .forEach((extension) => session.removeExtension(extension.id));
+
+  /** Remove From Map */
+  sessionMap.delete(partition);
+};
+
 /** Remove Session */
 export const removeSession = async (_event, partition) => {
-  const session = electronSession.fromPartition(partition);
-  session.webRequest.onHeadersReceived({ urls: ["<all_urls>"] }, null);
-  await session.clearStorageData();
+  /** Close Session */
+  await closeSession(_event, partition);
 
-  /** Remove Partition Path */
+  /** Get Partition Path */
   const partitionPath = join(
     app.getPath("userData"),
     "Partitions",
     partition.replace(/^persist:/, "")
   );
 
+  /** Remove Partition */
   await fs.rm(partitionPath, { recursive: true, force: true });
 };
 
@@ -311,14 +246,25 @@ export const saveBackupFile = async (_event, filename, content) => {
 
 /** Get Session Cookie */
 export function getSessionCookie(_event, partition, options) {
-  const session = electronSession.fromPartition(partition);
-  return session.cookies.get(options);
+  return getSession(partition).cookies.get(options);
 }
 
 /** Set Session Cookie */
 export function setSessionCookie(_event, partition, options) {
-  const session = electronSession.fromPartition(partition);
-  return session.cookies.set(options);
+  return getSession(partition).cookies.set(options);
+}
+
+/** Close All Sessions */
+export async function closeAllSessions() {
+  for (const partition of sessionMap.keys()) {
+    await closeSession(null, partition);
+  }
+
+  /** Clear Session Map */
+  sessionMap.clear();
+
+  /** Clear Proxy Handler Map */
+  proxyHandlerMap.clear();
 }
 
 /** Get App Version */

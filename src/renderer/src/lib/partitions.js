@@ -1,3 +1,15 @@
+export function configureProxy(partition, options) {
+  return window.electron.ipcRenderer.invoke(
+    "configure-proxy",
+    partition,
+    options
+  );
+}
+
+export function closeSession(partition) {
+  return window.electron.ipcRenderer.invoke("close-session", partition);
+}
+
 export function createWebview(partition, extensionPath) {
   /** Create the <webview> element */
   const webview = document.createElement("webview");

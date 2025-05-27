@@ -7,6 +7,7 @@ import SideMenu from "./components/SideMenu";
 import Webview from "./components/Webview";
 import useAppStore from "./store/useAppStore";
 import useExtensionUpdate from "./hooks/useExtensionUpdate";
+import useSessionsCleanup from "./hooks/useSessionsCleanup";
 import useSettingsStore from "./store/useSettingsStore";
 import useTheme from "./hooks/useTheme";
 import { cn } from "./lib/utils";
@@ -50,6 +51,9 @@ function App() {
 
   /** Update Extension */
   useExtensionUpdate();
+
+  /** Cleanup Session */
+  useSessionsCleanup();
 
   return (
     <>

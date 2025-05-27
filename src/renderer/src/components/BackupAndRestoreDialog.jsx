@@ -12,7 +12,7 @@ import useAppStore from "../store/useAppStore";
 import useSettingsStore from "../store/useSettingsStore";
 import useTabs from "../hooks/useTabs";
 import { chunkArrayGenerator, cn } from "../lib/utils";
-import { createWebview } from "../lib/webview";
+import { closeSession, configureProxy, createWebview } from "../lib/partitions";
 
 export default function BackupAndRestoreDialog() {
   const containerRef = useRef();
@@ -36,9 +36,27 @@ export default function BackupAndRestoreDialog() {
   /** Get or Restore Account Backup */
   const getOrRestoreAccountBackup = useCallback(
     (account, backup = null) =>
-      new Promise((resolve, reject) => {
+      new Promise(async (resolve, reject) => {
+        const {
+          partition,
+          proxyEnabled,
+          proxyHost,
+          proxyPort,
+          proxyUsername,
+          proxyPassword,
+        } = account;
+
+        /** Configure Proxy */
+        await configureProxy(partition, {
+          proxyEnabled,
+          proxyHost,
+          proxyPort,
+          proxyUsername,
+          proxyPassword,
+        });
+
         const container = containerRef.current;
-        const webview = createWebview(account.partition, extensionPath);
+        const webview = createWebview(partition, extensionPath);
 
         const sendHostMessage = (data) => {
           webview.send("host-message", data);
@@ -76,6 +94,7 @@ export default function BackupAndRestoreDialog() {
 
               case "response-get-backup-data":
               case "response-restore-backup-data":
+                closeSession(partition);
                 webview.remove();
                 resolve(data);
                 break;
