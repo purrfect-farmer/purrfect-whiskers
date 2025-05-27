@@ -184,6 +184,7 @@ export const setupSession = async (_event, data) => {
       const requestHeaders = details.requestHeaders;
       requestHeaders["Origin"] = origin;
       requestHeaders["Referer"] = origin + "/";
+
       callback({ requestHeaders });
     }
   );
@@ -204,6 +205,7 @@ export const setupSession = async (_event, data) => {
             "access-control-allow-origin",
             "access-control-allow-credentials",
             "access-control-allow-methods",
+            "access-control-allow-header",
           ].includes(key.toLowerCase());
         })
       );
@@ -215,6 +217,7 @@ export const setupSession = async (_event, data) => {
         ).origin;
         responseHeaders["Access-Control-Allow-Credentials"] = "true";
         responseHeaders["Access-Control-Allow-Methods"] = "*";
+        responseHeaders["Access-Control-Allow-Headers"] = "*";
       }
 
       const setCookieHeaders = details.responseHeaders["set-cookie"] || [];
