@@ -9,6 +9,7 @@ export default create(
       {
         extensionPath: import.meta.env.VITE_EXTENSION_PATH || "",
         showWebviewToolbar: true,
+        restoreAccountsOnStartup: true,
         allowProxies: true,
         theme: "system",
         columns: 4,
@@ -22,6 +23,8 @@ export default create(
         setAllowProxies: (allowProxies) => set({ allowProxies }),
         setShowWebviewToolbar: (showWebviewToolbar) =>
           set({ showWebviewToolbar }),
+        setRestoreAccountsOnStartup: (restoreAccountsOnStartup) =>
+          set({ restoreAccountsOnStartup }),
       })
     ),
     {

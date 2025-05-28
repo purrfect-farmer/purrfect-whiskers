@@ -48,6 +48,9 @@ export default function SettingsDialog() {
   const columns = useSettingsStore((state) => state.columns);
   const allowProxies = useSettingsStore((state) => state.allowProxies);
   const extensionPath = useSettingsStore((state) => state.extensionPath);
+  const restoreAccountsOnStartup = useSettingsStore(
+    (state) => state.restoreAccountsOnStartup
+  );
   const showWebviewToolbar = useSettingsStore(
     (state) => state.showWebviewToolbar
   );
@@ -58,6 +61,9 @@ export default function SettingsDialog() {
   const setAllowProxies = useSettingsStore((state) => state.setAllowProxies);
   const setShowWebviewToolbar = useSettingsStore(
     (state) => state.setShowWebviewToolbar
+  );
+  const setRestoreAccountsOnStartup = useSettingsStore(
+    (state) => state.setRestoreAccountsOnStartup
   );
 
   /** Pick Extension Path */
@@ -99,8 +105,8 @@ export default function SettingsDialog() {
         ))}
       </div>
 
-      {/* Show Webview Toolbar */}
-      <label className="text-orange-500 mt-2">Show Webview Toolbar</label>
+      {/* Webview Options */}
+      <label className="text-orange-500 mt-2">Webview Options</label>
       <LabelToggle
         onChange={(ev) => setShowWebviewToolbar(ev.target.checked)}
         checked={showWebviewToolbar}
@@ -109,7 +115,6 @@ export default function SettingsDialog() {
       </LabelToggle>
 
       {/* Proxy */}
-      <label className="text-orange-500 mt-2">Proxy</label>
       <LabelToggle
         onChange={(ev) => setAllowProxies(ev.target.checked)}
         checked={allowProxies}
@@ -117,8 +122,16 @@ export default function SettingsDialog() {
         Allow Proxies
       </LabelToggle>
 
+      <label className="text-orange-500 mt-2">Accounts</label>
+      <LabelToggle
+        onChange={(ev) => setRestoreAccountsOnStartup(ev.target.checked)}
+        checked={restoreAccountsOnStartup}
+      >
+        Restore Accounts on Startup
+      </LabelToggle>
+
       {/* Columns and Rows */}
-      <div className="grid grid-cols-2 gap-2 mt-4">
+      <div className="grid grid-cols-2 gap-2">
         <NumberInput
           label={"Columns"}
           value={columns}
