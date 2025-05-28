@@ -54,7 +54,8 @@ export default function BackupAndRestoreDialog() {
 
         /** Configure Proxy */
         await configureProxy(partition, {
-          proxyEnabled: allowProxies && proxyEnabled,
+          allowProxies,
+          proxyEnabled,
           proxyHost,
           proxyPort,
           proxyUsername,
@@ -82,9 +83,11 @@ export default function BackupAndRestoreDialog() {
             sendHostMessage({
               action: "set-whisker-data",
               data: getWhiskerData({
-                allowProxies,
                 account,
-                theme,
+                settings: {
+                  allowProxies,
+                  theme,
+                },
               }),
             });
 

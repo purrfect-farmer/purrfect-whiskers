@@ -102,9 +102,11 @@ export default memo(function Webview({ account }) {
   const getCurrentWhiskerData = useRefCallback(
     () =>
       getWhiskerData({
-        allowProxies,
         account,
-        theme,
+        settings: {
+          allowProxies,
+          theme,
+        },
       }),
     [account, allowProxies, theme]
   );
@@ -188,7 +190,7 @@ export default memo(function Webview({ account }) {
   /** Send Whisker Data */
   useEffect(() => {
     sendWhiskerData();
-  }, [account, theme]);
+  }, [account, allowProxies, theme]);
 
   return (
     <div

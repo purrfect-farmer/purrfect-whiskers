@@ -13,7 +13,7 @@ export function closeSession(partition) {
 }
 
 /** Get Whisker Data */
-export function getWhiskerData({ account, theme, allowProxies }) {
+export function getWhiskerData({ account, settings }) {
   const {
     title,
     partition,
@@ -23,6 +23,8 @@ export function getWhiskerData({ account, theme, allowProxies }) {
     proxyUsername,
     proxyPassword,
   } = account;
+
+  const { theme, allowProxies } = settings;
 
   return {
     account: {
