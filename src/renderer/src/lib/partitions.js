@@ -12,6 +12,37 @@ export function closeSession(partition) {
   return window.electron.ipcRenderer.invoke("close-session", partition);
 }
 
+/** Get Whisker Data */
+export function getWhiskerData({ account, theme, allowProxies }) {
+  const {
+    title,
+    partition,
+    proxyEnabled,
+    proxyHost,
+    proxyPort,
+    proxyUsername,
+    proxyPassword,
+  } = account;
+
+  return {
+    account: {
+      title,
+      partition,
+    },
+    sharedSettings: {
+      allowProxies,
+      proxyEnabled,
+      proxyHost,
+      proxyPort,
+      proxyUsername,
+      proxyPassword,
+    },
+    settings: {
+      theme,
+    },
+  };
+}
+
 /** Create Webview */
 export function createWebview(partition, extensionPath) {
   /** Create the <webview> element */

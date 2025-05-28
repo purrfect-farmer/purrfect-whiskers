@@ -122,6 +122,11 @@ export default function SettingsDialog() {
         Allow Proxies
       </LabelToggle>
 
+      <p className="text-neutral-500 dark:text-neutral-400">
+        Proxies may be enabled for accounts, but without being enabled they
+        won't be used.
+      </p>
+
       <label className="text-orange-500 mt-2">Accounts</label>
       <LabelToggle
         onChange={(ev) => setRestoreAccountsOnStartup(ev.target.checked)}

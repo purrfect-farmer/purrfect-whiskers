@@ -18,6 +18,7 @@ import { cn } from "../lib/utils";
 import {
   configureProxy,
   createWebview,
+  getWhiskerData,
   registerWebviewMessage,
 } from "../lib/partitions";
 
@@ -97,13 +98,15 @@ export default memo(function Webview({ account }) {
     [callWebviewMethod]
   );
 
-  /** Get Whisker Data */
-  const getWhiskerData = useRefCallback(
-    () => ({
-      account,
-      theme,
-    }),
-    [account, theme]
+  /** Get Current Whisker Data */
+  const getCurrentWhiskerData = useRefCallback(
+    () =>
+      getWhiskerData({
+        allowProxies,
+        account,
+        theme,
+      }),
+    [account, allowProxies, theme]
   );
 
   /** Send Whisker Data */
@@ -111,10 +114,10 @@ export default memo(function Webview({ account }) {
     callWebviewMethod((webview) =>
       webview.send("host-message", {
         action: "set-whisker-data",
-        data: getWhiskerData(),
+        data: getCurrentWhiskerData(),
       })
     );
-  }, [getWhiskerData, callWebviewMethod]);
+  }, [getCurrentWhiskerData, callWebviewMethod]);
 
   /** Update Proxy */
   const updateProxy = useRefCallback(
@@ -164,7 +167,8 @@ export default memo(function Webview({ account }) {
   /** Configure Proxy */
   useEffect(() => {
     configureProxy(partition, {
-      proxyEnabled: allowProxies && proxyEnabled,
+      allowProxies,
+      proxyEnabled,
       proxyHost,
       proxyPort,
       proxyUsername,

@@ -131,7 +131,7 @@ export const configureProxy = async (_event, partition, options) => {
   const session = getSession(partition);
 
   try {
-    if (options.proxyEnabled) {
+    if (options.allowProxies && options.proxyEnabled) {
       if (
         !proxyCredentialsMap.has(session) ||
         !equal(proxyCredentialsMap.get(session), options)

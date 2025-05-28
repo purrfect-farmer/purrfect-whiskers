@@ -15,6 +15,7 @@ import { chunkArrayGenerator, cn } from "../lib/utils";
 import {
   configureProxy,
   createWebview,
+  getWhiskerData,
   registerWebviewMessage,
 } from "../lib/partitions";
 
@@ -80,10 +81,11 @@ export default function BackupAndRestoreDialog() {
             /** Send Whisker Data */
             sendHostMessage({
               action: "set-whisker-data",
-              data: {
+              data: getWhiskerData({
+                allowProxies,
                 account,
                 theme,
-              },
+              }),
             });
 
             if (backup) {
@@ -102,7 +104,7 @@ export default function BackupAndRestoreDialog() {
           "set-proxy": (data) => {
             configureProxy(partition, {
               ...data,
-              proxyEnabled: allowProxies && data.proxyEnabled,
+              allowProxies,
             });
           },
           "response-get-backup-data": handleResponse,
@@ -112,7 +114,7 @@ export default function BackupAndRestoreDialog() {
         /** Append to container */
         container.appendChild(webview);
       }),
-    [theme, extensionPath]
+    [theme, allowProxies, extensionPath]
   );
 
   /** Get Backup Data */
