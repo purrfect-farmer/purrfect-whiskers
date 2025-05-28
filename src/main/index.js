@@ -1,4 +1,4 @@
-import { BrowserWindow, app, ipcMain, shell } from "electron";
+import { BrowserWindow, app, ipcMain, screen, shell } from "electron";
 import { Conf } from "electron-conf/main";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { join } from "path";
@@ -21,10 +21,11 @@ import {
 import { startMirrorServer, stopMirrorServer } from "./server";
 
 async function createWindow() {
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width,
+    height,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === "linux" ? { icon } : {}),
@@ -37,7 +38,6 @@ async function createWindow() {
 
   mainWindow.on("ready-to-show", async () => {
     mainWindow.maximize();
-    mainWindow.show();
   });
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
