@@ -46,6 +46,7 @@ export default function SettingsDialog() {
   const theme = useSettingsStore((state) => state.theme);
   const rows = useSettingsStore((state) => state.rows);
   const columns = useSettingsStore((state) => state.columns);
+  const enableProxies = useSettingsStore((state) => state.enableProxies);
   const extensionPath = useSettingsStore((state) => state.extensionPath);
   const showWebviewToolbar = useSettingsStore(
     (state) => state.showWebviewToolbar
@@ -54,6 +55,7 @@ export default function SettingsDialog() {
   const setRows = useSettingsStore((state) => state.setRows);
   const setTheme = useSettingsStore((state) => state.setTheme);
   const setExtensionPath = useSettingsStore((state) => state.setExtensionPath);
+  const setEnableProxies = useSettingsStore((state) => state.setEnableProxies);
   const setShowWebviewToolbar = useSettingsStore(
     (state) => state.setShowWebviewToolbar
   );
@@ -104,6 +106,15 @@ export default function SettingsDialog() {
         checked={showWebviewToolbar}
       >
         Show Webview Toolbar
+      </LabelToggle>
+
+      {/* Proxy */}
+      <label className="text-orange-500 mt-2">Proxy</label>
+      <LabelToggle
+        onChange={(ev) => setEnableProxies(ev.target.checked)}
+        checked={enableProxies}
+      >
+        Enable Proxies
       </LabelToggle>
 
       {/* Columns and Rows */}
