@@ -5,7 +5,6 @@ import { join } from "path";
 
 import icon from "../../resources/icon.png?asset";
 import {
-  closeAllSessions,
   configureProxy,
   getAppVersion,
   getDefaultExtensionPath,
@@ -35,8 +34,6 @@ async function createWindow() {
       webviewTag: true,
     },
   });
-
-  mainWindow.on("close", closeAllSessions);
 
   mainWindow.on("ready-to-show", async () => {
     mainWindow.maximize();
