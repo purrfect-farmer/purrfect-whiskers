@@ -14,12 +14,12 @@ import useAppStore from "../store/useAppStore";
 import useDialogState from "../hooks/useDialogState";
 import useRefCallback from "../hooks/useRefCallback";
 import useSettingsStore from "../store/useSettingsStore";
+import { cn } from "../lib/utils";
 import {
   configureProxy,
   createWebview,
   registerWebviewMessage,
 } from "../lib/partitions";
-import { cn } from "../lib/utils";
 
 const WebviewButton = memo((props) => (
   <button
@@ -38,6 +38,7 @@ const WebviewButton = memo((props) => (
 export default memo(function Webview({ account }) {
   const updateAccount = useAppStore((state) => state.updateAccount);
   const theme = useSettingsStore((state) => state.theme);
+  const allowProxies = useSettingsStore((state) => state.allowProxies);
   const extensionPath = useSettingsStore((state) => state.extensionPath);
   const showWebviewToolbar = useSettingsStore(
     (state) => state.showWebviewToolbar
@@ -163,7 +164,7 @@ export default memo(function Webview({ account }) {
   /** Configure Proxy */
   useEffect(() => {
     configureProxy(partition, {
-      proxyEnabled,
+      proxyEnabled: allowProxies && proxyEnabled,
       proxyHost,
       proxyPort,
       proxyUsername,
@@ -171,6 +172,7 @@ export default memo(function Webview({ account }) {
     });
   }, [
     partition,
+    allowProxies,
     proxyEnabled,
     proxyHost,
     proxyPort,

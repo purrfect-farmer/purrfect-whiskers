@@ -9,7 +9,7 @@ export default create(
       {
         extensionPath: import.meta.env.VITE_EXTENSION_PATH || "",
         showWebviewToolbar: true,
-        enableProxies: true,
+        allowProxies: true,
         theme: "system",
         columns: 4,
         rows: 1,
@@ -19,7 +19,7 @@ export default create(
         setRows: (rows) => set({ rows }),
         setTheme: (theme) => set({ theme }),
         setExtensionPath: (extensionPath) => set({ extensionPath }),
-        setEnableProxies: (enableProxies) => set({ enableProxies }),
+        setAllowProxies: (allowProxies) => set({ allowProxies }),
         setShowWebviewToolbar: (showWebviewToolbar) =>
           set({ showWebviewToolbar }),
       })

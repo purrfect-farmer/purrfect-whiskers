@@ -23,6 +23,7 @@ export default function BackupAndRestoreDialog() {
 
   const accounts = useAppStore((state) => state.accounts);
   const theme = useSettingsStore((state) => state.theme);
+  const allowProxies = useSettingsStore((state) => state.allowProxies);
   const extensionPath = useSettingsStore((state) => state.extensionPath);
   const setPartitions = useAppStore((state) => state.setPartitions);
 
@@ -52,7 +53,7 @@ export default function BackupAndRestoreDialog() {
 
         /** Configure Proxy */
         await configureProxy(partition, {
-          proxyEnabled,
+          proxyEnabled: allowProxies && proxyEnabled,
           proxyHost,
           proxyPort,
           proxyUsername,
@@ -99,7 +100,10 @@ export default function BackupAndRestoreDialog() {
             }
           },
           "set-proxy": (data) => {
-            configureProxy(partition, data);
+            configureProxy(partition, {
+              ...data,
+              proxyEnabled: allowProxies && data.proxyEnabled,
+            });
           },
           "response-get-backup-data": handleResponse,
           "response-restore-backup-data": handleResponse,

@@ -144,6 +144,7 @@ export const configureProxy = async (_event, partition, options) => {
 
         /** Set Proxy */
         await session.setProxy({
+          mode: "fixed_servers",
           proxyRules,
         });
       }
