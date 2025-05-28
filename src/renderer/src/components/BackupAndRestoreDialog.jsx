@@ -13,7 +13,6 @@ import useSettingsStore from "../store/useSettingsStore";
 import useTabs from "../hooks/useTabs";
 import { chunkArrayGenerator, cn } from "../lib/utils";
 import {
-  closeSession,
   configureProxy,
   createWebview,
   registerWebviewMessage,
@@ -70,7 +69,6 @@ export default function BackupAndRestoreDialog() {
 
         /** Handle Response */
         const handleResponse = (data) => {
-          closeSession(partition);
           webview.remove();
           resolve(data);
         };

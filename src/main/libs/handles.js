@@ -1,4 +1,5 @@
 import axios from "axios";
+import equal from "deep-equal";
 import fs from "fs/promises";
 import semver from "semver";
 import {
@@ -8,7 +9,7 @@ import {
   session as electronSession,
   shell,
 } from "electron";
-import { join } from "path";
+import { join, resolve } from "path";
 
 import { downloadAndExtract } from "./downloader";
 import { onBeforeSendHeaders, onHeadersReceived } from "./webRequest";
@@ -17,7 +18,21 @@ import { onBeforeSendHeaders, onHeadersReceived } from "./webRequest";
 const sessionMap = new Map();
 
 /** Proxy Handler Map */
-const proxyHandlerMap = new Map();
+const proxyCredentialsMap = new Map();
+
+/** Register Proxy Auth Handler */
+export function registerProxyAuthHandler() {
+  app.on("login", (event, webContents, request, authInfo, callback) => {
+    if (authInfo.isProxy && proxyCredentialsMap.has(webContents.session)) {
+      const { proxyUsername, proxyPassword } = proxyCredentialsMap.get(
+        webContents.session
+      );
+
+      event.preventDefault();
+      callback(proxyUsername, proxyPassword);
+    }
+  });
+}
 
 /** Get Default Extension Path */
 export const getDefaultExtensionPath = async (_event) => {
@@ -90,7 +105,7 @@ export const updateExtension = async (_event, path) => {
       }
     }
   } catch (e) {
-    console.error("Failed to check for extension update:", e);
+    console.error("Failed to check for extension update:", e.message);
   }
 
   return {
@@ -110,116 +125,92 @@ export const getSession = (partition) => {
   return sessionMap.get(partition);
 };
 
-/** Add Proxy Handler */
-export const addProxyHandler = (partition, username, password) => {
-  const handler = (event, webContents, request, authInfo, callback) => {
-    if (authInfo.isProxy && webContents.session === getSession(partition)) {
-      event.preventDefault();
-      callback(username, password);
-    }
-  };
-
-  /** Store Handler */
-  proxyHandlerMap.set(partition, handler);
-
-  /** Add Listener */
-  app.addListener("login", handler);
-};
-
-/** Remove Proxy Handler */
-export const removeProxyHandler = (partition) => {
-  if (proxyHandlerMap.has(partition)) {
-    app.removeListener("login", proxyHandlerMap.get(partition));
-    proxyHandlerMap.delete(partition);
-  }
-};
-
 /** Configure Proxy */
 export const configureProxy = async (_event, partition, options) => {
   /** Get Session */
   const session = getSession(partition);
 
-  /** Close All Connection */
-  await session.closeAllConnections();
+  try {
+    if (options.proxyEnabled) {
+      if (
+        !proxyCredentialsMap.has(session) ||
+        !equal(proxyCredentialsMap.get(session), options)
+      ) {
+        /** Add credentials */
+        proxyCredentialsMap.set(session, options);
 
-  /** Remove Previous Handler */
-  removeProxyHandler(partition);
+        /** Proxy Rules */
+        const proxyRules = `${options.proxyHost}:${options.proxyPort || 80},direct://`;
 
-  if (options.proxyEnabled) {
-    /** Add new Handler */
-    addProxyHandler(partition, options.proxyUsername, options.proxyPassword);
+        /** Set Proxy */
+        await session.setProxy({
+          proxyRules,
+        });
+      }
+    } else {
+      /** Clear Proxy */
+      await session.setProxy({ proxyRules: "" });
 
-    /** Set Proxy */
-    await session.setProxy({
-      proxyRules: `${options.proxyHost}:${options.proxyPort || 80},direct://`,
-    });
-  } else {
-    /** Clear Proxy */
-    await session.setProxy({ proxyRules: "" });
+      /** Remove Credentials */
+      proxyCredentialsMap.delete(session);
+    }
+  } catch (e) {
+    console.error(e);
   }
 };
 
 /** Setup Session */
 export const setupSession = async (_event, data) => {
   let extension;
+  const exists = sessionMap.has(data.partition);
   const preload = "file://" + join(__dirname, "../preload/index.js");
   const session = getSession(data.partition);
 
-  /** Remove preload scripts */
-  session
-    .getPreloadScripts()
-    .forEach((script) => session.unregisterPreloadScript(script.id));
+  /** Configure Proxy */
+  if (data.proxyOptions) {
+    await configureProxy(_event, data.partition, data.proxyOptions);
+  }
 
-  /** Register onBeforeSendHeaders */
-  onBeforeSendHeaders(session);
+  /** Register WebRequest */
+  if (!exists) {
+    /** Register onBeforeSendHeaders */
+    onBeforeSendHeaders(session);
 
-  /** Register onHeadersReceived */
-  onHeadersReceived(session);
+    /** Register onHeadersReceived */
+    onHeadersReceived(session);
+  }
 
   if (data.extensionPath) {
     try {
+      /** Get Loaded Extension */
+      extension = session
+        .getAllExtensions()
+        .find((item) => resolve(item.path) === resolve(data.extensionPath));
+
       /** Load Extension */
-      extension = await session.loadExtension(data.extensionPath, {
-        allowFileAccess: true,
-      });
+      if (!extension) {
+        extension = await session.loadExtension(data.extensionPath, {
+          allowFileAccess: true,
+        });
+      }
     } catch (e) {
       console.error(e);
     }
   }
+
   return { extension, preload };
-};
-
-/** Close Session */
-export const closeSession = async (_event, partition) => {
-  /** Get Session */
-  const session = getSession(partition);
-
-  /** Close All Connection */
-  await session.closeAllConnections();
-
-  /** Clear Proxy */
-  await session.setProxy({ proxyRules: "" });
-
-  /** Remove Proxy Handler */
-  removeProxyHandler(partition);
-
-  /** Unregister WebRequest Handlers */
-  session.webRequest.onBeforeSendHeaders({ urls: ["<all_urls>"] }, null);
-  session.webRequest.onHeadersReceived({ urls: ["<all_urls>"] }, null);
-
-  /** Remove Extensions */
-  session
-    .getAllExtensions()
-    .forEach((extension) => session.removeExtension(extension.id));
-
-  /** Remove From Map */
-  sessionMap.delete(partition);
 };
 
 /** Remove Session */
 export const removeSession = async (_event, partition) => {
-  /** Close Session */
-  await closeSession(_event, partition);
+  /** Get Session */
+  const session = getSession(partition);
+
+  /** Remove Proxy Credentials */
+  proxyCredentialsMap.delete(session);
+
+  /** Delete Session */
+  sessionMap.delete(partition);
 
   /** Get Partition Path */
   const partitionPath = join(
@@ -255,19 +246,6 @@ export function getSessionCookie(_event, partition, options) {
 /** Set Session Cookie */
 export function setSessionCookie(_event, partition, options) {
   return getSession(partition).cookies.set(options);
-}
-
-/** Close All Sessions */
-export async function closeAllSessions() {
-  for (const partition of sessionMap.keys()) {
-    await closeSession(null, partition);
-  }
-
-  /** Clear Session Map */
-  sessionMap.clear();
-
-  /** Clear Proxy Handler Map */
-  proxyHandlerMap.clear();
 }
 
 /** Get App Version */

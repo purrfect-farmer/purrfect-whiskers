@@ -15,7 +15,6 @@ import useDialogState from "../hooks/useDialogState";
 import useRefCallback from "../hooks/useRefCallback";
 import useSettingsStore from "../store/useSettingsStore";
 import {
-  closeSession,
   configureProxy,
   createWebview,
   registerWebviewMessage,
@@ -155,7 +154,6 @@ export default memo(function Webview({ account }) {
 
     /** Cleanup on unmount */
     return () => {
-      closeSession(partition);
       webview.remove();
       webviewIsReadyRef.current = false;
       webviewRef.current = null;

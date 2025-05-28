@@ -6,13 +6,13 @@ import { join } from "path";
 import icon from "../../resources/icon.png?asset";
 import {
   closeAllSessions,
-  closeSession,
   configureProxy,
   getAppVersion,
   getDefaultExtensionPath,
   getExtensionVersion,
   getSessionCookie,
   pickExtensionPath,
+  registerProxyAuthHandler,
   removeSession,
   saveBackupFile,
   setSessionCookie,
@@ -71,6 +71,9 @@ app.whenReady().then(async () => {
     optimizer.watchWindowShortcuts(window);
   });
 
+  // Start Mirror Server
+  await startMirrorServer();
+
   // Register conf listener
   new Conf().registerRendererListener();
 
@@ -85,12 +88,10 @@ app.whenReady().then(async () => {
   ipcMain.handle("pick-extension-path", pickExtensionPath);
   ipcMain.handle("configure-proxy", configureProxy);
   ipcMain.handle("setup-session", setupSession);
-  ipcMain.handle("close-session", closeSession);
   ipcMain.handle("remove-session", removeSession);
-  ipcMain.handle("close-all-sessions", closeAllSessions);
 
-  // Start Mirror Server
-  await startMirrorServer();
+  // Register Proxy Auth
+  registerProxyAuthHandler();
 
   // Create Window
   createWindow();
