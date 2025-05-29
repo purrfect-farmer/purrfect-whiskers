@@ -163,27 +163,31 @@ export const configureProxy = mutexify(async (_event, partition, options) => {
 
   /** Close All Connections */
   await session.closeAllConnections();
+
+  /** Configure Web Request */
+  configureWebRequest(_event, partition);
+});
+
+export const configureWebRequest = mutexify(async (_event, partition) => {
+  /** Get Session */
+  const session = getSession(partition);
+
+  /** Register onBeforeSendHeaders */
+  onBeforeSendHeaders(session);
+
+  /** Register onHeadersReceived */
+  onHeadersReceived(session);
 });
 
 /** Setup Session */
 export const setupSession = mutexify(async (_event, data) => {
   let extension;
-  const exists = sessionMap.has(data.partition);
   const preload = "file://" + join(__dirname, "../preload/index.js");
   const session = getSession(data.partition);
 
   /** Configure Proxy */
   if (data.proxyOptions) {
     await configureProxy(_event, data.partition, data.proxyOptions);
-  }
-
-  /** Register WebRequest */
-  if (!exists) {
-    /** Register onBeforeSendHeaders */
-    onBeforeSendHeaders(session);
-
-    /** Register onHeadersReceived */
-    onHeadersReceived(session);
   }
 
   if (data.extensionPath) {
