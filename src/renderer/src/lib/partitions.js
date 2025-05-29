@@ -46,7 +46,7 @@ export function getWhiskerData({ account, settings }) {
 }
 
 /** Create Webview */
-export function createWebview(partition, extensionPath) {
+export function createWebview(partition, extensionPath, proxyOptions) {
   /** Create the <webview> element */
   const webview = document.createElement("webview");
 
@@ -66,7 +66,7 @@ export function createWebview(partition, extensionPath) {
 
   /** Load extension URL */
   window.electron.ipcRenderer
-    .invoke("setup-session", { partition, extensionPath })
+    .invoke("setup-session", { partition, extensionPath, proxyOptions })
     .then(({ extension, preload }) => {
       webview.preload = preload;
       webview.src = extension

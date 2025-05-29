@@ -132,6 +132,21 @@ export default memo(function Webview({ account }) {
     [account, updateAccount]
   );
 
+  /** Get Current Proxy Options */
+  const getCurrentProxyOptions = useRefCallback(() => {
+    const { proxyEnabled, proxyHost, proxyPort, proxyUsername, proxyPassword } =
+      account;
+
+    return {
+      allowProxies,
+      proxyEnabled,
+      proxyHost,
+      proxyPort,
+      proxyUsername,
+      proxyPassword,
+    };
+  }, [account, allowProxies]);
+
   /** Initialize Webview */
   useEffect(() => {
     const container = containerRef.current;
@@ -168,14 +183,7 @@ export default memo(function Webview({ account }) {
 
   /** Configure Proxy */
   useEffect(() => {
-    configureProxy(partition, {
-      allowProxies,
-      proxyEnabled,
-      proxyHost,
-      proxyPort,
-      proxyUsername,
-      proxyPassword,
-    });
+    configureProxy(partition, getCurrentProxyOptions());
   }, [
     partition,
     allowProxies,
@@ -185,6 +193,7 @@ export default memo(function Webview({ account }) {
     proxyUsername,
     proxyPassword,
     configureProxy,
+    getCurrentProxyOptions,
   ]);
 
   /** Send Whisker Data */

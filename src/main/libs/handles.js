@@ -12,6 +12,7 @@ import {
 import { join, resolve } from "path";
 
 import { downloadAndExtract } from "./downloader";
+import { mutexify } from "../../renderer/src/lib/utils";
 import { onBeforeSendHeaders, onHeadersReceived } from "./webRequest";
 
 /** Session Map */
@@ -70,14 +71,14 @@ export const getExtensionVersion = async (_event, path) => {
 export const updateExtension = async (_event, path) => {
   try {
     const currentExtensionVersion = await getExtensionVersion(_event, path);
-    const currentRelease = await axios
+    const latestRelease = await axios
       .get(import.meta.env.VITE_EXTENSION_RELEASE_API_URL)
       .then((res) => res.data);
-    const currentTag = currentRelease["tag_name"];
+    const latestTag = latestRelease["tag_name"];
 
     if (
       currentExtensionVersion === null ||
-      semver.gt(currentTag, currentExtensionVersion)
+      semver.gt(latestTag, currentExtensionVersion)
     ) {
       const filePattern = new RegExp(
         import.meta.env.VITE_EXTENSION_RELEASE_FILE_PATTERN.replaceAll(
@@ -86,7 +87,7 @@ export const updateExtension = async (_event, path) => {
         ).replaceAll(".", "\\.")
       );
 
-      const releaseFile = currentRelease.assets.find((item) =>
+      const releaseFile = latestRelease.assets.find((item) =>
         filePattern.test(item.name)
       );
 
@@ -95,12 +96,12 @@ export const updateExtension = async (_event, path) => {
 
         new Notification({
           title: "Extension Updated",
-          body: `A new version of the extension has been installed - ${currentTag}.`,
+          body: `A new version of the extension has been installed - ${latestTag}.`,
         }).show();
 
         return {
           status: true,
-          version: currentTag,
+          version: latestTag,
         };
       }
     }
@@ -126,12 +127,12 @@ export const getSession = (partition) => {
 };
 
 /** Configure Proxy */
-export const configureProxy = async (_event, partition, options) => {
+export const configureProxy = mutexify(async (_event, partition, options) => {
   /** Get Session */
   const session = getSession(partition);
 
   try {
-    if (options.allowProxies && options.proxyEnabled) {
+    if (options.allowProxies && options.proxyEnabled && options.proxyHost) {
       if (
         !proxyCredentialsMap.has(session) ||
         !equal(proxyCredentialsMap.get(session), options)
@@ -145,6 +146,7 @@ export const configureProxy = async (_event, partition, options) => {
         /** Set Proxy */
         await session.setProxy({
           mode: "fixed_servers",
+          proxyBypassRules: "<local>",
           proxyRules,
         });
       }
@@ -158,10 +160,13 @@ export const configureProxy = async (_event, partition, options) => {
   } catch (e) {
     console.error(e);
   }
-};
+
+  /** Close All Connections */
+  await session.closeAllConnections();
+});
 
 /** Setup Session */
-export const setupSession = async (_event, data) => {
+export const setupSession = mutexify(async (_event, data) => {
   let extension;
   const exists = sessionMap.has(data.partition);
   const preload = "file://" + join(__dirname, "../preload/index.js");
@@ -184,13 +189,13 @@ export const setupSession = async (_event, data) => {
   if (data.extensionPath) {
     try {
       /** Get Loaded Extension */
-      extension = session
+      extension = session.extensions
         .getAllExtensions()
         .find((item) => resolve(item.path) === resolve(data.extensionPath));
 
       /** Load Extension */
       if (!extension) {
-        extension = await session.loadExtension(data.extensionPath, {
+        extension = await session.extensions.loadExtension(data.extensionPath, {
           allowFileAccess: true,
         });
       }
@@ -200,7 +205,7 @@ export const setupSession = async (_event, data) => {
   }
 
   return { extension, preload };
-};
+});
 
 /** Remove Session */
 export const removeSession = async (_event, partition) => {

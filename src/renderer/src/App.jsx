@@ -1,18 +1,19 @@
 import { HiOutlineXMark } from "react-icons/hi2";
 import { Toaster } from "react-hot-toast";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useMemo } from "react";
 
 import Icon from "./assets/images/icon.png";
 import SideMenu from "./components/SideMenu";
 import Webview from "./components/Webview";
+import useAccountsRestoration from "./hooks/useAccountsRestoration";
 import useAppStore from "./store/useAppStore";
 import useExtensionUpdate from "./hooks/useExtensionUpdate";
 import useSettingsStore from "./store/useSettingsStore";
 import useTheme from "./hooks/useTheme";
+import useWakeLock from "./hooks/useWakeLock";
 import { cn } from "./lib/utils";
 
 function App() {
-  const startupRef = useRef(false);
   const page = useAppStore((state) => state.page);
   const setPage = useAppStore((state) => state.setPage);
 
@@ -23,9 +24,6 @@ function App() {
   const theme = useSettingsStore((state) => state.theme);
   const columns = useSettingsStore((state) => state.columns);
   const rows = useSettingsStore((state) => state.rows);
-  const restoreAccountsOnStartup = useSettingsStore(
-    (state) => state.restoreAccountsOnStartup
-  );
 
   const itemsPerPage = columns * rows;
   const pageCount = Math.ceil(partitions.length / itemsPerPage);
@@ -50,15 +48,10 @@ function App() {
   );
 
   /** Close Previous Accounts */
-  useEffect(() => {
-    if (startupRef.current) return;
-    else if (!restoreAccountsOnStartup) {
-      setPartitions([]);
-    }
+  useAccountsRestoration();
 
-    /** Mark as Restored */
-    startupRef.current = true;
-  }, [restoreAccountsOnStartup, setPartitions]);
+  /** WakeLock */
+  useWakeLock();
 
   /** Set Preferred Theme */
   useTheme(theme);

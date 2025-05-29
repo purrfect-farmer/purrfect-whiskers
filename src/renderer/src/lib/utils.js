@@ -15,3 +15,20 @@ export function* chunkArrayGenerator(arr, size) {
     yield arr.slice(i, i + size);
   }
 }
+
+export function mutexify(fn) {
+  let lock = Promise.resolve();
+
+  return async function (...args) {
+    const unlock = lock;
+    let resolveNext;
+    lock = new Promise((resolve) => (resolveNext = resolve));
+
+    try {
+      await unlock;
+      return await fn.apply(this, args);
+    } finally {
+      resolveNext();
+    }
+  };
+}
