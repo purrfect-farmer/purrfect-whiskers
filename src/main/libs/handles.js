@@ -1,6 +1,6 @@
 import axios from "axios";
-import equal from "deep-equal";
 import fs from "fs/promises";
+import isEqual from "fast-deep-equal";
 import semver from "semver";
 import {
   Notification,
@@ -135,7 +135,7 @@ export const configureProxy = mutexify(async (_event, partition, options) => {
     if (options.allowProxies && options.proxyEnabled && options.proxyHost) {
       if (
         !proxyCredentialsMap.has(session) ||
-        !equal(proxyCredentialsMap.get(session), options)
+        !isEqual(proxyCredentialsMap.get(session), options)
       ) {
         /** Add credentials */
         proxyCredentialsMap.set(session, options);
