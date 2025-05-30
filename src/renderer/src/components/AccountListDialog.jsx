@@ -3,16 +3,22 @@ import { HiOutlineCheckBadge, HiOutlinePlus } from "react-icons/hi2";
 import { LiaUser } from "react-icons/lia";
 import { MdOutlineEditNote } from "react-icons/md";
 import { Reorder } from "motion/react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import AddAccountDialog from "./AddAccountDialog";
 import EditAccountDialog from "./EditAccountDialog";
+import Input from "./Input";
 import ReorderItem from "./ReorderItem";
 import useAppStore from "../store/useAppStore";
 import useDialogState from "../hooks/useDialogState";
 import useLaunchPartition from "../hooks/useLaunchPartition";
 import useSettingsStore from "../store/useSettingsStore";
-import { cn, extractInitDataUnsafe } from "../lib/utils";
+import {
+  cn,
+  extractInitDataUnsafe,
+  getTelegramUserFullName,
+  searchIncludes,
+} from "../lib/utils";
 
 const AccountEditDialog = ({ account }) => {
   const {
@@ -55,10 +61,7 @@ const AccountItem = ({ account, active, onClick }) => {
   }, [account.telegramInitData]);
 
   const userFullName = useMemo(
-    () =>
-      user
-        ? [user["first_name"], user["last_name"]].filter(Boolean).join(" ")
-        : "",
+    () => (user ? getTelegramUserFullName(user) : ""),
     [user]
   );
 
@@ -94,15 +97,25 @@ const AccountItem = ({ account, active, onClick }) => {
         <div className="flex flex-col grow min-w-0">
           {/* Title */}
           <h1 className="font-bold truncate w-full">
-            {account.title}
-            {showAccountDetails && userFullName ? ` - ${userFullName}` : null}
+            {account.title}{" "}
+            {showAccountDetails && userFullName ? (
+              <span
+                className={cn(
+                  "text-neutral-500 dark:text-neutral-400",
+                  "group-hover:text-orange-900"
+                )}
+              >
+                ({userFullName})
+              </span>
+            ) : null}
           </h1>
           {/* Username */}
           {showAccountDetails && user?.["username"] ? (
             <h5
               className={cn(
                 "truncate",
-                "text-neutral-500 dark:text-neutral-400 group-hover:text-orange-800"
+                "text-neutral-500 dark:text-neutral-400",
+                "group-hover:text-orange-900"
               )}
             >
               @{user["username"]}
@@ -121,10 +134,34 @@ const AccountItem = ({ account, active, onClick }) => {
 };
 
 export default function AccountListDialog() {
+  const [search, setSearch] = useState("");
   const accounts = useAppStore((state) => state.accounts);
   const partitions = useAppStore((state) => state.partitions);
   const setAccounts = useAppStore((state) => state.setAccounts);
   const launchPartition = useLaunchPartition();
+
+  const list = useMemo(
+    () =>
+      search
+        ? accounts.filter((item) => {
+            const user = item.telegramInitData
+              ? extractInitDataUnsafe(item.telegramInitData)["user"]
+              : null;
+
+            const fullName = user ? getTelegramUserFullName(user) : "";
+            const username = user?.["username"] || "";
+            const userId = user?.["id"] || "";
+
+            return (
+              searchIncludes(item.title, search) ||
+              searchIncludes(fullName, search) ||
+              searchIncludes(username, search) ||
+              searchIncludes(userId, search)
+            );
+          })
+        : accounts,
+    [search, accounts]
+  );
 
   const {
     opened: openAddAccountDialog,
@@ -144,42 +181,50 @@ export default function AccountListDialog() {
           "flex flex-col"
         )}
       >
-        <div className="flex items-center gap-2 p-4">
-          <div className="flex flex-col grow">
-            <Dialog.Title
-              className={cn(
-                "leading-none font-bold font-turret-road",
-                "text-lg text-orange-500"
-              )}
+        <div className="p-4 flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <div className="flex flex-col grow">
+              <Dialog.Title
+                className={cn(
+                  "leading-none font-bold font-turret-road",
+                  "text-lg text-orange-500"
+                )}
+              >
+                Accounts
+              </Dialog.Title>
+              <Dialog.Description className="text-neutral-500 dark:text-neutral-400 leading-none">
+                Select an account
+              </Dialog.Description>
+            </div>
+
+            {/* Add Account */}
+            <Dialog.Root
+              open={openAddAccountDialog}
+              onOpenChange={setOpenAddAccountDialog}
             >
-              Accounts
-            </Dialog.Title>
-            <Dialog.Description className="text-neutral-500 dark:text-neutral-400 leading-none">
-              Select an account
-            </Dialog.Description>
+              <Dialog.Trigger
+                title="Add Account"
+                className={cn(
+                  "shrink-0",
+                  "bg-orange-100 text-orange-700",
+                  "dark:bg-orange-200 dark:text-orange-500",
+                  "flex items-center gap-2",
+                  "p-2 px-3 rounded-xl text-left",
+                  "font-bold"
+                )}
+              >
+                <HiOutlinePlus className="size-5 text-orange-500" />
+              </Dialog.Trigger>
+
+              <AddAccountDialog close={closeAddAccountDialog} />
+            </Dialog.Root>
           </div>
 
-          {/* Add Account */}
-          <Dialog.Root
-            open={openAddAccountDialog}
-            onOpenChange={setOpenAddAccountDialog}
-          >
-            <Dialog.Trigger
-              title="Add Account"
-              className={cn(
-                "shrink-0",
-                "bg-orange-100 text-orange-700",
-                "dark:bg-orange-200 dark:text-orange-500",
-                "flex items-center gap-2",
-                "p-2 px-3 rounded-xl text-left",
-                "font-bold"
-              )}
-            >
-              <HiOutlinePlus className="size-5 text-orange-500" />
-            </Dialog.Trigger>
-
-            <AddAccountDialog close={closeAddAccountDialog} />
-          </Dialog.Root>
+          <Input
+            type="search"
+            placeholder={"Search"}
+            onChange={(ev) => setSearch(ev.target.value)}
+          />
         </div>
 
         <div className="flex flex-col px-4 pb-4 gap-2 grow overflow-auto">
@@ -188,8 +233,12 @@ export default function AccountListDialog() {
             onReorder={(newOrder) => setAccounts(newOrder)}
             className="flex flex-col gap-2"
           >
-            {accounts.map((item) => (
-              <ReorderItem key={item.partition} value={item}>
+            {list.map((item) => (
+              <ReorderItem
+                key={item.partition}
+                value={item}
+                disabled={Boolean(search)}
+              >
                 <AccountItem
                   account={item}
                   active={partitions.includes(item.partition)}

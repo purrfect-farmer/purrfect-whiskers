@@ -33,6 +33,14 @@ export function mutexify(fn) {
   };
 }
 
+export function getTelegramUserFullName(user) {
+  return [user["first_name"], user["last_name"]].filter(Boolean).join(" ");
+}
+
+export function searchIncludes(value, search) {
+  return value.toString().toLowerCase().includes(search.toLowerCase());
+}
+
 /** Extract InitDataUnsafe */
 export function extractInitDataUnsafe(initData) {
   const parsedInitData = Object.fromEntries(
