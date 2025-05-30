@@ -12,6 +12,7 @@ import { cn } from "../lib/utils";
 const schema = yup
   .object({
     partition: yup.string().nullable(),
+    telegramInitData: yup.string().nullable(),
     title: yup.string().required().label("Title"),
     proxyEnabled: yup.bool().required(),
     proxyHost: yup.string().nullable(),
@@ -28,6 +29,7 @@ export default memo(function AccountForm({ account, handleFormSubmit }) {
     resolver: yupResolver(schema),
     defaultValues: {
       partition: account?.partition || null,
+      telegramInitData: account?.telegramInitData || null,
       title: account?.title || `Account ${accounts.length + 1}`,
       proxyEnabled:
         typeof account?.proxyEnabled !== "undefined"

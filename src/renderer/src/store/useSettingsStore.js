@@ -10,6 +10,7 @@ export default create(
         extensionPath: import.meta.env.VITE_EXTENSION_PATH || "",
         showWebviewToolbar: true,
         restoreAccountsOnStartup: true,
+        showAccountDetails: true,
         allowProxies: true,
         theme: "system",
         columns: 4,
@@ -21,6 +22,8 @@ export default create(
         setTheme: (theme) => set({ theme }),
         setExtensionPath: (extensionPath) => set({ extensionPath }),
         setAllowProxies: (allowProxies) => set({ allowProxies }),
+        setShowAccountDetails: (showAccountDetails) =>
+          set({ showAccountDetails }),
         setShowWebviewToolbar: (showWebviewToolbar) =>
           set({ showWebviewToolbar }),
         setRestoreAccountsOnStartup: (restoreAccountsOnStartup) =>

@@ -48,6 +48,9 @@ export default function SettingsDialog() {
   const columns = useSettingsStore((state) => state.columns);
   const allowProxies = useSettingsStore((state) => state.allowProxies);
   const extensionPath = useSettingsStore((state) => state.extensionPath);
+  const showAccountDetails = useSettingsStore(
+    (state) => state.showAccountDetails
+  );
   const restoreAccountsOnStartup = useSettingsStore(
     (state) => state.restoreAccountsOnStartup
   );
@@ -59,6 +62,9 @@ export default function SettingsDialog() {
   const setTheme = useSettingsStore((state) => state.setTheme);
   const setExtensionPath = useSettingsStore((state) => state.setExtensionPath);
   const setAllowProxies = useSettingsStore((state) => state.setAllowProxies);
+  const setShowAccountDetails = useSettingsStore(
+    (state) => state.setShowAccountDetails
+  );
   const setShowWebviewToolbar = useSettingsStore(
     (state) => state.setShowWebviewToolbar
   );
@@ -128,6 +134,14 @@ export default function SettingsDialog() {
       </p>
 
       <label className="text-orange-500 mt-2">Accounts</label>
+
+      <LabelToggle
+        onChange={(ev) => setShowAccountDetails(ev.target.checked)}
+        checked={showAccountDetails}
+      >
+        Show Account Details
+      </LabelToggle>
+
       <LabelToggle
         onChange={(ev) => setRestoreAccountsOnStartup(ev.target.checked)}
         checked={restoreAccountsOnStartup}

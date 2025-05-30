@@ -132,6 +132,17 @@ export default memo(function Webview({ account }) {
     [account, updateAccount]
   );
 
+  /** Update Telegram InitData */
+  const updateTelegramInitData = useRefCallback(
+    (data) => {
+      updateAccount({
+        ...account,
+        ...data,
+      });
+    },
+    [account, updateAccount]
+  );
+
   /** Get Current Proxy Options */
   const getCurrentProxyOptions = useRefCallback(() => {
     const { proxyEnabled, proxyHost, proxyPort, proxyUsername, proxyPassword } =
@@ -165,6 +176,7 @@ export default memo(function Webview({ account }) {
     registerWebviewMessage(webview, {
       "get-whisker-data": () => sendWhiskerData(),
       "set-proxy": (data) => updateProxy(data),
+      "set-telegram-init-data": (data) => updateTelegramInitData(data),
     });
 
     /** Append to container */
@@ -179,7 +191,13 @@ export default memo(function Webview({ account }) {
       webviewIsReadyRef.current = false;
       webviewRef.current = null;
     };
-  }, [partition, extensionPath, updateProxy, sendWhiskerData]);
+  }, [
+    partition,
+    extensionPath,
+    updateProxy,
+    updateTelegramInitData,
+    sendWhiskerData,
+  ]);
 
   /** Configure Proxy */
   useEffect(() => {

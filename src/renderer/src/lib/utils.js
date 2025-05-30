@@ -32,3 +32,15 @@ export function mutexify(fn) {
     }
   };
 }
+
+/** Extract InitDataUnsafe */
+export function extractInitDataUnsafe(initData) {
+  const parsedInitData = Object.fromEntries(
+    new URLSearchParams(initData).entries()
+  );
+
+  return {
+    ...parsedInitData,
+    user: JSON.parse(parsedInitData.user),
+  };
+}

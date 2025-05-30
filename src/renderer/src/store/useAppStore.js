@@ -16,10 +16,10 @@ export default create(
 
         addAccount: (data) => set({ accounts: [...get().accounts, data] }),
         setAccounts: (accounts) => set({ accounts }),
-        updateAccount: (account) =>
+        updateAccount: (data) =>
           set({
             accounts: get().accounts.map((item) =>
-              item.partition === account.partition ? account : item
+              item.partition === data.partition ? { ...item, ...data } : item
             ),
           }),
         removeAccount: (partition) =>
