@@ -129,8 +129,8 @@ export default function SettingsDialog() {
       </LabelToggle>
 
       <p className="text-neutral-500 dark:text-neutral-400">
-        Proxies may be enabled for accounts, but without being enabled they
-        won't be used.
+        Proxies may be enabled for accounts, but without this option being
+        enabled they won't be used.
       </p>
 
       <label className="text-orange-500 mt-2">Accounts</label>
