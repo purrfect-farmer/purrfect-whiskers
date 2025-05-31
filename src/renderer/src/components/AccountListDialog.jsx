@@ -223,6 +223,7 @@ export default function AccountListDialog() {
           <Input
             type="search"
             placeholder={"Search"}
+            value={search}
             onChange={(ev) => setSearch(ev.target.value)}
           />
         </div>

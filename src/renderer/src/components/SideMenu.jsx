@@ -3,12 +3,13 @@ import semver from "semver";
 import { Dialog } from "radix-ui";
 import {
   HiOutlineArrowPath,
+  HiOutlineArrowsPointingOut,
   HiOutlineBars3,
   HiOutlineCog6Tooth,
 } from "react-icons/hi2";
 import { LuDatabaseBackup } from "react-icons/lu";
 import { MdOutlineBrowserUpdated } from "react-icons/md";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import AccountListDialog from "./AccountListDialog";
 import AppInfoDialog from "./AppInfoDialog";
@@ -20,6 +21,15 @@ import { cn } from "../lib/utils";
 export default function SideMenu() {
   const [currentVersion, setCurrentVersion] = useState(null);
   const [latestVersion, setLatestVersion] = useState(null);
+
+  /** Toggle FullScreen */
+  const toggleFullScreen = useCallback(function () {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  }, []);
 
   /** Get App Version */
   useEffect(() => {
@@ -63,6 +73,15 @@ export default function SideMenu() {
 
         <BackupAndRestoreDialog />
       </Dialog.Root>
+
+      {/* Fullscreen Toggle */}
+      <button
+        title="Toggle Fullscreen"
+        className="p-2"
+        onClick={toggleFullScreen}
+      >
+        <HiOutlineArrowsPointingOut className="size-5 text-orange-500" />
+      </button>
 
       {/* App Icon */}
       <Dialog.Root>
