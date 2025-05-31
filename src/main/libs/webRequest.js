@@ -62,6 +62,8 @@ export const onHeadersReceived = (session) =>
         })
       );
 
+      let statusLine = details.statusLine;
+
       try {
         /** Set Access Control Headers */
         if (details.referrer) {
@@ -73,6 +75,12 @@ export const onHeadersReceived = (session) =>
           responseHeaders["Access-Control-Allow-Headers"] = "*";
         }
 
+        /** Set Status Code */
+        if (details.method === "OPTIONS") {
+          statusLine = "HTTP/1.1 200";
+        }
+
+        /** Cookies */
         const setCookieHeaders = details.responseHeaders["set-cookie"] || [];
 
         /** Relax Cookies */
@@ -118,6 +126,6 @@ export const onHeadersReceived = (session) =>
         console.error(e);
       }
 
-      callback({ responseHeaders });
+      callback({ responseHeaders, statusLine });
     }
   );
