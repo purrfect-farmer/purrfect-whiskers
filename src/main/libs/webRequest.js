@@ -66,13 +66,12 @@ export const onHeadersReceived = (session) =>
 
       try {
         /** Set Access Control Headers */
-        if (details.referrer) {
-          responseHeaders["Access-Control-Allow-Origin"] = new URL(
-            details.referrer
-          ).origin;
+        if (details?.frame?.origin) {
+          responseHeaders["Access-Control-Allow-Origin"] = details.frame.origin;
           responseHeaders["Access-Control-Allow-Credentials"] = "true";
-          responseHeaders["Access-Control-Allow-Methods"] = "*";
           responseHeaders["Access-Control-Allow-Headers"] = "*";
+          responseHeaders["Access-Control-Allow-Methods"] =
+            "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD";
         }
 
         /** Set Status Code */
