@@ -76,19 +76,22 @@ export const onHeadersReceived = (session) =>
           statusLine = "HTTP/1.1 200";
         }
 
-        if (map.has(details.id)) {
-          const request = map.get(details.id);
-          responseHeaders["Access-Control-Allow-Credentials"] = "true";
+        /** Get Request */
+        const request = map.get(details.id);
 
-          responseHeaders["Access-Control-Allow-Headers"] =
-            request.headers || "*";
+        /** Credentials */
+        responseHeaders["Access-Control-Allow-Credentials"] = "true";
 
-          responseHeaders["Access-Control-Allow-Origin"] =
-            request.origin || "*";
+        /** Headers */
+        responseHeaders["Access-Control-Allow-Headers"] =
+          request?.headers || "*";
 
-          responseHeaders["Access-Control-Allow-Methods"] =
-            request.method || "*";
-        }
+        /** Origin */
+        responseHeaders["Access-Control-Allow-Origin"] = request?.origin || "*";
+
+        /** Methods */
+        responseHeaders["Access-Control-Allow-Methods"] =
+          request?.method || "*";
 
         /** Cookies */
         const setCookieHeaders = details.responseHeaders["set-cookie"] || [];
