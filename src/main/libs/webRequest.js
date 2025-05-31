@@ -1,5 +1,6 @@
 import setCookie from "set-cookie-parser";
 
+const map = new Map();
 /**
  * onBeforeSendHeaders
  * @param {Electron.Session} session
@@ -18,10 +19,15 @@ export const onBeforeSendHeaders = (session) =>
 
       const requestHeaders = details.requestHeaders || {};
 
+      map.set(details.id, {
+        origin: requestHeaders["Origin"],
+        method: requestHeaders["Access-Control-Request-Method"],
+        headers: requestHeaders["Access-Control-Request-Headers"],
+      });
+
       try {
-        const origin = new URL(details.url).origin;
-        requestHeaders["Origin"] = origin;
-        requestHeaders["Referer"] = origin + "/";
+        requestHeaders["Origin"] = new URL(details.url).origin;
+        requestHeaders["Referer"] = requestHeaders["Origin"] + "/";
       } catch (e) {
         console.error(e);
       }
@@ -45,6 +51,8 @@ export const onHeadersReceived = (session) =>
       ) {
         return callback({ responseHeaders: details.responseHeaders });
       }
+
+      let statusLine = details.statusLine;
       const responseHeaders = Object.fromEntries(
         Object.entries(details.responseHeaders || {}).filter(([key]) => {
           return ![
@@ -62,21 +70,24 @@ export const onHeadersReceived = (session) =>
         })
       );
 
-      let statusLine = details.statusLine;
-
       try {
-        /** Set Access Control Headers */
-        if (details?.frame?.origin) {
-          responseHeaders["Access-Control-Allow-Origin"] = details.frame.origin;
-          responseHeaders["Access-Control-Allow-Credentials"] = "true";
-          responseHeaders["Access-Control-Allow-Headers"] = "*";
-          responseHeaders["Access-Control-Allow-Methods"] =
-            "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD";
+        if (details.method === "OPTIONS") {
+          /** Set Status Code */
+          statusLine = "HTTP/1.1 200";
         }
 
-        /** Set Status Code */
-        if (details.method === "OPTIONS") {
-          statusLine = "HTTP/1.1 200";
+        if (map.has(details.id)) {
+          const request = map.get(details.id);
+          responseHeaders["Access-Control-Allow-Credentials"] = "true";
+
+          responseHeaders["Access-Control-Allow-Headers"] =
+            request.headers || "*";
+
+          responseHeaders["Access-Control-Allow-Origin"] =
+            request.origin || "*";
+
+          responseHeaders["Access-Control-Allow-Methods"] =
+            request.method || "*";
         }
 
         /** Cookies */
