@@ -6,7 +6,7 @@ import BrowserTab from "./BrowserTab";
 import WebviewButton from "./WebviewButton";
 import { cn, uuid } from "../lib/utils";
 
-const INITIAL_URL = import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
+/** Get new tab */
 const getNewTab = () => ({
   id: uuid(),
   active: true,
@@ -138,6 +138,7 @@ export default memo(function Browser({ account, isDesktop }) {
     [setTabs]
   );
 
+  /** Scroll to Tab Button */
   const scrollToTabButton = useCallback((element) => {
     const container = tabButtonsContainerRef.current;
 
