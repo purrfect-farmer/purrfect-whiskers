@@ -26,7 +26,7 @@ export const onBeforeSendHeaders = (session) => {
       });
 
       try {
-        if (details.frame.parent) {
+        if (details.frame?.parent) {
           requestHeaders["Origin"] = new URL(details.url).origin;
           requestHeaders["Referer"] = requestHeaders["Origin"] + "/";
         }
