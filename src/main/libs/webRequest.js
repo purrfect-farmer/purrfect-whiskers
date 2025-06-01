@@ -6,8 +6,8 @@ const map = new Map();
  * @param {Electron.Session} session
  * @returns
  */
-export const onBeforeSendHeaders = (session) =>
-  session.webRequest.onBeforeSendHeaders(
+export const onBeforeSendHeaders = (session) => {
+  return session.webRequest.onBeforeSendHeaders(
     { urls: ["*://*/*"] },
     (details, callback) => {
       if (
@@ -26,8 +26,10 @@ export const onBeforeSendHeaders = (session) =>
       });
 
       try {
-        requestHeaders["Origin"] = new URL(details.url).origin;
-        requestHeaders["Referer"] = requestHeaders["Origin"] + "/";
+        if (details.frame.parent) {
+          requestHeaders["Origin"] = new URL(details.url).origin;
+          requestHeaders["Referer"] = requestHeaders["Origin"] + "/";
+        }
       } catch (e) {
         console.error(e);
       }
@@ -35,14 +37,15 @@ export const onBeforeSendHeaders = (session) =>
       callback({ requestHeaders });
     }
   );
+};
 
 /**
  * onHeadersReceived
  * @param {Electron.Session} session
  * @returns
  */
-export const onHeadersReceived = (session) =>
-  session.webRequest.onHeadersReceived(
+export const onHeadersReceived = (session) => {
+  return session.webRequest.onHeadersReceived(
     { urls: ["*://*/*"] },
     (details, callback) => {
       if (
@@ -142,3 +145,4 @@ export const onHeadersReceived = (session) =>
       callback({ responseHeaders, statusLine });
     }
   );
+};

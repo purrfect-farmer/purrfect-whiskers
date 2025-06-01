@@ -75,7 +75,7 @@ export default function Browser({ account }) {
           </WebviewButton>
         </div>
 
-        <form onSubmit={handleFormSubmit}>
+        <form onSubmit={handleFormSubmit} className="w-full">
           <Input
             className="rounded-full p-2"
             placeholder="Enter URL"
