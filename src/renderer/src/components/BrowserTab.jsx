@@ -80,26 +80,31 @@ export default memo(function BrowserTab({
 
   /** Handle New Window Open */
   useEffect(() => {
-    const webview = ref.current;
+    if (isReady) {
+      const webview = ref.current;
+      const webContentsId = webview.getWebContentsId();
 
-    /** Listen for Window Open */
-    const listener = (ev, args) => {
-      const { id, action, data } = args;
-
-      if (id === webview.getWebContentsId()) {
-        switch (action) {
-          case "open-window":
-            addTab(data);
-            break;
+      /** Listen for Window Open */
+      const listener = (ev, args) => {
+        const { id, action, data } = args;
+        if (id === webContentsId) {
+          switch (action) {
+            case "open-window":
+              addTab(data);
+              break;
+          }
         }
-      }
-    };
+      };
 
-    window.electron.ipcRenderer.on("browser-message", listener);
+      /** Add Listener */
+      window.electron.ipcRenderer.on("browser-message", listener);
 
-    return () =>
-      window.electron.ipcRenderer.removeListener("browser-message", listener);
-  }, [addTab]);
+      return () => {
+        /** Remove Listener */
+        window.electron.ipcRenderer.removeListener("browser-message", listener);
+      };
+    }
+  }, [isReady, addTab]);
 
   /** Handle Window Close */
   useEffect(() => {
