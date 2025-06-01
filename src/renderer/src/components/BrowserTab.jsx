@@ -107,7 +107,6 @@ export default memo(function BrowserTab({
 
     /** Listen for Window Close */
     const listener = (ev) => {
-      console.log(ev);
       closeTab(id);
     };
 
