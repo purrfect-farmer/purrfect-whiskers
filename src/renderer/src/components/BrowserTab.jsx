@@ -1,3 +1,4 @@
+import isUrl from "is-url";
 import normalizeUrl from "normalize-url";
 import {
   HiOutlineArrowLeft,
@@ -39,9 +40,17 @@ export default memo(function BrowserTab({
       /** Blur */
       addressBarRef.current.blur();
 
-      callWebviewMethod((webview) =>
-        webview.loadURL(normalizeUrl(addressBarRef.current.value))
-      );
+      /** Get Input */
+      const input = addressBarRef.current.value;
+      const url = normalizeUrl(input);
+
+      callWebviewMethod((webview) => {
+        webview.loadURL(
+          isUrl(url)
+            ? url
+            : `https://www.google.com/search?q=${encodeURIComponent(input)}`
+        );
+      });
     },
     [callWebviewMethod]
   );
