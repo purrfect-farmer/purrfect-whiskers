@@ -1,113 +1,209 @@
-import normalizeUrl from "normalize-url";
-import {
-  HiOutlineArrowLeft,
-  HiOutlineArrowPath,
-  HiOutlineArrowRight,
-  HiOutlineXMark,
-} from "react-icons/hi2";
-import { memo, useCallback, useEffect, useRef } from "react";
+import { HiOutlinePlus, HiOutlineXMark } from "react-icons/hi2";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 
-import Input from "./Input";
+import BrowserIcon from "../assets/images/browser.png";
+import BrowserTab from "./BrowserTab";
 import WebviewButton from "./WebviewButton";
-import useWebviewControls from "../hooks/useWebviewControls";
-import { cn } from "../lib/utils";
-import { userAgent, userAgentDesktop } from "../lib/userAgent";
+import { cn, uuid } from "../lib/utils";
 
 const INITIAL_URL = import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
+const getNewTab = () => ({
+  id: uuid(),
+  active: true,
+  title: "New Tab",
+});
 
-export default memo(function Browser({ account, isDesktop }) {
-  const { partition } = account;
-  const { ref, isLoading, goBack, goForward, reload, stop, callWebviewMethod } =
-    useWebviewControls();
-
-  /** Address Bar */
-  const addressBarRef = useRef();
-
+const TabButton = ({ tab, setActiveTab, closeTab, scrollToTabButton }) => {
   /**
-   * Handle Form Submit
+   * @type {import("react").Ref<HTMLDivElement>}
    */
-  const handleFormSubmit = useCallback(
+  const buttonRef = useRef();
+
+  /** Button Click Handler */
+  const handleTabButtonClick = useCallback(() => {
+    setActiveTab(tab.id);
+  }, [tab.id, setActiveTab]);
+
+  /** Close Button Click Handler */
+  const handleCloseButtonClick = useCallback(
     (ev) => {
-      ev.preventDefault();
+      /** Stop Propagation */
       ev.stopPropagation();
 
-      /** Blur */
-      addressBarRef.current.blur();
-
-      callWebviewMethod((webview) =>
-        webview.loadURL(normalizeUrl(addressBarRef.current.value))
-      );
+      /** Close Tab */
+      closeTab(tab.id);
     },
-    [callWebviewMethod]
+    [tab.id, closeTab]
   );
 
-  /** Address Bar Update */
+  /** Scroll into View */
   useEffect(() => {
-    const webview = ref.current;
-    /** Did Navigate */
-    webview.addEventListener("did-navigate", (ev) => {
-      addressBarRef.current.value = ev.url;
-    });
-
-    /** Navigate in Page */
-    webview.addEventListener("did-navigate-in-page", (ev) => {
-      addressBarRef.current.value = ev.url;
-    });
-  }, []);
-
-  /** User-Agent */
-  useEffect(() => {
-    callWebviewMethod((webview) =>
-      webview.setUserAgent(isDesktop ? userAgentDesktop : userAgent)
-    );
-  }, [callWebviewMethod, isDesktop]);
+    if (tab.active) {
+      scrollToTabButton(buttonRef.current);
+    }
+  }, [tab.active, scrollToTabButton]);
 
   return (
     <div
+      key={tab.id}
+      ref={buttonRef}
+      onClick={handleTabButtonClick}
       className={cn(
-        "grow flex flex-col shrink-0",
-        "divide-y dark:divide-neutral-700"
+        tab.active && "bg-neutral-100 dark:bg-neutral-700",
+        "p-1.5 rounded-full shrink-0",
+        "flex gap-2 items-center",
+        "cursor-pointer"
       )}
     >
-      <div className="p-2 flex gap-1 items-center">
-        <div className="flex gap-1">
-          {/* Back */}
-          <WebviewButton onClick={goBack} title="Go Back">
-            <HiOutlineArrowLeft className="size-4" />
-          </WebviewButton>
+      {/* Icon */}
+      <img
+        key={tab.icon || "default-icon"}
+        src={tab.icon || BrowserIcon}
+        className="size-6 rounded-full"
+      />
 
-          {/* Forward */}
-          <WebviewButton onClick={goForward} title="Go Forward">
-            <HiOutlineArrowRight className="size-4" />
+      {/* Title */}
+      <h1 className={cn("font-bold", "max-w-10 truncate")}>{tab.title}</h1>
+
+      {/* Close Button */}
+      <button
+        onClick={handleCloseButtonClick}
+        className={cn(
+          "p-1 rounded-full",
+          "flex items-center justify-center",
+          tab.active && "bg-neutral-200 dark:bg-neutral-600"
+        )}
+      >
+        <HiOutlineXMark className="size-4" />
+      </button>
+    </div>
+  );
+};
+
+export default memo(function Browser({ account, isDesktop }) {
+  const tabButtonsContainerRef = useRef();
+  const [tabs, setTabs] = useState(() => [getNewTab()]);
+
+  /** Set Active Tab */
+  const setActiveTab = useCallback(
+    (id) => {
+      setTabs((prev) =>
+        prev.map((item) => ({ ...item, active: item.id === id }))
+      );
+    },
+    [setTabs]
+  );
+
+  /** Add Tab */
+  const addTab = useCallback(() => {
+    setTabs((prev) => [
+      ...prev.map((item) => ({ ...item, active: false })),
+      getNewTab(),
+    ]);
+  }, [setTabs]);
+
+  /** Close Tab */
+  const closeTab = useCallback(
+    (id) => {
+      setTabs((prev) => {
+        if (prev.some((item) => item.id === id)) {
+          return prev.filter((item) => item.id !== id);
+        } else {
+          return prev;
+        }
+      });
+    },
+    [setTabs]
+  );
+
+  /** Update Title */
+  const updateTitle = useCallback(
+    (id, title) => {
+      setTabs((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, title } : item))
+      );
+    },
+    [setTabs]
+  );
+
+  /** Update Icon */
+  const updateIcon = useCallback(
+    (id, icons) => {
+      setTabs((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, icon: icons[0] } : item
+        )
+      );
+    },
+    [setTabs]
+  );
+
+  const scrollToTabButton = useCallback((element) => {
+    const container = tabButtonsContainerRef.current;
+
+    if (!container) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const elementRect = element.getBoundingClientRect();
+
+    const offsetLeft =
+      elementRect.left - containerRect.left + container.scrollLeft;
+    const targetScrollLeft =
+      offsetLeft - container.clientWidth / 2 + element.offsetWidth / 2;
+
+    container.scrollTo({ left: targetScrollLeft, behavior: "smooth" });
+  }, []);
+
+  return (
+    <div className="grow flex flex-col">
+      <div
+        ref={tabButtonsContainerRef}
+        className={cn(
+          "w-full relative z-0",
+          "flex items-center shrink-0 py-2 pr-2",
+          "overflow-auto scrollbar-thin"
+        )}
+      >
+        {/* Main */}
+        <div className="sticky left-0 py-1 px-2 bg-white z-1 dark:bg-neutral-800 shrink-0">
+          <WebviewButton onClick={addTab}>
+            <HiOutlinePlus className="size-4" />
           </WebviewButton>
         </div>
 
-        <form onSubmit={handleFormSubmit} className="w-full">
-          <Input
-            className="rounded-full p-2"
-            placeholder="Enter URL"
-            ref={addressBarRef}
-          />
-        </form>
-
-        {/* Stop */}
-        {isLoading ? (
-          <WebviewButton onClick={stop} title="Stop">
-            <HiOutlineXMark className="size-4" />
-          </WebviewButton>
-        ) : (
-          <WebviewButton onClick={reload} title="Refresh">
-            <HiOutlineArrowPath className="size-4" />
-          </WebviewButton>
-        )}
+        {/* Tab Buttons */}
+        <div className="flex gap-1 flex-nowrap shrink-0">
+          {tabs.map((tab) => (
+            <TabButton
+              key={tab.id}
+              tab={tab}
+              setActiveTab={setActiveTab}
+              closeTab={closeTab}
+              scrollToTabButton={scrollToTabButton}
+            />
+          ))}
+        </div>
       </div>
-      <webview
-        src={INITIAL_URL}
-        allowpopups="true"
-        className="grow bg-white"
-        partition={partition}
-        ref={ref}
-      />
+
+      <div className="relative grow">
+        {tabs.map((item) => (
+          <div
+            key={item.id}
+            className={cn(
+              "absolute inset-0 flex flex-col",
+              !item.active && "invisible"
+            )}
+          >
+            <BrowserTab
+              id={item.id}
+              partition={account.partition}
+              isDesktop={isDesktop}
+              updateTitle={updateTitle}
+              updateIcon={updateIcon}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 });
