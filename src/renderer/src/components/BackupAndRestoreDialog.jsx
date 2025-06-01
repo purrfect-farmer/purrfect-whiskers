@@ -1,7 +1,7 @@
 import toast from "react-hot-toast";
 import { LuDatabaseBackup } from "react-icons/lu";
 import { formatDate } from "date-fns";
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
 import Alert from "./Alert";
@@ -14,10 +14,43 @@ import useTabs from "../hooks/useTabs";
 import { chunkArrayGenerator, cn } from "../lib/utils";
 import {
   configureProxy,
-  createWebview,
   getWhiskerData,
   registerWebviewMessage,
 } from "../lib/partitions";
+import { userAgent } from "../lib/userAgent";
+
+/** Create Webview */
+function createWebview(partition, extensionPath, proxyOptions) {
+  /** Create the <webview> element */
+  const webview = document.createElement("webview");
+
+  webview.setAttribute("partition", partition);
+  webview.setAttribute("allowpopups", "true");
+  webview.setAttribute("useragent", userAgent);
+
+  /** Add Classes */
+  webview.setAttribute("class", "w-full h-full opacity-0 fixed");
+
+  /** Context Menu */
+  webview.addEventListener("context-menu", () => {
+    webview.openDevTools({ mode: "detach" });
+  });
+
+  /** Load extension URL */
+  window.electron.ipcRenderer
+    .invoke("setup-session", { partition, extensionPath, proxyOptions })
+    .then(({ extension, preload }) => {
+      webview.preload = preload;
+      webview.src = extension
+        ? extension.url + "index.html"
+        : import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
+    })
+    .catch(() => {
+      webview.src = import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
+    });
+
+  return webview;
+}
 
 export default function BackupAndRestoreDialog() {
   const containerRef = useRef();
@@ -27,6 +60,8 @@ export default function BackupAndRestoreDialog() {
   const allowProxies = useSettingsStore((state) => state.allowProxies);
   const extensionPath = useSettingsStore((state) => state.extensionPath);
   const setPartitions = useAppStore((state) => state.setPartitions);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [total, setTotal] = useState(0);
 
   /** Save Backup File */
   const saveBackupFile = useCallback(
@@ -125,10 +160,14 @@ export default function BackupAndRestoreDialog() {
     /** Close Opened Partitions */
     setPartitions([]);
 
+    /** Reset State */
+    setIsProcessing(true);
+    setTotal(0);
+
     /** Create Backups Array */
     const backups = [];
 
-    for (const chunk of chunkArrayGenerator(accounts, 2)) {
+    for (const chunk of chunkArrayGenerator(accounts, 3)) {
       await Promise.all(
         chunk.map(async (account) => {
           const result = await getOrRestoreAccountBackup(account);
@@ -138,16 +177,28 @@ export default function BackupAndRestoreDialog() {
             partition: account.partition,
             backup: result,
           });
+
+          /** Increment */
+          setTotal((prev) => prev + 1);
         })
       );
     }
+
+    /** Release Lock */
+    setIsProcessing(false);
 
     return {
       app: useAppStore.getState(),
       settings: useSettingsStore.getState(),
       backups,
     };
-  }, [accounts, setPartitions, getOrRestoreAccountBackup]);
+  }, [
+    accounts,
+    setTotal,
+    setPartitions,
+    setIsProcessing,
+    getOrRestoreAccountBackup,
+  ]);
 
   /** Backup All Data */
   const backupData = useCallback(async () => {
@@ -173,16 +224,23 @@ export default function BackupAndRestoreDialog() {
       /** Close Opened Partitions */
       setPartitions([]);
 
+      /** Reset State */
+      setIsProcessing(true);
+      setTotal(0);
+
       /** Destructure Data */
       const { app, settings, backups } = data;
 
-      for (const chunk of chunkArrayGenerator(backups, 2)) {
+      for (const chunk of chunkArrayGenerator(backups, 3)) {
         await Promise.all(
           chunk.map(async (item) => {
             const account = app.accounts.find(
               (account) => account.partition === item.partition
             );
             await getOrRestoreAccountBackup(account, item.backup);
+
+            /** Increment */
+            setTotal((prev) => prev + 1);
           })
         );
       }
@@ -190,8 +248,17 @@ export default function BackupAndRestoreDialog() {
       /** Restore States */
       useAppStore.setState(app);
       useSettingsStore.setState({ ...settings, extensionPath });
+
+      /** Release Lock */
+      setIsProcessing(false);
     },
-    [extensionPath, setPartitions, getOrRestoreAccountBackup]
+    [
+      extensionPath,
+      setTotal,
+      setPartitions,
+      setIsProcessing,
+      getOrRestoreAccountBackup,
+    ]
   );
 
   /** On backup file drop */
@@ -229,6 +296,7 @@ export default function BackupAndRestoreDialog() {
     },
     maxFiles: 1,
     multiple: false,
+    disabled: isProcessing,
   });
 
   /** Tabs */
@@ -248,7 +316,9 @@ export default function BackupAndRestoreDialog() {
             accounts and their Telegram Web data.
           </Alert>
 
-          <PrimaryButton onClick={backupData}>Backup Now</PrimaryButton>
+          <PrimaryButton disabled={isProcessing} onClick={backupData}>
+            Backup Now
+          </PrimaryButton>
         </Tabs.Content>
 
         {/* Restore */}
@@ -280,8 +350,14 @@ export default function BackupAndRestoreDialog() {
         </Tabs.Content>
       </Tabs>
 
+      {isProcessing ? (
+        <div className="flex justify-center items-center text-orange-500 font-bold">
+          Processed: {total}
+        </div>
+      ) : null}
+
       {/* Webview Containers */}
-      <div ref={containerRef} className="hidden w-screen h-screen"></div>
+      <div ref={containerRef}></div>
     </AppDialogContent>
   );
 }
