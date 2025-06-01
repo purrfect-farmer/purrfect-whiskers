@@ -106,8 +106,20 @@ export default memo(function Browser({ account, isDesktop }) {
   const closeTab = useCallback(
     (id) => {
       setTabs((prev) => {
-        if (prev.some((item) => item.id === id)) {
-          return prev.filter((item) => item.id !== id);
+        /** Get Index */
+        const itemIndex = prev.findIndex((item) => item.id === id);
+
+        if (itemIndex > -1) {
+          const wasActive = prev[itemIndex].active;
+          const result = prev
+            .filter((tab) => tab.id !== id)
+            .map((tab, index) => ({
+              ...tab,
+              active: wasActive
+                ? index === Math.max(itemIndex - 1, 0)
+                : tab.active,
+            }));
+          return result;
         } else {
           return prev;
         }
