@@ -2,20 +2,18 @@ import {
   HiOutlineArrowLeft,
   HiOutlineArrowPath,
   HiOutlineArrowRight,
-  HiOutlineStop,
+  HiOutlineXMark,
 } from "react-icons/hi2";
-import { memo, useCallback, useEffect, useRef } from "react";
+import { memo, useEffect } from "react";
 
 import WebviewButton from "./WebviewButton";
 import useAppStore from "../store/useAppStore";
 import useRefCallback from "../hooks/useRefCallback";
 import useSettingsStore from "../store/useSettingsStore";
+import useWebviewControls from "../hooks/useWebviewControls";
 import { cn } from "../lib/utils";
-import {
-  createWebview,
-  getWhiskerData,
-  registerWebviewMessage,
-} from "../lib/partitions";
+import { getWhiskerData, registerWebviewMessage } from "../lib/partitions";
+import { userAgent } from "../lib/userAgent";
 
 export default memo(function ({ account }) {
   const updateAccount = useAppStore((state) => state.updateAccount);
@@ -26,42 +24,8 @@ export default memo(function ({ account }) {
     (state) => state.showWebviewToolbar
   );
   const { partition } = account;
-  const containerRef = useRef(null);
-  const webviewRef = useRef(null);
-  const webviewIsReadyRef = useRef(false);
-
-  /** Call Webview Method */
-  const callWebviewMethod = useCallback((callback) => {
-    const webview = webviewRef.current;
-    const webviewIsReady = webviewIsReadyRef.current;
-    if (webview && webviewIsReady) {
-      callback(webview);
-    }
-  }, []);
-
-  /** Go Back */
-  const goBack = useCallback(
-    () => callWebviewMethod((webview) => webview.goBack()),
-    [callWebviewMethod]
-  );
-
-  /** Go Forward */
-  const goForward = useCallback(
-    () => callWebviewMethod((webview) => webview.goForward()),
-    [callWebviewMethod]
-  );
-
-  /** Stop Webview */
-  const stop = useCallback(
-    () => callWebviewMethod((webview) => webview.stop()),
-    [callWebviewMethod]
-  );
-
-  /** Reload Webview */
-  const reload = useCallback(
-    () => callWebviewMethod((webview) => webview.reload()),
-    [callWebviewMethod]
-  );
+  const { ref, isLoading, goBack, goForward, reload, stop, callWebviewMethod } =
+    useWebviewControls();
 
   /** Get Current Whisker Data */
   const getCurrentWhiskerData = useRefCallback(
@@ -108,19 +72,29 @@ export default memo(function ({ account }) {
     [account, updateAccount]
   );
 
-  /** Initialize Webview */
+  /** Setup Webview */
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+    const webview = ref.current;
 
-    /** Create the <webview> element */
-    const webview = createWebview(partition, extensionPath);
+    window.electron.ipcRenderer
+      .invoke("setup-session", {
+        partition,
+        extensionPath,
+      })
+      .then(({ extension, preload }) => {
+        webview.preload = preload;
+        webview.src = extension
+          ? extension.url + "index.html"
+          : import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
+      })
+      .catch(() => {
+        webview.src = import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
+      });
+  }, [partition, extensionPath]);
 
-    /** Attach DOM Ready Event */
-    webview.addEventListener("dom-ready", () => {
-      /** Set as ready */
-      webviewIsReadyRef.current = true;
-    });
+  /** Register Core Events */
+  useEffect(() => {
+    const webview = ref.current;
 
     /** IPC Message */
     registerWebviewMessage(webview, {
@@ -128,26 +102,7 @@ export default memo(function ({ account }) {
       "set-proxy": (data) => updateProxy(data),
       "set-telegram-init-data": (data) => updateTelegramInitData(data),
     });
-
-    /** Append to container */
-    container.appendChild(webview);
-
-    /** Set Ref */
-    webviewRef.current = webview;
-
-    /** Cleanup on unmount */
-    return () => {
-      webview.remove();
-      webviewIsReadyRef.current = false;
-      webviewRef.current = null;
-    };
-  }, [
-    partition,
-    extensionPath,
-    updateProxy,
-    updateTelegramInitData,
-    sendWhiskerData,
-  ]);
+  }, [updateProxy, updateTelegramInitData, sendWhiskerData]);
 
   /** Send Whisker Data */
   useEffect(() => {
@@ -156,13 +111,18 @@ export default memo(function ({ account }) {
 
   return (
     <div
-      key={partition}
       className={cn(
         "grow flex flex-col shrink-0",
         "divide-y dark:divide-neutral-700"
       )}
     >
-      <div ref={containerRef} className="grow flex flex-col" />
+      <webview
+        allowpopups="true"
+        className="grow bg-white"
+        useragent={userAgent}
+        partition={partition}
+        ref={ref}
+      />
 
       {/* Controls */}
       {showWebviewToolbar ? (
@@ -179,14 +139,15 @@ export default memo(function ({ account }) {
             </WebviewButton>
 
             {/* Stop */}
-            <WebviewButton title="Stop" onClick={stop}>
-              <HiOutlineStop className="size-4" />
-            </WebviewButton>
-
-            {/* Reload */}
-            <WebviewButton title="Reload" onClick={reload}>
-              <HiOutlineArrowPath className="size-4" />
-            </WebviewButton>
+            {isLoading ? (
+              <WebviewButton onClick={stop} title="Stop">
+                <HiOutlineXMark className="size-4" />
+              </WebviewButton>
+            ) : (
+              <WebviewButton onClick={reload} title="Refresh">
+                <HiOutlineArrowPath className="size-4" />
+              </WebviewButton>
+            )}
           </div>
         </div>
       ) : null}

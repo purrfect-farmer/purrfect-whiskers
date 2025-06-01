@@ -5,113 +5,55 @@ import {
   HiOutlineArrowRight,
   HiOutlineXMark,
 } from "react-icons/hi2";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import Input from "./Input";
 import WebviewButton from "./WebviewButton";
+import useWebviewControls from "../hooks/useWebviewControls";
 import { cn } from "../lib/utils";
+import { userAgent } from "../lib/userAgent";
 
-const INITIAL_URL = "https://purrfectfarmer.com";
+const INITIAL_URL = import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
 
 export default function Browser({ account }) {
   const { partition } = account;
-  /**
-   * @type {import("react").Ref<import("electron").WebviewTag>}
-   */
-  const webviewRef = useRef();
+  const { ref, isLoading, goBack, goForward, reload, stop, callWebviewMethod } =
+    useWebviewControls();
+
+  /** Address Bar */
   const addressBarRef = useRef();
-  const [isReady, setIsReady] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [url, setUrl] = useState(INITIAL_URL);
 
   /**
    * Handle Form Submit
    */
-  const handleFormSubmit = (ev) => {
-    ev.preventDefault();
-    ev.stopPropagation();
+  const handleFormSubmit = useCallback(
+    (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
 
-    addressBarRef.current.blur();
+      /** Blur */
+      addressBarRef.current.blur();
 
-    setUrl(normalizeUrl(addressBarRef.current.value));
-  };
-
-  /** Call Webview Method */
-  const callWebviewMethod = useCallback(
-    (callback) => {
-      const webview = webviewRef.current;
-      if (webview && isReady) {
-        callback(webview);
-      }
+      callWebviewMethod((webview) =>
+        webview.loadURL(normalizeUrl(addressBarRef.current.value))
+      );
     },
-    [isReady]
-  );
-
-  /** Go Back */
-  const goBack = useCallback(
-    () => callWebviewMethod((webview) => webview.goBack()),
     [callWebviewMethod]
   );
 
-  /** Go Forward */
-  const goForward = useCallback(
-    () => callWebviewMethod((webview) => webview.goForward()),
-    [callWebviewMethod]
-  );
-
-  /** Stop Webview */
-  const stop = useCallback(
-    () => callWebviewMethod((webview) => webview.stop()),
-    [callWebviewMethod]
-  );
-
-  /** Reload Webview */
-  const reload = useCallback(
-    () => callWebviewMethod((webview) => webview.reload()),
-    [callWebviewMethod]
-  );
-
+  /** Address Bar Update */
   useEffect(() => {
-    const webview = webviewRef.current;
-    if (webview) {
-      /** DOM Ready */
-      webview.addEventListener("dom-ready", () => {
-        setIsReady(true);
-      });
+    const webview = ref.current;
+    /** Did Navigate */
+    webview.addEventListener("did-navigate", (ev) => {
+      addressBarRef.current.value = ev.url;
+    });
 
-      /** Start Loading */
-      webview.addEventListener("did-start-loading", (ev) => {
-        setIsLoading(true);
-      });
-
-      /** Stop Loading */
-      webview.addEventListener("did-stop-loading", (ev) => {
-        setIsLoading(false);
-      });
-
-      /** Did Navigate */
-      webview.addEventListener("did-navigate", (ev) => {
-        addressBarRef.current.value = ev.url;
-      });
-
-      /** Navigate in Page */
-      webview.addEventListener("did-navigate-in-page", (ev) => {
-        addressBarRef.current.value = ev.url;
-      });
-
-      /** Context Menu */
-      webview.addEventListener("context-menu", () => {
-        webview.openDevTools({ mode: "detach" });
-      });
-    }
-  }, [setIsReady, setIsLoading]);
-
-  useEffect(() => {
-    const webview = webviewRef.current;
-    if (webview && isReady) {
-      webview.loadURL(url);
-    }
-  }, [isReady, url]);
+    /** Navigate in Page */
+    webview.addEventListener("did-navigate-in-page", (ev) => {
+      addressBarRef.current.value = ev.url;
+    });
+  }, []);
 
   return (
     <div
@@ -156,9 +98,9 @@ export default function Browser({ account }) {
         src={INITIAL_URL}
         allowpopups="true"
         className="grow bg-white"
-        useragent="Mozilla/5.0 (Linux; Android 14; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.135 Mobile Safari/537.36 Telegram-Android/11.6.1 (Samsung SM-G998B; Android 14; SDK 34; HIGH)"
+        useragent={userAgent}
         partition={partition}
-        ref={webviewRef}
+        ref={ref}
       />
     </div>
   );
