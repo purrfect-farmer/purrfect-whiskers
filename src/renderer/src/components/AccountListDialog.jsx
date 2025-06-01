@@ -190,7 +190,7 @@ export default function AccountListDialog() {
                   "text-lg text-orange-500"
                 )}
               >
-                Accounts
+                Accounts ({accounts.length})
               </Dialog.Title>
               <Dialog.Description className="text-neutral-500 dark:text-neutral-400 leading-none">
                 Select an account
