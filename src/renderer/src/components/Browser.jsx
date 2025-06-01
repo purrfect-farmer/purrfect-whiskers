@@ -5,17 +5,17 @@ import {
   HiOutlineArrowRight,
   HiOutlineXMark,
 } from "react-icons/hi2";
-import { useCallback, useEffect, useRef } from "react";
+import { memo, useCallback, useEffect, useRef } from "react";
 
 import Input from "./Input";
 import WebviewButton from "./WebviewButton";
 import useWebviewControls from "../hooks/useWebviewControls";
 import { cn } from "../lib/utils";
-import { userAgent } from "../lib/userAgent";
+import { userAgent, userAgentDesktop } from "../lib/userAgent";
 
 const INITIAL_URL = import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
 
-export default function Browser({ account }) {
+export default memo(function Browser({ account, isDesktop }) {
   const { partition } = account;
   const { ref, isLoading, goBack, goForward, reload, stop, callWebviewMethod } =
     useWebviewControls();
@@ -54,6 +54,13 @@ export default function Browser({ account }) {
       addressBarRef.current.value = ev.url;
     });
   }, []);
+
+  /** User-Agent */
+  useEffect(() => {
+    callWebviewMethod((webview) =>
+      webview.setUserAgent(isDesktop ? userAgentDesktop : userAgent)
+    );
+  }, [callWebviewMethod, isDesktop]);
 
   return (
     <div
@@ -98,10 +105,9 @@ export default function Browser({ account }) {
         src={INITIAL_URL}
         allowpopups="true"
         className="grow bg-white"
-        useragent={userAgent}
         partition={partition}
         ref={ref}
       />
     </div>
   );
-}
+});

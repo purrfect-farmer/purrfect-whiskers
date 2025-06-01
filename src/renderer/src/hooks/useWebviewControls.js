@@ -11,6 +11,11 @@ export default function useWebviewControls() {
 
   /** Call Webview Method */
   const callWebviewMethod = useCallback(
+    /**
+     * Executes the given callback with the current webview instance if it exists and is ready.
+     *
+     * @param {(webview: import("electron").WebviewTag) => any} callback
+     */
     (callback) => {
       const webview = ref.current;
       if (webview && isReady) {

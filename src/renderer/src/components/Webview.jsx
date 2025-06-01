@@ -1,7 +1,8 @@
+import { BsWindowFullscreen } from "react-icons/bs";
 import { Dialog } from "radix-ui";
 import { HiOutlineGlobeAlt, HiOutlineXCircle } from "react-icons/hi2";
 import { MdOutlineEditNote } from "react-icons/md";
-import { memo, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import Browser from "./Browser";
 import EditAccountDialog from "./EditAccountDialog";
@@ -24,7 +25,9 @@ export default memo(function Webview({ account }) {
     proxyPassword,
   } = account;
 
+  const containerRef = useRef();
   const [showBrowser, setShowBrowser] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   const allowProxies = useSettingsStore((state) => state.allowProxies);
   const closePartition = useAppStore((state) => state.closePartition);
 
@@ -34,6 +37,18 @@ export default memo(function Webview({ account }) {
     setOpened: setOpenEditAccountDialog,
     closeDialog: closeEditAccountDialog,
   } = useDialogState();
+
+  /** Toggle FullScreen */
+  const toggleFullScreen = useCallback(() => {
+    const container = containerRef.current;
+    if (!document.fullscreenElement) {
+      if (container) {
+        container.requestFullscreen();
+      }
+    } else if (document.fullscreenElement === container) {
+      document.exitFullscreen();
+    }
+  }, []);
 
   /** Configure Proxy */
   useEffect(() => {
@@ -56,23 +71,47 @@ export default memo(function Webview({ account }) {
     configureProxy,
   ]);
 
+  /** Watch Fullscreen */
+  useEffect(() => {
+    const handleFullscreenChange = () =>
+      setIsDesktop(document.fullscreenElement === containerRef.current);
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, [setIsDesktop]);
+
   return (
     <div
-      key={partition}
+      ref={containerRef}
       className={cn(
         "grow flex flex-col shrink-0",
-        "divide-y dark:divide-neutral-700"
+        "divide-y dark:divide-neutral-700",
+        "bg-white dark:bg-neutral-800 dark:text-white"
       )}
     >
       <div className="flex gap-2 items-center justify-between p-2">
-        {/* Toggle Browser */}
-        <WebviewButton
-          title="Toggle Browser"
-          onClick={() => setShowBrowser((prev) => !prev)}
-          className={showBrowser && "text-orange-500"}
-        >
-          <HiOutlineGlobeAlt className="size-4" />
-        </WebviewButton>
+        <div className="flex gap-1">
+          {/* Toggle Fullscreen */}
+          <WebviewButton
+            title="Toggle Fullscreen"
+            onClick={toggleFullScreen}
+            className={isDesktop && "text-orange-500"}
+          >
+            <BsWindowFullscreen className="size-4" />
+          </WebviewButton>
+
+          {/* Toggle Browser */}
+          <WebviewButton
+            title="Toggle Browser"
+            onClick={() => setShowBrowser((prev) => !prev)}
+            className={showBrowser && "text-orange-500"}
+          >
+            <HiOutlineGlobeAlt className="size-4" />
+          </WebviewButton>
+        </div>
 
         {/* Title */}
         <h1 className="text-orange-500 truncate font-bold text-center">
@@ -86,7 +125,7 @@ export default memo(function Webview({ account }) {
             onOpenChange={setOpenEditAccountDialog}
           >
             {/* Edit Button */}
-            <Dialog.Trigger asChild title="Edit Account">
+            <Dialog.Trigger disabled={isDesktop} asChild title="Edit Account">
               <WebviewButton>
                 <MdOutlineEditNote className="size-4" />
               </WebviewButton>
@@ -125,7 +164,7 @@ export default memo(function Webview({ account }) {
           <FarmerWebview account={account} />
 
           {/* Browser */}
-          <Browser account={account} />
+          <Browser account={account} isDesktop={isDesktop} />
         </div>
       </div>
     </div>
