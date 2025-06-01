@@ -161,7 +161,7 @@ export default memo(function Browser({ account, isDesktop }) {
         ref={tabButtonsContainerRef}
         className={cn(
           "w-full relative z-0",
-          "flex items-center shrink-0 py-2 pr-2",
+          "flex items-center shrink-0 py-1 pr-2",
           "overflow-auto scrollbar-thin"
         )}
       >
