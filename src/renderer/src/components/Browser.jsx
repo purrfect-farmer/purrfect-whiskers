@@ -6,11 +6,14 @@ import BrowserTab from "./BrowserTab";
 import WebviewButton from "./WebviewButton";
 import { cn, uuid } from "../lib/utils";
 
+const INITIAL_URL = import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
+
 /** Get new tab */
 const getNewTab = () => ({
   id: uuid(),
   active: true,
   title: "New Tab",
+  url: import.meta.env.VITE_DEFAULT_WEBVIEW_URL,
 });
 
 const TabButton = ({ tab, setActiveTab, closeTab, scrollToTabButton }) => {
@@ -82,7 +85,14 @@ const TabButton = ({ tab, setActiveTab, closeTab, scrollToTabButton }) => {
 
 export default memo(function Browser({ account, isDesktop }) {
   const tabButtonsContainerRef = useRef();
-  const [tabs, setTabs] = useState(() => [getNewTab()]);
+  const [tabs, setTabs] = useState(() => [
+    {
+      id: uuid(),
+      active: true,
+      title: "New Tab",
+      url: import.meta.env.VITE_DEFAULT_WEBVIEW_URL,
+    },
+  ]);
 
   /** Set Active Tab */
   const setActiveTab = useCallback(
@@ -95,12 +105,20 @@ export default memo(function Browser({ account, isDesktop }) {
   );
 
   /** Add Tab */
-  const addTab = useCallback(() => {
-    setTabs((prev) => [
-      ...prev.map((item) => ({ ...item, active: false })),
-      getNewTab(),
-    ]);
-  }, [setTabs]);
+  const addTab = useCallback(
+    ({ url = import.meta.env.VITE_DEFAULT_WEBVIEW_URL } = {}) => {
+      setTabs((prev) => [
+        ...prev.map((item) => ({ ...item, active: false })),
+        {
+          id: uuid(),
+          active: true,
+          title: "New Tab",
+          url,
+        },
+      ]);
+    },
+    [setTabs]
+  );
 
   /** Close Tab */
   const closeTab = useCallback(
@@ -209,8 +227,11 @@ export default memo(function Browser({ account, isDesktop }) {
           >
             <BrowserTab
               id={item.id}
-              partition={account.partition}
+              url={item.url}
               isDesktop={isDesktop}
+              partition={account.partition}
+              addTab={addTab}
+              closeTab={closeTab}
               updateTitle={updateTitle}
               updateIcon={updateIcon}
             />

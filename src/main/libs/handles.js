@@ -8,6 +8,7 @@ import {
   dialog,
   session as electronSession,
   shell,
+  webContents,
 } from "electron";
 import { join, resolve } from "path";
 
@@ -261,4 +262,44 @@ export function setSessionCookie(_event, partition, options) {
 /** Get App Version */
 export function getAppVersion(_event) {
   return app.getVersion();
+}
+
+export function enableNewWindowCapture(_event, id) {
+  const contents = webContents.fromId(id);
+
+  if (contents) {
+    contents.setWindowOpenHandler((details) => {
+      if (
+        ["default", "foreground-tab", "background-tab"].includes(
+          details.disposition
+        )
+      ) {
+        if (contents.hostWebContents) {
+          contents.hostWebContents.send("browser-message", {
+            id,
+            action: "open-window",
+            data: details,
+          });
+        } else {
+          console.warn("No hostWebContents to send browser-message");
+        }
+        return { action: "deny" };
+      } else {
+        return {
+          action: "allow",
+          overrideBrowserWindowOptions: {
+            autoHideMenuBar: true,
+          },
+        };
+      }
+    });
+  }
+}
+
+export function cancelNewWindowCapture(_event, id) {
+  const contents = webContents.fromId(id);
+
+  if (contents) {
+    contents.setWindowOpenHandler(() => ({ action: "allow" }));
+  }
 }

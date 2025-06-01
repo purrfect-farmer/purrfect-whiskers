@@ -14,17 +14,26 @@ import useWebviewControls from "../hooks/useWebviewControls";
 import { cn } from "../lib/utils";
 import { userAgent, userAgentDesktop } from "../lib/userAgent";
 
-const INITIAL_URL = import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
-
 export default memo(function BrowserTab({
   id,
+  url,
+  addTab,
+  closeTab,
   partition,
   isDesktop,
   updateTitle,
   updateIcon,
 }) {
-  const { ref, isLoading, goBack, goForward, reload, stop, callWebviewMethod } =
-    useWebviewControls();
+  const {
+    ref,
+    isReady,
+    isLoading,
+    goBack,
+    goForward,
+    reload,
+    stop,
+    callWebviewMethod,
+  } = useWebviewControls();
 
   /** Address Bar */
   const addressBarRef = useRef();
@@ -68,6 +77,58 @@ export default memo(function BrowserTab({
       addressBarRef.current.value = ev.url;
     });
   }, []);
+
+  /** Handle New Window Open */
+  useEffect(() => {
+    const webview = ref.current;
+
+    /** Listen for Window Open */
+    const listener = (ev, args) => {
+      const { id, action, data } = args;
+
+      if (id === webview.getWebContentsId()) {
+        switch (action) {
+          case "open-window":
+            addTab(data);
+            break;
+        }
+      }
+    };
+
+    window.electron.ipcRenderer.on("browser-message", listener);
+
+    return () =>
+      window.electron.ipcRenderer.removeListener("browser-message", listener);
+  }, [addTab]);
+
+  /** Handle Window Close */
+  useEffect(() => {
+    const webview = ref.current;
+
+    /** Listen for Window Close */
+    const listener = (ev) => {
+      console.log(ev);
+      closeTab(id);
+    };
+
+    /** Listen For Close */
+    webview.addEventListener("close", listener);
+
+    return () => webview.removeEventListener("close", listener);
+  }, [id, closeTab]);
+
+  /** Capture New Window */
+  useEffect(() => {
+    if (isReady) {
+      const webview = ref.current;
+      const id = webview.getWebContentsId();
+
+      window.electron.ipcRenderer.invoke("enable-new-window-capture", id);
+
+      return () =>
+        window.electron.ipcRenderer.invoke("cancel-new-window-capture", id);
+    }
+  }, [isReady]);
 
   /** Favicon and Title */
   useEffect(() => {
@@ -145,7 +206,7 @@ export default memo(function BrowserTab({
         )}
       </div>
       <webview
-        src={INITIAL_URL}
+        src={url}
         allowpopups="true"
         className="grow bg-white"
         partition={partition}

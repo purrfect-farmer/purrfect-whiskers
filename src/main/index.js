@@ -5,7 +5,9 @@ import { join } from "path";
 
 import icon from "../../resources/icon.png?asset";
 import {
+  cancelNewWindowCapture,
   configureProxy,
+  enableNewWindowCapture,
   getAppVersion,
   getDefaultExtensionPath,
   getExtensionVersion,
@@ -86,6 +88,8 @@ app.whenReady().then(async () => {
   ipcMain.handle("configure-proxy", configureProxy);
   ipcMain.handle("setup-session", setupSession);
   ipcMain.handle("remove-session", removeSession);
+  ipcMain.handle("enable-new-window-capture", enableNewWindowCapture);
+  ipcMain.handle("cancel-new-window-capture", cancelNewWindowCapture);
 
   // Register Proxy Auth
   registerProxyAuthHandler();
