@@ -1,7 +1,6 @@
-import { BsWindowFullscreen } from "react-icons/bs";
 import { Dialog } from "radix-ui";
 import { HiOutlineGlobeAlt, HiOutlineXCircle } from "react-icons/hi2";
-import { MdOutlineEditNote } from "react-icons/md";
+import { MdOutlineEditNote, MdOutlineFullscreen } from "react-icons/md";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import Browser from "./Browser";
@@ -94,15 +93,6 @@ export default memo(function Webview({ account }) {
     >
       <div className="flex gap-2 items-center justify-between p-2">
         <div className="flex gap-1">
-          {/* Toggle Fullscreen */}
-          <WebviewButton
-            title="Toggle Fullscreen"
-            onClick={toggleFullScreen}
-            className={isDesktop && "text-orange-500"}
-          >
-            <BsWindowFullscreen className="size-4" />
-          </WebviewButton>
-
           {/* Toggle Browser */}
           <WebviewButton
             title="Toggle Browser"
@@ -110,6 +100,15 @@ export default memo(function Webview({ account }) {
             className={showBrowser && "text-orange-500"}
           >
             <HiOutlineGlobeAlt className="size-4" />
+          </WebviewButton>
+
+          {/* Toggle Fullscreen */}
+          <WebviewButton
+            title="Toggle Fullscreen"
+            onClick={toggleFullScreen}
+            className={isDesktop && "text-orange-500"}
+          >
+            <MdOutlineFullscreen className="size-4" />
           </WebviewButton>
         </div>
 
@@ -149,15 +148,15 @@ export default memo(function Webview({ account }) {
       </div>
 
       {/* Farmer and Browser */}
-      <div className="grow flex flex-col overflow-clip">
+      <div className="grow flex flex-col overflow-hidden">
         <div
           className={cn(
-            "grow grid grid-rows-1 grid-flow-col auto-cols-[100%] translate-3d",
-            "transition-transform duration-500",
-            "-translate-x-(--translate)"
+            "-translate-x-(--translate) translate-3d",
+            "grow grid w-[200%] gap-0  grid-cols-2",
+            "transition-transform duration-500"
           )}
           style={{
-            "--translate": showBrowser ? "100%" : "0%",
+            "--translate": showBrowser ? "50%" : "0%",
           }}
         >
           {/* Farmer Webview */}

@@ -116,9 +116,10 @@ export default memo(function ({ account }) {
         "divide-y dark:divide-neutral-700"
       )}
     >
+      {/* Webiew Tag */}
       <webview
         allowpopups="true"
-        className="grow bg-white"
+        className="grow"
         useragent={userAgent}
         partition={partition}
         ref={ref}
