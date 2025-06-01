@@ -26,10 +26,8 @@ export const onBeforeSendHeaders = (session) => {
       });
 
       try {
-        if (details.frame?.parent) {
-          requestHeaders["Origin"] = new URL(details.url).origin;
-          requestHeaders["Referer"] = requestHeaders["Origin"] + "/";
-        }
+        requestHeaders["Origin"] = new URL(details.url).origin;
+        requestHeaders["Referer"] = requestHeaders["Origin"] + "/";
       } catch (e) {
         console.error(e);
       }
