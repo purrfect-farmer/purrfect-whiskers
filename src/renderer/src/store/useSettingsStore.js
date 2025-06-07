@@ -8,6 +8,7 @@ export default create(
     combine(
       {
         extensionPath: import.meta.env.VITE_EXTENSION_PATH || "",
+        autoUpdateExtension: true,
         showWebviewToolbar: true,
         restoreAccountsOnStartup: true,
         showAccountDetails: true,
@@ -21,6 +22,8 @@ export default create(
         setRows: (rows) => set({ rows }),
         setTheme: (theme) => set({ theme }),
         setExtensionPath: (extensionPath) => set({ extensionPath }),
+        setAutoUpdateExtension: (autoUpdateExtension) =>
+          set({ autoUpdateExtension }),
         setAllowProxies: (allowProxies) => set({ allowProxies }),
         setShowAccountDetails: (showAccountDetails) =>
           set({ showAccountDetails }),

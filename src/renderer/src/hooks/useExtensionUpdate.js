@@ -3,6 +3,9 @@ import { useEffect } from "react";
 import useSettingsStore from "../store/useSettingsStore";
 
 export default function useExtensionUpdate() {
+  const autoUpdateExtension = useSettingsStore(
+    (state) => state.autoUpdateExtension
+  );
   const extensionPath = useSettingsStore((state) => state.extensionPath);
   const setExtensionPath = useSettingsStore((state) => state.setExtensionPath);
 
@@ -13,10 +16,10 @@ export default function useExtensionUpdate() {
         .then((path) => {
           setExtensionPath(path);
         });
-    } else {
+    } else if (autoUpdateExtension) {
       window.electron.ipcRenderer
         .invoke("update-extension", extensionPath)
         .then((result) => {});
     }
-  }, [extensionPath, setExtensionPath]);
+  }, [extensionPath, autoUpdateExtension, setExtensionPath]);
 }

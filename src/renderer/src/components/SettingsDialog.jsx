@@ -47,6 +47,9 @@ export default function SettingsDialog() {
   const rows = useSettingsStore((state) => state.rows);
   const columns = useSettingsStore((state) => state.columns);
   const allowProxies = useSettingsStore((state) => state.allowProxies);
+  const autoUpdateExtension = useSettingsStore(
+    (state) => state.autoUpdateExtension
+  );
   const extensionPath = useSettingsStore((state) => state.extensionPath);
   const showAccountDetails = useSettingsStore(
     (state) => state.showAccountDetails
@@ -62,6 +65,9 @@ export default function SettingsDialog() {
   const setTheme = useSettingsStore((state) => state.setTheme);
   const setExtensionPath = useSettingsStore((state) => state.setExtensionPath);
   const setAllowProxies = useSettingsStore((state) => state.setAllowProxies);
+  const setAutoUpdateExtension = useSettingsStore(
+    (state) => state.setAutoUpdateExtension
+  );
   const setShowAccountDetails = useSettingsStore(
     (state) => state.setShowAccountDetails
   );
@@ -182,6 +188,14 @@ export default function SettingsDialog() {
           <AiOutlineSelect className="size-4" />
         </button>
       </div>
+
+      {/* Auto-Update Extension */}
+      <LabelToggle
+        onChange={(ev) => setAutoUpdateExtension(ev.target.checked)}
+        checked={autoUpdateExtension}
+      >
+        Auto-Update Extension
+      </LabelToggle>
 
       {/* Close Dialog */}
       <Dialog.Close
