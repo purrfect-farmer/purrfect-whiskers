@@ -86,6 +86,7 @@ const AccountItem = ({ account, active, onClick }) => {
             <img
               src={user?.["photo_url"]}
               className="size-8 shrink-0 rounded-full"
+              loading="lazy"
             />
           ) : (
             <div className="p-1 shrink-0">
