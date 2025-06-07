@@ -25,6 +25,7 @@ export default memo(function Webview({ account }) {
   } = account;
 
   const containerRef = useRef();
+  const [enableBrowser, setEnableBrowser] = useState(false);
   const [showBrowser, setShowBrowser] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const allowProxies = useSettingsStore((state) => state.allowProxies);
@@ -47,6 +48,12 @@ export default memo(function Webview({ account }) {
     } else if (document.fullscreenElement === container) {
       document.exitFullscreen();
     }
+  }, []);
+
+  /** Toggle Browser */
+  const toggleBrowser = useCallback(() => {
+    setEnableBrowser(true);
+    setShowBrowser((prev) => !prev);
   }, []);
 
   /** Configure Proxy */
@@ -96,7 +103,7 @@ export default memo(function Webview({ account }) {
           {/* Toggle Browser */}
           <WebviewButton
             title="Toggle Browser"
-            onClick={() => setShowBrowser((prev) => !prev)}
+            onClick={toggleBrowser}
             className={showBrowser && "text-orange-500"}
           >
             <HiOutlineGlobeAlt className="size-4" />
@@ -163,7 +170,9 @@ export default memo(function Webview({ account }) {
           <FarmerWebview account={account} />
 
           {/* Browser */}
-          <Browser account={account} isDesktop={isDesktop} />
+          {enableBrowser ? (
+            <Browser account={account} isDesktop={isDesktop} />
+          ) : null}
         </div>
       </div>
     </div>
