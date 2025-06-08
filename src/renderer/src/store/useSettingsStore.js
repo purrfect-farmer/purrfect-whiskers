@@ -12,7 +12,7 @@ export default create(
         showWebviewToolbar: true,
         restoreAccountsOnStartup: true,
         showAccountDetails: true,
-        allowProxies: true,
+        allowProxies: false,
         theme: "system",
         columns: 4,
         rows: 1,
