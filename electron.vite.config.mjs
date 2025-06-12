@@ -1,4 +1,4 @@
-import react from "@vitejs/plugin-react";
+import solidPlugin from "vite-plugin-solid";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, externalizeDepsPlugin } from "electron-vite";
 import { resolve } from "path";
@@ -28,6 +28,15 @@ export default defineConfig({
         "@renderer": resolve("src/renderer/src"),
       },
     },
-    plugins: [react(), tailwindcss()],
+    build: {
+      rollupOptions: {
+        input: {
+          controls: resolve(__dirname, "src/renderer/controls.html"),
+          modal: resolve(__dirname, "src/renderer/modal.html"),
+          navigation: resolve(__dirname, "src/renderer/navigation.html"),
+        },
+      },
+    },
+    plugins: [solidPlugin(), tailwindcss()],
   },
 });

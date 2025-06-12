@@ -128,7 +128,7 @@ export const getSession = (partition) => {
 };
 
 /** Configure Proxy */
-export const configureProxy = mutexify(async (_event, partition, options) => {
+export const configureProxy = async (_event, partition, options) => {
   /** Get Session */
   const session = getSession(partition);
 
@@ -167,7 +167,7 @@ export const configureProxy = mutexify(async (_event, partition, options) => {
 
   /** Configure Web Request */
   configureWebRequest(_event, partition);
-});
+};
 
 export const configureWebRequest = mutexify(async (_event, partition) => {
   /** Get Session */

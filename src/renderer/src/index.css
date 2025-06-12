@@ -1,5 +1,5 @@
 @import "./fonts.css" layer(base);
-@import "tailwindcss" source("../src");
+@import "tailwindcss" source("../");
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -41,6 +41,15 @@
 }
 
 /* Override injected styles */
+html,
 body {
-  @apply font-sans text-xs bg-white dark:bg-neutral-800 dark:text-white;
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: transparent;
+}
+
+body {
+  @apply font-sans text-xs dark:text-white;
 }

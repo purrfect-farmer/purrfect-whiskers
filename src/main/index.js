@@ -1,9 +1,7 @@
-import { BrowserWindow, app, ipcMain, screen, shell } from "electron";
-import { Conf } from "electron-conf/main";
-import { electronApp, is, optimizer } from "@electron-toolkit/utils";
-import { join } from "path";
+import { BrowserWindow, app, ipcMain } from "electron";
+import { electronApp, optimizer } from "@electron-toolkit/utils";
 
-import icon from "../../resources/icon.png?asset";
+import { MainWindow } from "./window";
 import {
   cancelNewWindowCapture,
   configureProxy,
@@ -23,37 +21,7 @@ import {
 import { startMirrorServer, stopMirrorServer } from "./server";
 
 async function createWindow() {
-  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-  // Create the browser window.
-  const mainWindow = new BrowserWindow({
-    width,
-    height,
-    show: false,
-    autoHideMenuBar: true,
-    ...(process.platform === "linux" ? { icon } : {}),
-    webPreferences: {
-      preload: join(__dirname, "../preload/index.js"),
-      sandbox: false,
-      webviewTag: true,
-    },
-  });
-
-  mainWindow.on("ready-to-show", async () => {
-    mainWindow.maximize();
-  });
-
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url);
-    return { action: "deny" };
-  });
-
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
-  if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
-    mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
-  } else {
-    mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
-  }
+  new MainWindow();
 }
 
 // This method will be called when Electron has finished
@@ -72,9 +40,6 @@ app.whenReady().then(async () => {
 
   // Start Mirror Server
   await startMirrorServer();
-
-  // Register conf listener
-  new Conf().registerRendererListener();
 
   // Handles
   ipcMain.handle("get-app-version", getAppVersion);
