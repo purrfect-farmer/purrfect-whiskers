@@ -3,6 +3,7 @@ import { Conf } from "electron-conf/main";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import { join } from "path";
 
+import Browser from "./shell/browser/main";
 import icon from "../../resources/icon.png?asset";
 import {
   cancelNewWindowCapture,
@@ -59,6 +60,7 @@ async function createWindow() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
+
 app.whenReady().then(async () => {
   // Set app user model id for windows
   electronApp.setAppUserModelId("com.electron");
@@ -95,7 +97,10 @@ app.whenReady().then(async () => {
   registerProxyAuthHandler();
 
   // Create Window
-  createWindow();
+  // createWindow();
+
+  // Create Browser Window
+  new Browser();
 
   app.on("activate", function () {
     // On macOS it's common to re-create a window in the app when the
