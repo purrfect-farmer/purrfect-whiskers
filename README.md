@@ -4,7 +4,6 @@
 
 Multi-Account Electron application with React for the [Purrfect Farmer](https://github.com/purrfect-farmer/purrfect-farmer)
 
-
 ## Recommended IDE Setup
 
 - [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
@@ -37,9 +36,10 @@ $ pnpm build:linux
 ```
 
 ### Guides
+
 ```bash
 # For macOS
-$ xattr -cr "/Applications/Purrfect*.app"
+$ xattr -cr "/Applications/Purrfect Whiskers.app"
 
 # Debian / Ubuntu
 $ sudo apt install -y ./purrfect-whiskers-*.deb
