@@ -11,6 +11,7 @@ import { memo, useCallback, useEffect, useRef } from "react";
 import Input from "./Input";
 import WebviewButton from "./WebviewButton";
 import useWebviewControls from "../hooks/useWebviewControls";
+import useWebviewNewWindow from "../hooks/useWebviewNewWindow";
 import { cn } from "../lib/utils";
 import { userAgent, userAgentDesktop } from "../lib/userAgent";
 
@@ -79,32 +80,7 @@ export default memo(function BrowserTab({
   }, []);
 
   /** Handle New Window Open */
-  useEffect(() => {
-    if (isReady) {
-      const webview = ref.current;
-      const webContentsId = webview.getWebContentsId();
-
-      /** Listen for Window Open */
-      const listener = (ev, args) => {
-        const { id, action, data } = args;
-        if (id === webContentsId) {
-          switch (action) {
-            case "open-window":
-              addTab(data);
-              break;
-          }
-        }
-      };
-
-      /** Add Listener */
-      window.electron.ipcRenderer.on("browser-message", listener);
-
-      return () => {
-        /** Remove Listener */
-        window.electron.ipcRenderer.removeListener("browser-message", listener);
-      };
-    }
-  }, [isReady, addTab]);
+  useWebviewNewWindow(ref, isReady, addTab);
 
   /** Handle Window Close */
   useEffect(() => {
@@ -120,19 +96,6 @@ export default memo(function BrowserTab({
 
     return () => webview.removeEventListener("close", listener);
   }, [id, closeTab]);
-
-  /** Capture New Window */
-  useEffect(() => {
-    if (isReady) {
-      const webview = ref.current;
-      const id = webview.getWebContentsId();
-
-      window.electron.ipcRenderer.invoke("enable-new-window-capture", id);
-
-      return () =>
-        window.electron.ipcRenderer.invoke("cancel-new-window-capture", id);
-    }
-  }, [isReady]);
 
   /** Favicon and Title */
   useEffect(() => {

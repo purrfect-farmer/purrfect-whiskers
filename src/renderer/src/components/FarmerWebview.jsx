@@ -11,11 +11,12 @@ import useAppStore from "../store/useAppStore";
 import useRefCallback from "../hooks/useRefCallback";
 import useSettingsStore from "../store/useSettingsStore";
 import useWebviewControls from "../hooks/useWebviewControls";
+import useWebviewNewWindow from "../hooks/useWebviewNewWindow";
 import { cn } from "../lib/utils";
 import { getWhiskerData, registerWebviewMessage } from "../lib/partitions";
 import { userAgent } from "../lib/userAgent";
 
-export default memo(function ({ account }) {
+export default memo(function ({ browser, account }) {
   const updateAccount = useAppStore((state) => state.updateAccount);
   const theme = useSettingsStore((state) => state.theme);
   const allowProxies = useSettingsStore((state) => state.allowProxies);
@@ -24,8 +25,16 @@ export default memo(function ({ account }) {
     (state) => state.showWebviewToolbar
   );
   const { partition } = account;
-  const { ref, isLoading, goBack, goForward, reload, stop, callWebviewMethod } =
-    useWebviewControls();
+  const {
+    ref,
+    isReady,
+    isLoading,
+    goBack,
+    goForward,
+    reload,
+    stop,
+    callWebviewMethod,
+  } = useWebviewControls();
 
   /** Get Current Whisker Data */
   const getCurrentWhiskerData = useRefCallback(
@@ -71,6 +80,9 @@ export default memo(function ({ account }) {
     },
     [account, updateAccount]
   );
+
+  /** Handle New Window Open */
+  useWebviewNewWindow(ref, isReady, browser.addTab);
 
   /** Setup Webview */
   useEffect(() => {

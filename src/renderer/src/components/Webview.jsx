@@ -8,12 +8,14 @@ import EditAccountDialog from "./EditAccountDialog";
 import FarmerWebview from "./FarmerWebview";
 import WebviewButton from "./WebviewButton";
 import useAppStore from "../store/useAppStore";
+import useBrowser from "../hooks/useBrowser";
 import useDialogState from "../hooks/useDialogState";
 import useSettingsStore from "../store/useSettingsStore";
 import { cn } from "../lib/utils";
 import { configureProxy } from "../lib/partitions";
 
 export default memo(function Webview({ account }) {
+  const browser = useBrowser();
   const {
     title,
     partition,
@@ -25,8 +27,6 @@ export default memo(function Webview({ account }) {
   } = account;
 
   const containerRef = useRef();
-  const [enableBrowser, setEnableBrowser] = useState(false);
-  const [showBrowser, setShowBrowser] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const allowProxies = useSettingsStore((state) => state.allowProxies);
   const closePartition = useAppStore((state) => state.closePartition);
@@ -48,12 +48,6 @@ export default memo(function Webview({ account }) {
     } else if (document.fullscreenElement === container) {
       document.exitFullscreen();
     }
-  }, []);
-
-  /** Toggle Browser */
-  const toggleBrowser = useCallback(() => {
-    setEnableBrowser(true);
-    setShowBrowser((prev) => !prev);
   }, []);
 
   /** Configure Proxy */
@@ -103,8 +97,8 @@ export default memo(function Webview({ account }) {
           {/* Toggle Browser */}
           <WebviewButton
             title="Toggle Browser"
-            onClick={toggleBrowser}
-            className={showBrowser && "text-orange-500"}
+            onClick={browser.toggle}
+            className={browser.shown && "text-orange-500"}
           >
             <HiOutlineGlobeAlt className="size-4" />
           </WebviewButton>
@@ -163,15 +157,19 @@ export default memo(function Webview({ account }) {
             "transition-transform duration-500"
           )}
           style={{
-            "--translate": showBrowser ? "50%" : "0%",
+            "--translate": browser.shown ? "50%" : "0%",
           }}
         >
           {/* Farmer Webview */}
-          <FarmerWebview account={account} />
+          <FarmerWebview browser={browser} account={account} />
 
           {/* Browser */}
-          {enableBrowser ? (
-            <Browser account={account} isDesktop={isDesktop} />
+          {browser.enabled ? (
+            <Browser
+              browser={browser}
+              account={account}
+              isDesktop={isDesktop}
+            />
           ) : null}
         </div>
       </div>

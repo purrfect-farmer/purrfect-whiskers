@@ -1,5 +1,5 @@
 import { HiOutlinePlus, HiOutlineXMark } from "react-icons/hi2";
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef } from "react";
 
 import BrowserIcon from "../assets/images/browser.png";
 import BrowserTab from "./BrowserTab";
@@ -83,90 +83,10 @@ const TabButton = ({ tab, setActiveTab, closeTab, scrollToTabButton }) => {
   );
 };
 
-export default memo(function Browser({ account, isDesktop }) {
+export default memo(function Browser({ browser, account, isDesktop }) {
   const tabButtonsContainerRef = useRef();
-  const [tabs, setTabs] = useState(() => [
-    {
-      id: uuid(),
-      active: true,
-      title: "New Tab",
-      url: import.meta.env.VITE_DEFAULT_WEBVIEW_URL,
-    },
-  ]);
-
-  /** Set Active Tab */
-  const setActiveTab = useCallback(
-    (id) => {
-      setTabs((prev) =>
-        prev.map((item) => ({ ...item, active: item.id === id }))
-      );
-    },
-    [setTabs]
-  );
-
-  /** Add Tab */
-  const addTab = useCallback(
-    ({ url = import.meta.env.VITE_DEFAULT_WEBVIEW_URL } = {}) => {
-      setTabs((prev) => [
-        ...prev.map((item) => ({ ...item, active: false })),
-        {
-          id: uuid(),
-          active: true,
-          title: "New Tab",
-          url,
-        },
-      ]);
-    },
-    [setTabs]
-  );
-
-  /** Close Tab */
-  const closeTab = useCallback(
-    (id) => {
-      setTabs((prev) => {
-        /** Get Index */
-        const itemIndex = prev.findIndex((item) => item.id === id);
-
-        if (itemIndex > -1) {
-          const wasActive = prev[itemIndex].active;
-          const result = prev
-            .filter((tab) => tab.id !== id)
-            .map((tab, index) => ({
-              ...tab,
-              active: wasActive
-                ? index === Math.max(itemIndex - 1, 0)
-                : tab.active,
-            }));
-          return result;
-        } else {
-          return prev;
-        }
-      });
-    },
-    [setTabs]
-  );
-
-  /** Update Title */
-  const updateTitle = useCallback(
-    (id, title) => {
-      setTabs((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, title } : item))
-      );
-    },
-    [setTabs]
-  );
-
-  /** Update Icon */
-  const updateIcon = useCallback(
-    (id, icons) => {
-      setTabs((prev) =>
-        prev.map((item) =>
-          item.id === id ? { ...item, icon: icons[0] } : item
-        )
-      );
-    },
-    [setTabs]
-  );
+  const { tabs, addTab, closeTab, setActiveTab, updateTitle, updateIcon } =
+    browser;
 
   /** Scroll to Tab Button */
   const scrollToTabButton = useCallback((element) => {
