@@ -1,13 +1,13 @@
-import setCookie from "set-cookie-parser";
-
-const map = new Map();
 /**
- * onBeforeSendHeaders
+ * registerWebRequest
  * @param {Electron.Session} session
  * @returns
  */
-export const onBeforeSendHeaders = (session) => {
-  return session.webRequest.onBeforeSendHeaders(
+export const registerWebRequest = (session) => {
+  const requestMap = new Map();
+
+  /** onBeforeSendHeaders */
+  session.webRequest.onBeforeSendHeaders(
     { urls: ["*://*/*"] },
     (details, callback) => {
       if (
@@ -18,32 +18,26 @@ export const onBeforeSendHeaders = (session) => {
       }
 
       const requestHeaders = details.requestHeaders || {};
+      const whiskerOrigin = requestHeaders["x-whisker-origin"];
 
-      map.set(details.id, {
+      if (whiskerOrigin) {
+        delete requestHeaders["x-whisker-origin"];
+        requestHeaders["Origin"] = whiskerOrigin;
+        requestHeaders["Referer"] = whiskerOrigin + "/";
+      }
+
+      requestMap.set(details.id, {
         origin: requestHeaders["Origin"],
         method: requestHeaders["Access-Control-Request-Method"],
         headers: requestHeaders["Access-Control-Request-Headers"],
       });
 
-      try {
-        requestHeaders["Origin"] = new URL(details.url).origin;
-        requestHeaders["Referer"] = requestHeaders["Origin"] + "/";
-      } catch (e) {
-        console.error(e);
-      }
-
       callback({ requestHeaders });
     }
   );
-};
 
-/**
- * onHeadersReceived
- * @param {Electron.Session} session
- * @returns
- */
-export const onHeadersReceived = (session) => {
-  return session.webRequest.onHeadersReceived(
+  /** onHeadersReceived */
+  session.webRequest.onHeadersReceived(
     { urls: ["*://*/*"] },
     (details, callback) => {
       if (
@@ -57,7 +51,6 @@ export const onHeadersReceived = (session) => {
       const responseHeaders = Object.fromEntries(
         Object.entries(details.responseHeaders || {}).filter(([key]) => {
           return ![
-            "set-cookie",
             "x-frame-options",
             "content-security-policy",
             "cross-origin-embedder-policy",
@@ -78,7 +71,7 @@ export const onHeadersReceived = (session) => {
         }
 
         /** Get Request */
-        const request = map.get(details.id);
+        const request = requestMap.get(details.id);
 
         /** Credentials */
         responseHeaders["Access-Control-Allow-Credentials"] = "true";
@@ -93,49 +86,6 @@ export const onHeadersReceived = (session) => {
         /** Methods */
         responseHeaders["Access-Control-Allow-Methods"] =
           request?.method || "*";
-
-        /** Cookies */
-        const setCookieHeaders = details.responseHeaders["set-cookie"] || [];
-
-        /** Relax Cookies */
-        for (const header of setCookieHeaders) {
-          const parsed = setCookie.parseString(header);
-
-          /**
-           * @type {import("electron").CookiesSetDetails}
-           */
-          const cookie = {
-            url: details.url,
-            name: parsed.name,
-            domain: parsed.domain,
-            path: parsed.path,
-            value: parsed.value,
-            httpOnly: parsed.httpOnly,
-            secure: true,
-            sameSite: "no_restriction",
-          };
-
-          if (typeof parsed.maxAge !== "undefined") {
-            cookie.expirationDate =
-              Math.floor(Date.now() / 1000) + parsed.maxAge;
-          } else if (parsed.expires instanceof Date) {
-            cookie.expirationDate = Math.floor(parsed.expires.getTime() / 1000);
-          }
-
-          /** If expired, then remove */
-          if (
-            cookie.expirationDate &&
-            cookie.expirationDate < Date.now() / 1000
-          ) {
-            /** Remove Cookie */
-            session.cookies
-              .remove(cookie.url, cookie.name)
-              .catch(console.error);
-          } else {
-            /** Set Cookie */
-            session.cookies.set(cookie).catch(console.error);
-          }
-        }
       } catch (e) {
         console.error(e);
       }

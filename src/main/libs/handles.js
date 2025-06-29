@@ -14,7 +14,7 @@ import { join, resolve } from "path";
 
 import { downloadAndExtract } from "./downloader";
 import { mutexify } from "../../renderer/src/lib/utils";
-import { onBeforeSendHeaders, onHeadersReceived } from "./webRequest";
+import { registerWebRequest } from "./webRequest";
 
 /** Session Map */
 const sessionMap = new Map();
@@ -173,11 +173,8 @@ export const configureWebRequest = mutexify(async (_event, partition) => {
   /** Get Session */
   const session = getSession(partition);
 
-  /** Register onBeforeSendHeaders */
-  onBeforeSendHeaders(session);
-
-  /** Register onHeadersReceived */
-  onHeadersReceived(session);
+  /** Register Web Request */
+  registerWebRequest(session);
 });
 
 /** Setup Session */
