@@ -134,6 +134,8 @@ export default memo(function ({ browser, account }) {
         className="grow"
         useragent={userAgent}
         partition={partition}
+        disablewebsecurity={true}
+        webpreferences="webSecurity=no"
         ref={ref}
       />
 
