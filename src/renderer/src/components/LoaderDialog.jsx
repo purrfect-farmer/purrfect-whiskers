@@ -7,26 +7,40 @@ import AppDialogContent from "./AppDialogContent";
 import useAppStore from "../store/useAppStore";
 import useSettingsStore from "../store/useSettingsStore";
 import { HiOutlinePuzzlePiece } from "react-icons/hi2";
+import { cn } from "../lib/utils";
 
 export default function LoaderDialog() {
-  const setPartitions = useAppStore((state) => state.setPartitions);
+  const partitions = useAppStore((state) => state.partitions);
   const extensionPath = useSettingsStore((state) => state.extensionPath);
+  const setPartitions = useAppStore((state) => state.setPartitions);
+  const setAutoUpdateExtension = useSettingsStore(
+    (state) => state.setAutoUpdateExtension
+  );
 
   /** On backup file drop */
   const onDrop = useCallback(
     async (acceptedFiles) => {
-      setPartitions([]);
-      const file = window.electron.webUtils.getPathForFile(acceptedFiles[0]);
+      /** Disable Auto-Update */
+      setAutoUpdateExtension(false);
 
+      /** Close Partitions */
+      setPartitions([]);
+
+      /** Install Extension */
+      const file = window.electron.webUtils.getPathForFile(acceptedFiles[0]);
       await window.electron.ipcRenderer.invoke(
         "install-extension",
         file,
         extensionPath
       );
 
+      /** Toast */
       toast.success("Successfully Installed Extension!");
+
+      /** Restore Partitions */
+      setPartitions(partitions);
     },
-    [extensionPath, setPartitions]
+    [partitions, extensionPath, setPartitions]
   );
 
   /** Dropzone */
@@ -46,8 +60,8 @@ export default function LoaderDialog() {
       icon={HiOutlinePuzzlePiece}
     >
       <Alert variant={"warning"} className="text-center">
-        You are about to install the extension manually. This will replace the
-        currently installed version.
+        You are about to install the extension manually. This will disable
+        auto-updates and replace the currently installed version.
       </Alert>
 
       {/* Drop Zone */}
