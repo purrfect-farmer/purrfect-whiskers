@@ -17,7 +17,7 @@ import {
   getWhiskerData,
   registerWebviewMessage,
 } from "../lib/partitions";
-import { userAgent } from "../lib/userAgent";
+import { userAgentDesktop } from "../lib/userAgent";
 
 /** Create Webview */
 function createWebview(partition, extensionPath, proxyOptions) {
@@ -26,7 +26,7 @@ function createWebview(partition, extensionPath, proxyOptions) {
 
   webview.setAttribute("partition", partition);
   webview.setAttribute("allowpopups", "true");
-  webview.setAttribute("useragent", userAgent);
+  webview.setAttribute("useragent", userAgentDesktop);
 
   /** Add Classes */
   webview.setAttribute("class", "w-full h-full opacity-0 fixed");

@@ -14,7 +14,7 @@ import useWebviewControls from "../hooks/useWebviewControls";
 import useWebviewNewWindow from "../hooks/useWebviewNewWindow";
 import { cn } from "../lib/utils";
 import { getWhiskerData, registerWebviewMessage } from "../lib/partitions";
-import { userAgent, userAgentDesktop } from "../lib/userAgent";
+import { userAgentDesktop } from "../lib/userAgent";
 
 export default memo(function ({ browser, account }) {
   const updateAccount = useAppStore((state) => state.updateAccount);

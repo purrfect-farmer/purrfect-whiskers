@@ -13,7 +13,7 @@ import WebviewButton from "./WebviewButton";
 import useWebviewControls from "../hooks/useWebviewControls";
 import useWebviewNewWindow from "../hooks/useWebviewNewWindow";
 import { cn } from "../lib/utils";
-import { userAgent, userAgentDesktop } from "../lib/userAgent";
+import { userAgentDesktop } from "../lib/userAgent";
 
 export default memo(function BrowserTab({
   id,
