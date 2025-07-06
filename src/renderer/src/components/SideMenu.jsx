@@ -6,6 +6,7 @@ import {
   HiOutlineArrowsPointingOut,
   HiOutlineBars3,
   HiOutlineCog6Tooth,
+  HiOutlinePuzzlePiece,
 } from "react-icons/hi2";
 import { LuDatabaseBackup } from "react-icons/lu";
 import { MdOutlineBrowserUpdated } from "react-icons/md";
@@ -17,6 +18,7 @@ import BackupAndRestoreDialog from "./BackupAndRestoreDialog";
 import Icon from "../assets/images/icon.png";
 import SettingsDialog from "./SettingsDialog";
 import { cn } from "../lib/utils";
+import LoaderDialog from "./LoaderDialog";
 
 export default function SideMenu() {
   const [currentVersion, setCurrentVersion] = useState(null);
@@ -105,6 +107,15 @@ export default function SideMenu() {
           currentVersion={currentVersion}
           latestVersion={latestVersion}
         />
+      </Dialog.Root>
+
+      {/* Loader */}
+      <Dialog.Root>
+        <Dialog.Trigger title="Loader" className="p-2">
+          <HiOutlinePuzzlePiece className="size-5 text-orange-500" />
+        </Dialog.Trigger>
+
+        <LoaderDialog />
       </Dialog.Root>
 
       {/* Reload */}

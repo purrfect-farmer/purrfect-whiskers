@@ -12,7 +12,7 @@ import {
 } from "electron";
 import { join, resolve } from "path";
 
-import { downloadAndExtract } from "./downloader";
+import { downloadAndExtract, extractZip } from "./downloader";
 import { mutexify } from "../../renderer/src/lib/utils";
 import { registerWebRequest } from "./webRequest";
 
@@ -113,6 +113,11 @@ export const updateExtension = async (_event, path) => {
   return {
     status: false,
   };
+};
+
+/** Install Extension */
+export const installExtension = async (_event, file, path) => {
+  await extractZip(file, path);
 };
 
 /**

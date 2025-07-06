@@ -37,6 +37,16 @@ export async function downloadZip(url, outputPath) {
 
 /** Extract Zip */
 export async function extractZip(zipPath, extractToDir) {
+  /** Log Zip Path */
+  console.log("Zip file:", zipPath);
+
+  /** Cleanup extract directory */
+  console.log("Cleaning target directory...");
+  await cleanDirectory(extractToDir);
+
+  /** Ensure extract directory exists */
+  await fs.mkdir(extractToDir, { recursive: true });
+
   const zip = new AdmZip(zipPath);
   zip.extractAllTo(extractToDir, true);
 }
@@ -51,13 +61,6 @@ export async function downloadAndExtract(url, extractToDir) {
     console.log("Downloading ZIP to temp dir...");
     await downloadZip(url, zipPath);
     console.log("Download complete:", zipPath);
-
-    /** Cleanup extract directory */
-    console.log("Cleaning target directory...");
-    await cleanDirectory(extractToDir);
-
-    /** Ensure extract directory exists */
-    await fs.mkdir(extractToDir, { recursive: true });
 
     /** Extract ZIP */
     console.log("Extracting zip...");
