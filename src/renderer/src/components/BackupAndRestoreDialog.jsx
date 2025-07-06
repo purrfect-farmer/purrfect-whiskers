@@ -97,60 +97,71 @@ export default function BackupAndRestoreDialog() {
           proxyPassword,
         });
 
+        let interval, webview;
         const container = containerRef.current;
-        const webview = createWebview(partition, extensionPath);
+        const initializeWebview = () => {
+          webview?.remove();
+          webview = createWebview(partition, extensionPath);
 
-        /** Send Host Message */
-        const sendHostMessage = (data) => {
-          webview.send("host-message", data);
+          /** Send Host Message */
+          const sendHostMessage = (data) => {
+            webview.send("host-message", data);
+          };
+
+          /** Handle Response */
+          const handleResponse = (data) => {
+            webview.remove();
+            clearInterval(interval);
+            resolve(data);
+          };
+
+          /** Register Webview Message */
+          registerWebviewMessage(webview, {
+            "get-whisker-data": () => {
+              /** Send Whisker Data */
+              sendHostMessage({
+                action: "set-whisker-data",
+                data: getWhiskerData({
+                  account,
+                  settings: {
+                    allowProxies,
+                    theme,
+                  },
+                }),
+              });
+
+              if (backup) {
+                /** Restore Backup Data */
+                sendHostMessage({
+                  action: "restore-backup-data",
+                  data: backup,
+                });
+              } else {
+                /** Request for Backup Data */
+                sendHostMessage({
+                  action: "get-backup-data",
+                });
+              }
+            },
+            "set-proxy": (data) => {
+              configureProxy(partition, {
+                ...data,
+                allowProxies,
+              });
+            },
+            "response-get-backup-data": handleResponse,
+            "response-restore-backup-data": handleResponse,
+          });
+
+          /** Append to container */
+          container.appendChild(webview);
         };
 
-        /** Handle Response */
-        const handleResponse = (data) => {
-          webview.remove();
-          resolve(data);
-        };
+        /** Set Interval */
+        interval = setInterval(initializeWebview, 30 * 1000);
 
-        /** Register Webview Message */
-        registerWebviewMessage(webview, {
-          "get-whisker-data": () => {
-            /** Send Whisker Data */
-            sendHostMessage({
-              action: "set-whisker-data",
-              data: getWhiskerData({
-                account,
-                settings: {
-                  allowProxies,
-                  theme,
-                },
-              }),
-            });
-
-            if (backup) {
-              /** Restore Backup Data */
-              sendHostMessage({
-                action: "restore-backup-data",
-                data: backup,
-              });
-            } else {
-              /** Request for Backup Data */
-              sendHostMessage({
-                action: "get-backup-data",
-              });
-            }
-          },
-          "set-proxy": (data) => {
-            configureProxy(partition, {
-              ...data,
-              allowProxies,
-            });
-          },
-          "response-get-backup-data": handleResponse,
-          "response-restore-backup-data": handleResponse,
-        });
-
-        /** Append to container */
-        container.appendChild(webview);
+        /** Initialize */
+        initializeWebview();
       }),
     [theme, allowProxies, extensionPath]
   );
