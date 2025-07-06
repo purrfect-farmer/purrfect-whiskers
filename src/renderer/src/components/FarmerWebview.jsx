@@ -14,7 +14,7 @@ import useWebviewControls from "../hooks/useWebviewControls";
 import useWebviewNewWindow from "../hooks/useWebviewNewWindow";
 import { cn } from "../lib/utils";
 import { getWhiskerData, registerWebviewMessage } from "../lib/partitions";
-import { userAgent } from "../lib/userAgent";
+import { userAgent, userAgentDesktop } from "../lib/userAgent";
 
 export default memo(function ({ browser, account }) {
   const updateAccount = useAppStore((state) => state.updateAccount);
@@ -132,7 +132,7 @@ export default memo(function ({ browser, account }) {
       <webview
         allowpopups="true"
         className="grow"
-        useragent={userAgent}
+        useragent={userAgentDesktop}
         partition={partition}
         disablewebsecurity={true}
         webpreferences="webSecurity=no"

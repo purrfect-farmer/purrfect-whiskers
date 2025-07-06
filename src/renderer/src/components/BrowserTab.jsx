@@ -126,13 +126,6 @@ export default memo(function BrowserTab({
     };
   }, [id, updateTitle, updateIcon]);
 
-  /** User-Agent */
-  useEffect(() => {
-    callWebviewMethod((webview) =>
-      webview.setUserAgent(isDesktop ? userAgentDesktop : userAgent)
-    );
-  }, [callWebviewMethod, isDesktop]);
-
   return (
     <div
       className={cn(
@@ -178,6 +171,7 @@ export default memo(function BrowserTab({
         className="grow bg-white"
         partition={partition}
         ref={ref}
+        useragent={userAgentDesktop}
       />
     </div>
   );
