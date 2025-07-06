@@ -1,4 +1,4 @@
-import { AiOutlineSelect } from "react-icons/ai";
+import { AiOutlineFolder, AiOutlineSelect } from "react-icons/ai";
 import { Dialog } from "radix-ui";
 import {
   HiOutlineChevronDown,
@@ -77,6 +77,11 @@ export default function SettingsDialog() {
   const setRestoreAccountsOnStartup = useSettingsStore(
     (state) => state.setRestoreAccountsOnStartup
   );
+
+  /** Open Extension Path */
+  const openExtensionPath = useCallback(async () => {
+    await window.electron.ipcRenderer.invoke("open-path", extensionPath);
+  }, [extensionPath]);
 
   /** Pick Extension Path */
   const pickExtensionPath = useCallback(async () => {
@@ -174,6 +179,19 @@ export default function SettingsDialog() {
       <label className="text-orange-500 mt-2">Extension Path</label>
       <div className="flex gap-2">
         <Input readOnly value={extensionPath} />
+
+        <button
+          onClick={openExtensionPath}
+          className={cn(
+            "bg-neutral-100 dark:bg-neutral-700",
+            "hover:bg-orange-100 hover:text-orange-700",
+            "dark:hover:bg-orange-200 dark:hover:text-orange-500",
+            "flex items-center justify-center",
+            "p-1 px-3 rounded-lg"
+          )}
+        >
+          <AiOutlineFolder className="size-4" />
+        </button>
 
         <button
           onClick={pickExtensionPath}

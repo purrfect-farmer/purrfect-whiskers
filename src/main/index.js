@@ -13,6 +13,7 @@ import {
   getExtensionVersion,
   getSessionCookie,
   installExtension,
+  openPath,
   pickExtensionPath,
   registerProxyAuthHandler,
   removeSession,
@@ -83,6 +84,7 @@ app.whenReady().then(async () => {
   ipcMain.handle("get-session-cookie", getSessionCookie);
   ipcMain.handle("set-session-cookie", setSessionCookie);
   ipcMain.handle("save-backup-file", saveBackupFile);
+  ipcMain.handle("open-path", openPath);
   ipcMain.handle("install-extension", installExtension);
   ipcMain.handle("update-extension", updateExtension);
   ipcMain.handle("get-extension-version", getExtensionVersion);

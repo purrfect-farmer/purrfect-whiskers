@@ -251,6 +251,11 @@ export const saveBackupFile = async (_event, filename, content) => {
   shell.showItemInFolder(backupFile);
 };
 
+/** Open Path */
+export const openPath = async (_event, path) => {
+  shell.openPath(path);
+};
+
 /** Get Session Cookie */
 export function getSessionCookie(_event, partition, options) {
   return getSession(partition).cookies.get(options);
