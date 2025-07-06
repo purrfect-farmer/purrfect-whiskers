@@ -1,6 +1,6 @@
 {
   "name": "purrfect-whiskers",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Multi-Account sessions for the Purrfect Farmer",
   "main": "./out/main/index.js",
   "author": "purrfectfarmer.com",
