@@ -1,52 +1,48 @@
-<p align="center"><a href="https://t.me/purrfect_community" target="_blank"><img src="resources/icon.png" width="192" alt="Purrfect Logo"></a></p>
+# Purrfect Whiskers
 
-<h1 align="center">Purrfect Whiskers</h1>
+**Purrfect Whiskers** is a desktop application designed to efficiently manage multiple instances of the **Purrfect Farmer** Chrome extension. Launch several instances side by side, organize them in rows or columns, and streamline your automation workflow.
 
-Multi-Account Electron application with React for the [Purrfect Farmer](https://github.com/purrfect-farmer/purrfect-farmer)
+<img src="/screenshot.png" width="99%" />
 
-## Recommended IDE Setup
+---
 
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+## Features
 
-## Project Setup
+- **Multi-Instance Management**  
+  Launch and control multiple Purrfect Farmer instances from a single Whiskers window.
 
-### Install
+- **Flexible Layouts**  
+  Organize instances in **rows** or **columns** according to your workflow and screen setup.
 
-```bash
-$ pnpm install
-```
+- **Independent Control**  
+  Each instance runs independently but is fully accessible from the same interface.
 
-### Development
+- **Optimized Workspace**  
+  Resize, rearrange, and customize your workspace to fit your automation needs.
 
-```bash
-$ pnpm dev
-```
+- **Efficient Automation**  
+  Reduce the hassle of managing multiple browser windows or tabs. Focus on automation, not window management.
 
-### Build
+---
 
-```bash
-# For windows
-$ pnpm build:win
+## Getting Started
 
-# For macOS
-$ pnpm build:mac
+1. **Download & Install**  
+    [Download the latest version](https://github.com/purrfect-farmer/purrfect-whiskers/releases/latest).
 
-# For Linux
-$ pnpm build:linux
-```
+2. **Launch Purrfect Whiskers**  
+   Open the desktop app to access your workspace.
 
-### Guides
+3. **Add Purrfect Farmer Instances**  
+   Click **Add Instance** and select the Purrfect Farmer Chrome extension. Repeat to launch multiple instances.
 
-```bash
-# For macOS
-$ xattr -cr "/Applications/Purrfect Whiskers.app"
+4. **Organize Layout**  
+   Choose between **row** or **column** layout to arrange your instances. Resize as needed.
 
-# Debian / Ubuntu
-$ sudo apt install -y ./purrfect-whiskers-*.deb
+---
 
-# Arch-Linux
-sudo pacman -U purrfect-whiskers-*.pacman
+## System Requirements
 
-# RPM
-sudo rpm -i purrfect-whiskers-*.rpm
-```
+- Windows, macOS, or Linux  
+
+---
