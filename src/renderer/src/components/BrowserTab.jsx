@@ -21,7 +21,6 @@ export default memo(function BrowserTab({
   addTab,
   closeTab,
   partition,
-  isDesktop,
   updateTitle,
   updateIcon,
 }) {
