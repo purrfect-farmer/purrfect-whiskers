@@ -257,13 +257,13 @@ export const openPath = async (_event, path) => {
 };
 
 /** Get Session Cookie */
-export function getSessionCookie(_event, partition, options) {
-  return getSession(partition).cookies.get(options);
+export function getSessionCookie(_event, options) {
+  return _event.sender.session.cookies.get(options);
 }
 
 /** Set Session Cookie */
-export function setSessionCookie(_event, partition, options) {
-  return getSession(partition).cookies.set(options);
+export function setSessionCookie(_event, options) {
+  return _event.sender.session.cookies.set(options);
 }
 
 /** Get App Version */
