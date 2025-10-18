@@ -310,3 +310,7 @@ export function cancelNewWindowCapture(_event, id) {
     contents.setWindowOpenHandler(() => ({ action: "allow" }));
   }
 }
+
+export function updateNetRules(_event, rules) {
+  registerWebRequest(_event.sender.session, rules);
+}

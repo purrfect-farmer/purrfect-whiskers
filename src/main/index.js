@@ -21,6 +21,7 @@ import {
   setSessionCookie,
   setupSession,
   updateExtension,
+  updateNetRules,
 } from "./libs/handles";
 import { startMirrorServer, stopMirrorServer } from "./server";
 
@@ -83,6 +84,7 @@ app.whenReady().then(async () => {
   ipcMain.handle("get-app-version", getAppVersion);
   ipcMain.handle("get-session-cookie", getSessionCookie);
   ipcMain.handle("set-session-cookie", setSessionCookie);
+  ipcMain.handle("update-declarative-net-rules", updateNetRules);
   ipcMain.handle("save-backup-file", saveBackupFile);
   ipcMain.handle("open-path", openPath);
   ipcMain.handle("install-extension", installExtension);

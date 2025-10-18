@@ -1,29 +1,35 @@
 /**
  * registerWebRequest
  * @param {Electron.Session} session
+ * @param {chrome.declarativeNetRequest.Rule[]} rules
  * @returns
  */
-export const registerWebRequest = (session) => {
+export const registerWebRequest = (session, rules = []) => {
   const requestMap = new Map();
 
   /** onBeforeSendHeaders */
   session.webRequest.onBeforeSendHeaders(
-    { urls: ["*://*/*"] },
+    { urls: ["*://*/*", "ws://*/*", "wss://*/*"] },
     (details, callback) => {
-      if (
-        !details.url.startsWith("http://") &&
-        !details.url.startsWith("https://")
-      ) {
+      if (!/^(http|https|ws|wss):\/\//.test(details.url)) {
         return callback({ requestHeaders: details.requestHeaders });
       }
 
       const requestHeaders = details.requestHeaders || {};
-      const whiskerOrigin = requestHeaders["x-whisker-origin"];
 
-      if (whiskerOrigin) {
-        delete requestHeaders["x-whisker-origin"];
-        requestHeaders["Origin"] = whiskerOrigin;
-        requestHeaders["Referer"] = whiskerOrigin + "/";
+      for (const rule of rules) {
+        if (
+          rule.condition.requestDomains.includes(new URL(details.url).hostname)
+        ) {
+          for (const headerModification of rule.action.requestHeaders || []) {
+            if (headerModification.operation === "set") {
+              requestHeaders[headerModification.header] =
+                headerModification.value;
+            } else if (headerModification.operation === "remove") {
+              delete requestHeaders[headerModification.header];
+            }
+          }
+        }
       }
 
       requestMap.set(details.id, {
@@ -38,12 +44,9 @@ export const registerWebRequest = (session) => {
 
   /** onHeadersReceived */
   session.webRequest.onHeadersReceived(
-    { urls: ["*://*/*"] },
+    { urls: ["*://*/*", "ws://*/*", "wss://*/*"] },
     (details, callback) => {
-      if (
-        !details.url.startsWith("http://") &&
-        !details.url.startsWith("https://")
-      ) {
+      if (!/^(http|https|ws|wss):\/\//.test(details.url)) {
         return callback({ responseHeaders: details.responseHeaders });
       }
 
