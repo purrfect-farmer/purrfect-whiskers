@@ -54,6 +54,7 @@
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
+    "chrome-types": "^0.1.383",
     "electron": "^38.3.0",
     "electron-builder": "^26.0.12",
     "electron-vite": "^4.0.1",
