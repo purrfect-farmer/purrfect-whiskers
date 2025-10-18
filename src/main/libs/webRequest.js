@@ -67,6 +67,21 @@ export const registerWebRequest = (session, rules = []) => {
         })
       );
 
+      for (const rule of rules) {
+        if (
+          rule.condition.requestDomains.includes(new URL(details.url).hostname)
+        ) {
+          for (const headerModification of rule.action.responseHeaders || []) {
+            if (headerModification.operation === "set") {
+              responseHeaders[headerModification.header] =
+                headerModification.value;
+            } else if (headerModification.operation === "remove") {
+              delete responseHeaders[headerModification.header];
+            }
+          }
+        }
+      }
+
       try {
         if (details.method === "OPTIONS") {
           /** Set Status Code */
