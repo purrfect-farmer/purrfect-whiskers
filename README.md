@@ -46,3 +46,9 @@
 - Windows, macOS, or Linux  
 
 ---
+
+## MacOS
+Mac users need to run the following command in Terminal after installing for fix launch error
+```bash
+xattr -cr "/Applications/Purrfect Whiskers.app"
+```
