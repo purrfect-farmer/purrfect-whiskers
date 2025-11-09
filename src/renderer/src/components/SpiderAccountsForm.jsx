@@ -324,6 +324,11 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
         {country.name} ({country.code})
       </h2>
 
+      {/* Country Price */}
+      <p className="text-center text-lime-300 font-bold">
+        ${country.price} per account
+      </p>
+
       {/* Return to Countries */}
       <button
         onClick={clearSelection}
