@@ -215,8 +215,8 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
         accounts.
       </p>
 
-      <PrimaryButton onClick={purchaseAccounts} disabled={mutation.isLoading}>
-        {mutation.isLoading ? "Purchasing..." : "Purchase Accounts"}
+      <PrimaryButton onClick={purchaseAccounts} disabled={mutation.isPending}>
+        {mutation.isPending ? "Purchasing..." : "Purchase Accounts"}
       </PrimaryButton>
     </>
   );
