@@ -11,46 +11,12 @@ import Tabs from "./Tabs";
 import useAppStore from "../store/useAppStore";
 import useSettingsStore from "../store/useSettingsStore";
 import useTabs from "../hooks/useTabs";
-import { chunkArrayGenerator, cn } from "../lib/utils";
+import { chunkArrayGenerator, cn, createWebview } from "../lib/utils";
 import {
   configureProxy,
   getWhiskerData,
   registerWebviewMessage,
 } from "../lib/partitions";
-import { userAgentDesktop } from "../lib/userAgent";
-
-/** Create Webview */
-function createWebview(partition, extensionPath, proxyOptions) {
-  /** Create the <webview> element */
-  const webview = document.createElement("webview");
-
-  webview.setAttribute("partition", partition);
-  webview.setAttribute("allowpopups", "true");
-  webview.setAttribute("useragent", userAgentDesktop);
-
-  /** Add Classes */
-  webview.setAttribute("class", "w-full h-full opacity-0 fixed");
-
-  /** Context Menu */
-  webview.addEventListener("context-menu", () => {
-    webview.openDevTools({ mode: "detach" });
-  });
-
-  /** Load extension URL */
-  window.electron.ipcRenderer
-    .invoke("setup-session", { partition, extensionPath, proxyOptions })
-    .then(({ extension, preload }) => {
-      webview.preload = preload;
-      webview.src = extension
-        ? extension.url + "index.html"
-        : import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
-    })
-    .catch(() => {
-      webview.src = import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
-    });
-
-  return webview;
-}
 
 export default function BackupAndRestoreDialog() {
   const containerRef = useRef();

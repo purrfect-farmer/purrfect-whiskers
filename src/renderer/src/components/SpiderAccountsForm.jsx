@@ -1,19 +1,92 @@
 import { HiOutlineArrowLeft } from "react-icons/hi2";
 import { NumberInput } from "./NumberInput";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import PrimaryButton from "./PrimaryButton";
 import Input from "./Input";
 import { useMutation } from "@tanstack/react-query";
 import useAppStore from "../store/useAppStore";
-import { chunkArrayGenerator } from "../lib/utils";
+import { chunkArrayGenerator, createWebview } from "../lib/utils";
 import Spider from "../lib/Spider";
 import { StringSession } from "telegram/sessions";
-import { TelegramClient, Api } from "telegram";
+import { TelegramClient } from "telegram";
+import { uuid } from "../lib/utils";
+import useSettingsStore from "../store/useSettingsStore";
+import { getWhiskerData, registerWebviewMessage } from "../lib/partitions";
 
 export default function SpiderAccountsForm({ country, clearSelection }) {
+  const containerRef = useRef();
+
   const spiderApiKey = useAppStore((state) => state.spiderApiKey);
+  const addAccount = useAppStore((state) => state.addAccount);
+
+  const extensionPath = useSettingsStore((state) => state.extensionPath);
+  const theme = useSettingsStore((state) => state.theme);
+  const allowProxies = useSettingsStore((state) => state.allowProxies);
+
   const [numberOfAccounts, setNumberOfAccounts] = useState(1);
   const [password, setPassword] = useState("");
+
+  /** Restore account backup */
+  const restoreAccountBackup = useCallback(
+    (account, backup = null) =>
+      new Promise(async (resolve, reject) => {
+        const { partition } = account;
+
+        let interval, webview;
+        const container = containerRef.current;
+        const initializeWebview = () => {
+          webview?.remove();
+          webview = createWebview(partition, extensionPath);
+
+          /** Send Host Message */
+          const sendHostMessage = (data) => {
+            webview.send("host-message", data);
+          };
+
+          /** Handle Response */
+          const handleResponse = (data) => {
+            webview.remove();
+            clearInterval(interval);
+            resolve(data);
+          };
+
+          /** Register Webview Message */
+          registerWebviewMessage(webview, {
+            "get-whisker-data": () => {
+              /** Send Whisker Data */
+              sendHostMessage({
+                action: "set-whisker-data",
+                data: getWhiskerData({
+                  account,
+                  settings: {
+                    allowProxies,
+                    theme,
+                  },
+                }),
+              });
+
+              /** Restore Backup Data */
+              sendHostMessage({
+                action: "restore-backup-data",
+                data: backup,
+              });
+            },
+
+            "response-restore-backup-data": handleResponse,
+          });
+
+          /** Append to container */
+          container.appendChild(webview);
+        };
+
+        /** Set Interval */
+        interval = setInterval(initializeWebview, 30 * 1000);
+
+        /** Initialize */
+        initializeWebview();
+      }),
+    [theme, allowProxies, extensionPath]
+  );
 
   const mutation = useMutation({
     mutationKey: ["purchase-spider-accounts", spiderApiKey, country.code],
@@ -35,14 +108,14 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
               let used2FA = false;
               const account = await spider.getNumber(country.code);
 
-              if (!account) {
+              if (!account?.["phone"]) {
                 throw new Error(
                   "No account returned from Spider for country " + country.code
                 );
               }
 
               /* Log Acquired Account */
-              console.log("Acquired account:", account["phone"]);
+              console.log("Acquired account:", account);
 
               const telegram = await new Promise(async (resolve, reject) => {
                 try {
@@ -64,16 +137,16 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                   /* Start Client and Authenticate */
                   await client.start({
                     phoneNumber: async () => account["phone"],
-                    phoneCode: async () =>
-                      await spider
-                        .getCode(account["hash_code"])
-                        .then((result) => {
-                          /* Store Auth Result for Later Use */
-                          authResult = result;
+                    phoneCode: async () => {
+                      /* Get Code */
+                      authResult = await spider.getCode(account["hash_code"]);
 
-                          /* Return Code */
-                          return result["code"];
-                        }),
+                      /* Log Received Auth Result */
+                      console.log("Received auth result:", authResult);
+
+                      /* Return Code */
+                      return authResult["code"];
+                    },
                     password: async () => {
                       /* Indicate 2FA Was Used */
                       used2FA = true;
@@ -81,7 +154,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                       /* Log Password Usage */
                       console.log(
                         "Using 2FA password from Spider:",
-                        authResult
+                        authResult["password"]
                       );
 
                       /* Return Password */
@@ -90,6 +163,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                     onError: (err) => reject(err),
                   });
 
+                  /* Extract Session Details */
                   const authKey = client.session.authKey
                     .getKey()
                     .toString("hex");
@@ -101,18 +175,14 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                   if (twoFA || used2FA) {
                     const authorized = await client.isUserAuthorized();
                     if (authorized) {
-                      await client.invoke(
-                        new Api.account.UpdatePasswordSettings({
-                          password: used2FA
-                            ? authResult["password"]
-                            : new Api.InputCheckPasswordEmpty(),
-                          newSettings: new Api.PasswordInputSettings({
-                            newPassword: twoFA || undefined,
-                            hint: "",
-                            email: "",
-                          }),
-                        })
-                      );
+                      await client.updateTwoFaSettings({
+                        currentPassword: used2FA
+                          ? authResult["password"]
+                          : undefined,
+                        newPassword: twoFA || undefined,
+                        email: "",
+                        hint: "",
+                      });
                     } else {
                       return reject(
                         new Error("Failed to authorize user for 2FA update")
@@ -125,6 +195,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                     used2FA,
                     client,
                     user,
+                    session: client.session.save(),
                     authKey,
                     dcId,
                   });
@@ -133,11 +204,61 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                 }
               });
 
+              try {
+                await telegram.client.destroy();
+              } catch (e) {
+                console.error("Error destroying client:", e);
+              }
+
+              const partition = `persist:${uuid()}`;
+              const newWhiskersAccount = {
+                partition,
+                title: `Spider ${account["phone"]}`,
+              };
+
+              /* Store Account and Partition */
+              addAccount(newWhiskersAccount);
+
+              /* Log Restoring Backup */
+              console.log("Restoring backup for account:", newWhiskersAccount);
+
+              try {
+                /* Prepare Backup Data */
+                const backupData = {
+                  data: {
+                    telegramWebLocalStorage: {
+                      ["number_of_accounts"]: "1",
+                      ["account1"]: JSON.stringify({
+                        [`dc${telegram.dcId}_auth_key`]: telegram.authKey,
+                        ["dcId"]: telegram.dcId,
+                        ["userId"]: telegram.user.id,
+                      }),
+                    },
+                    chromeLocalStorage: {
+                      "shared:accounts": [
+                        {
+                          id: "default",
+                          partition: partition,
+                          title: newWhiskersAccount.title,
+                        },
+                      ],
+                    },
+                  },
+                };
+
+                /* Log Backup Data */
+                console.log("Backup data to restore:", backupData);
+
+                await restoreAccountBackup(newWhiskersAccount, backupData);
+              } catch (e) {
+                console.error("Error restoring account backup:", e);
+              }
+
               return {
                 success: true,
                 phone: account["phone"],
                 user: telegram.user,
-                session: telegram.client.session.save(),
+                session: telegram.session,
                 authKey: telegram.authKey,
                 dcId: telegram.dcId,
               };
@@ -200,13 +321,15 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
         value={numberOfAccounts}
         onChange={setNumberOfAccounts}
         readOnly={false}
+        disabled={mutation.isPending}
       />
 
       {/* 2FA */}
       <Input
         placeholder="2FA (Optional)"
         value={password}
-        onChange={setPassword}
+        disabled={mutation.isPending}
+        onChange={(e) => setPassword(e.target.value)}
       />
 
       {/* 2FA Information */}
@@ -218,6 +341,9 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
       <PrimaryButton onClick={purchaseAccounts} disabled={mutation.isPending}>
         {mutation.isPending ? "Purchasing..." : "Purchase Accounts"}
       </PrimaryButton>
+
+      {/* Webview Containers */}
+      <div ref={containerRef}></div>
     </>
   );
 }
