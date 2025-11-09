@@ -235,11 +235,17 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                   data: {
                     telegramWebLocalStorage: Object.fromEntries(
                       Object.entries({
-                        ["number_of_accounts"]: 1,
+                        ["dc"]: telegram.dcId,
+                        [`dc${telegram.dcId}_auth_key`]: telegram.authKey,
+                        ["user_auth"]: {
+                          ["dcID"]: telegram.dcId,
+                          ["id"]: telegram.user.id.toString(),
+                          ["date"]: (Date.now() / 1000) | 0,
+                        },
                         ["account1"]: {
                           [`dc${telegram.dcId}_auth_key`]: telegram.authKey,
-                          ["dcId"]: Number(telegram.dcId),
-                          ["userId"]: Number(telegram.user.id),
+                          ["dcId"]: telegram.dcId,
+                          ["userId"]: telegram.user.id.toString(),
                         },
                       }).map(([key, value]) => [key, JSON.stringify(value)])
                     ),
