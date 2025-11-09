@@ -1,10 +1,6 @@
 import { AiOutlineFolder, AiOutlineSelect } from "react-icons/ai";
 import { Dialog } from "radix-ui";
-import {
-  HiOutlineChevronDown,
-  HiOutlineChevronUp,
-  HiOutlineCog6Tooth,
-} from "react-icons/hi2";
+import { HiOutlineCog6Tooth } from "react-icons/hi2";
 import { useCallback } from "react";
 
 import AppDialogContent from "./AppDialogContent";
@@ -12,35 +8,7 @@ import Input from "./Input";
 import LabelToggle from "./LabelToggle";
 import useSettingsStore from "../store/useSettingsStore";
 import { cn } from "../lib/utils";
-
-const NumberInputButton = (props) => (
-  <button
-    {...props}
-    className={cn(
-      "bg-neutral-100 dark:bg-neutral-700",
-      "hover:bg-orange-100 hover:text-orange-700",
-      "dark:hover:bg-orange-200 dark:hover:text-orange-500",
-      "flex items-center justify-center",
-      "p-1 px-3 rounded-lg"
-    )}
-  />
-);
-const NumberInput = ({ value, label, onChange }) => (
-  <div className="flex gap-2">
-    <div className="flex flex-col-reverse gap-2">
-      <label className="text-orange-500">{label}</label>
-      <Input readOnly type="number" min="1" value={value} />
-    </div>
-    <div className="flex flex-col gap-1 shrink-0">
-      <NumberInputButton onClick={() => onChange(parseInt(value) + 1)}>
-        <HiOutlineChevronUp className="size-4 stroke-3" />
-      </NumberInputButton>
-      <NumberInputButton onClick={() => onChange(parseInt(value) - 1)}>
-        <HiOutlineChevronDown className="size-4 stroke-3" />
-      </NumberInputButton>
-    </div>
-  </div>
-);
+import { NumberInput } from "./NumberInput";
 
 export default function SettingsDialog() {
   const theme = useSettingsStore((state) => state.theme);

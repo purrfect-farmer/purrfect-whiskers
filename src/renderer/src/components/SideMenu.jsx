@@ -19,6 +19,8 @@ import Icon from "../assets/images/icon.png";
 import SettingsDialog from "./SettingsDialog";
 import { cn } from "../lib/utils";
 import LoaderDialog from "./LoaderDialog";
+import { FaSpider } from "react-icons/fa";
+import SpiderDialog from "./SpiderDialog";
 
 export default function SideMenu() {
   const [currentVersion, setCurrentVersion] = useState(null);
@@ -84,6 +86,15 @@ export default function SideMenu() {
       >
         <HiOutlineArrowsPointingOut className="size-5 text-orange-500" />
       </button>
+
+      {/* Spider */}
+      <Dialog.Root>
+        <Dialog.Trigger title="Spider" className="p-2">
+          <FaSpider className="size-5 text-orange-500" />
+        </Dialog.Trigger>
+
+        <SpiderDialog />
+      </Dialog.Root>
 
       {/* App Icon */}
       <Dialog.Root>

@@ -10,9 +10,11 @@ export default create(
         page: 0,
         accounts: [],
         partitions: [],
+        spiderApiKey: null,
       },
       (set, get) => ({
         setPage: (page) => set({ page }),
+        setSpiderApiKey: (key) => set({ spiderApiKey: key }),
 
         addAccount: (data) => set({ accounts: [...get().accounts, data] }),
         setAccounts: (accounts) => set({ accounts }),
