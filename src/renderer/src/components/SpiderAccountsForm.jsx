@@ -7,7 +7,7 @@ import { useMutation } from "@tanstack/react-query";
 import useAppStore from "../store/useAppStore";
 import { chunkArrayGenerator, createWebview } from "../lib/utils";
 import Spider from "../lib/Spider";
-import { StringSession } from "telegram/sessions";
+import { MemorySession } from "telegram/sessions";
 import { TelegramClient } from "telegram";
 import { uuid } from "../lib/utils";
 import useSettingsStore from "../store/useSettingsStore";
@@ -119,9 +119,9 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
 
               const telegram = await new Promise(async (resolve, reject) => {
                 try {
-                  const stringSession = new StringSession("");
+                  const session = new MemorySession();
                   const client = new TelegramClient(
-                    stringSession,
+                    session,
                     2496,
                     "8da85b0d5bfe62527e5b244c209159c3",
                     {
@@ -168,11 +168,12 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                     .getKey()
                     .toString("hex");
                   const dcId = client.session.dcId;
-                  const session = client.session.save();
 
                   /* Log Successful Login */
                   console.log("Successfully logged in to Telegram");
-                  console.log("Session details:", session);
+
+                  console.log("Auth Key:", authKey);
+                  console.log("DC ID:", dcId);
 
                   const user = await client.getMe();
                   console.log("Logged in as", user.username || user.firstName);
@@ -188,12 +189,22 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                     });
                   }
 
+                  /* Destroy Client */
+                  try {
+                    await client.destroy();
+                  } catch (e) {
+                    console.error("Error disconnecting client:", e);
+                  }
+
+                  /* Wait a moment to ensure disconnection */
+                  console.log("Waiting to ensure client disconnection...");
+                  await new Promise((res) => setTimeout(res, 5000));
+
                   return resolve({
+                    account,
                     authResult,
                     used2FA,
-                    client,
                     user,
-                    session,
                     authKey,
                     dcId,
                   });
@@ -204,14 +215,6 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
 
               /* Log Telegram Results */
               console.log("Telegram results:", telegram);
-
-              try {
-                /* Destroy Client */
-                console.log("Destroying Telegram client");
-                await telegram.client.destroy();
-              } catch (e) {
-                console.error("Error destroying client:", e);
-              }
 
               /* Prepare New Whiskers Account */
               const partition = `persist:${uuid()}`;
@@ -233,21 +236,10 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                     telegramWebLocalStorage: Object.fromEntries(
                       Object.entries({
                         ["number_of_accounts"]: 1,
-                        ["dc"]: telegram.dcId,
-                        [`dc${telegram.dcId}_auth_key`]: telegram.authKey,
-                        ["user_auth"]: {
-                          ["id"]: telegram.user.id,
-                          ["date"]: Math.floor(Date.now() / 1000),
-                          ["dcId"]: telegram.dcId,
-                        },
                         ["account1"]: {
                           [`dc${telegram.dcId}_auth_key`]: telegram.authKey,
-                          ["dcId"]: telegram.dcId,
-                          ["date"]: Math.floor(Date.now() / 1000),
-                          ["userId"]: telegram.user.id,
-                          ["firstName"]: telegram.user.firstName,
-                          ["lastName"]: telegram.user.lastName,
-                          ["isPremium"]: telegram.user.premium || false,
+                          ["dcId"]: Number(telegram.dcId),
+                          ["userId"]: Number(telegram.user.id),
                         },
                       }).map(([key, value]) => [key, JSON.stringify(value)])
                     ),
@@ -275,9 +267,8 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                 success: true,
                 phone: account["phone"],
                 user: telegram.user,
-                session: telegram.session,
                 authKey: telegram.authKey,
-                dcId: telegram.dcId,
+                dcId: Number(telegram.dcId),
               };
             } catch (error) {
               console.error("Error purchasing account:", error);
