@@ -78,14 +78,12 @@ export default function SpiderDialog() {
 
   /** Select Country */
   const selectCountry = (item) => {
-    if (false && item.price > balance) {
+    if (item.price > balance) {
       toast.error("Insufficient balance for this country.");
       return;
     }
     setSelectedCountry(item);
   };
-
-  console.log({ selectedCountry });
 
   return (
     <AppDialogContent
