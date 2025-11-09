@@ -168,26 +168,24 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                     .getKey()
                     .toString("hex");
                   const dcId = client.session.dcId;
+                  const session = client.session.save();
+
+                  /* Log Successful Login */
+                  console.log("Successfully logged in to Telegram");
+                  console.log("Session details:", session);
 
                   const user = await client.getMe();
                   console.log("Logged in as", user.username || user.firstName);
 
                   if (twoFA || used2FA) {
-                    const authorized = await client.isUserAuthorized();
-                    if (authorized) {
-                      await client.updateTwoFaSettings({
-                        currentPassword: used2FA
-                          ? authResult["password"]
-                          : undefined,
-                        newPassword: twoFA || undefined,
-                        email: "",
-                        hint: "",
-                      });
-                    } else {
-                      return reject(
-                        new Error("Failed to authorize user for 2FA update")
-                      );
-                    }
+                    await client.updateTwoFaSettings({
+                      currentPassword: used2FA
+                        ? authResult["password"]
+                        : undefined,
+                      newPassword: twoFA || undefined,
+                      email: "",
+                      hint: "",
+                    });
                   }
 
                   return resolve({
@@ -195,7 +193,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                     used2FA,
                     client,
                     user,
-                    session: client.session.save(),
+                    session,
                     authKey,
                     dcId,
                   });
@@ -204,12 +202,18 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                 }
               });
 
+              /* Log Telegram Results */
+              console.log("Telegram results:", telegram);
+
               try {
+                /* Destroy Client */
+                console.log("Destroying Telegram client");
                 await telegram.client.destroy();
               } catch (e) {
                 console.error("Error destroying client:", e);
               }
 
+              /* Prepare New Whiskers Account */
               const partition = `persist:${uuid()}`;
               const newWhiskersAccount = {
                 partition,
@@ -226,14 +230,27 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                 /* Prepare Backup Data */
                 const backupData = {
                   data: {
-                    telegramWebLocalStorage: {
-                      ["number_of_accounts"]: "1",
-                      ["account1"]: JSON.stringify({
+                    telegramWebLocalStorage: Object.fromEntries(
+                      Object.entries({
+                        ["number_of_accounts"]: 1,
+                        ["dc"]: telegram.dcId,
                         [`dc${telegram.dcId}_auth_key`]: telegram.authKey,
-                        ["dcId"]: telegram.dcId,
-                        ["userId"]: telegram.user.id,
-                      }),
-                    },
+                        ["user_auth"]: {
+                          ["id"]: telegram.user.id,
+                          ["date"]: Math.floor(Date.now() / 1000),
+                          ["dcId"]: telegram.dcId,
+                        },
+                        ["account1"]: {
+                          [`dc${telegram.dcId}_auth_key`]: telegram.authKey,
+                          ["dcId"]: telegram.dcId,
+                          ["date"]: Math.floor(Date.now() / 1000),
+                          ["userId"]: telegram.user.id,
+                          ["firstName"]: telegram.user.firstName,
+                          ["lastName"]: telegram.user.lastName,
+                          ["isPremium"]: telegram.user.premium || false,
+                        },
+                      }).map(([key, value]) => [key, JSON.stringify(value)])
+                    ),
                     chromeLocalStorage: {
                       "shared:accounts": [
                         {
