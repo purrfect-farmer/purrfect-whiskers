@@ -23,6 +23,7 @@ export default function SpiderDialog() {
     queryFn: async () => {
       return new Spider(spiderApiKey).getBalance();
     },
+    refetchInterval: 60_000,
     enabled: Boolean(spiderApiKey),
   });
 
@@ -35,6 +36,7 @@ export default function SpiderDialog() {
     queryFn: async () => {
       return new Spider(spiderApiKey).getCountries();
     },
+    refetchInterval: 60_000,
     enabled: Boolean(spiderApiKey),
   });
 
