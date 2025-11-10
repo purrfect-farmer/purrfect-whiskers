@@ -34,8 +34,6 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
   const addAccount = useAppStore((state) => state.addAccount);
 
   const extensionPath = useSettingsStore((state) => state.extensionPath);
-  const theme = useSettingsStore((state) => state.theme);
-  const allowProxies = useSettingsStore((state) => state.allowProxies);
 
   const [numberOfAccounts, setNumberOfAccounts] = useState(1);
   const [password, setPassword] = useState("");
@@ -74,11 +72,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                 action: "set-whisker-data",
                 data: getWhiskerData({
                   account,
-                  settings: {
-                    allowProxies,
-                    theme,
-                    farmerMode: "session",
-                  },
+                  settings: {},
                 }),
               });
 
@@ -102,7 +96,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
         /** Initialize */
         initializeWebview();
       }),
-    [theme, allowProxies, extensionPath]
+    [extensionPath]
   );
 
   const mutation = useMutation({
@@ -345,6 +339,11 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                   ],
                   "account-default:local-telegram-session":
                     localTelegram.session,
+
+                  "account-default:settings": {
+                    farmerMode: "session",
+                    onboarded: true,
+                  },
                 },
               },
             };
