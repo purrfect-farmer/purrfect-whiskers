@@ -196,10 +196,6 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                     console.error("Error disconnecting client:", e);
                   }
 
-                  /* Wait a moment to ensure disconnection */
-                  console.log("Waiting to ensure client disconnection...");
-                  await new Promise((res) => setTimeout(res, 5000));
-
                   return resolve({
                     account,
                     authResult,
@@ -235,8 +231,10 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                   data: {
                     telegramWebLocalStorage: Object.fromEntries(
                       Object.entries({
+                        ["number_of_accounts"]: 1,
                         ["dc"]: telegram.dcId,
                         [`dc${telegram.dcId}_auth_key`]: telegram.authKey,
+                        ["auth_key_fingerprint"]: telegram.authKey.slice(0, 8),
                         ["user_auth"]: {
                           ["dcID"]: telegram.dcId,
                           ["id"]: telegram.user.id.toString(),
@@ -246,6 +244,10 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                           [`dc${telegram.dcId}_auth_key`]: telegram.authKey,
                           ["dcId"]: telegram.dcId,
                           ["userId"]: telegram.user.id.toString(),
+                          ["auth_key_fingerprint"]: telegram.authKey.slice(
+                            0,
+                            8
+                          ),
                         },
                       }).map(([key, value]) => [key, JSON.stringify(value)])
                     ),
