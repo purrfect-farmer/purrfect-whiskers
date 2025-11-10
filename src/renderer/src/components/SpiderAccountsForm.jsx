@@ -76,6 +76,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                   settings: {
                     allowProxies,
                     theme,
+                    farmerMode: "session",
                   },
                 }),
               });
@@ -129,6 +130,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
           /* Log Acquired Account */
           console.log("Acquired account:", account);
 
+          /* Login to Telegram via Spider */
           const telegram = await new Promise(async (resolve, reject) => {
             try {
               const session = new MemorySession();
@@ -199,6 +201,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
             }
           });
 
+          /* Log In to Telegram Locally to Get Session */
           const localTelegram = await new Promise(async (resolve, reject) => {
             try {
               const session = new StringSession();
