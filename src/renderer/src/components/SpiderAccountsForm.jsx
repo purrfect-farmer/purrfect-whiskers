@@ -15,6 +15,7 @@ import { getWhiskerData, registerWebviewMessage } from "../lib/partitions";
 import { useProgress } from "../hooks/useProgress";
 import { Progress } from "./Progress";
 import { NewMessage, NewMessageEvent } from "telegram/events";
+import toast from "react-hot-toast";
 
 const createTelegramClient = (session) =>
   new TelegramClient(session, 2496, "8da85b0d5bfe62527e5b244c209159c3", {
@@ -396,6 +397,9 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
 
     /* Log Results */
     console.log("Purchase results:", results);
+
+    /* Toast Completion */
+    toast.success("Account purchase process completed.");
   };
 
   return (
