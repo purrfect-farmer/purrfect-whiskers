@@ -11,6 +11,8 @@ import SpiderCountries from "./SpiderCountries";
 import SpiderBalanceDisplay from "./SpiderBalanceDisplay";
 import SpiderKeyInput from "./SpiderKeyInput";
 import SpiderAccountsForm from "./SpiderAccountsForm";
+import { cn } from "../lib/utils";
+import { Dialog } from "radix-ui";
 
 export default function SpiderDialog() {
   const spiderApiKey = useAppStore((state) => state.spiderApiKey);
@@ -115,6 +117,16 @@ export default function SpiderDialog() {
           ) : null}
         </>
       ) : null}
+
+      {/* Close Dialog */}
+      <Dialog.Close
+        className={cn(
+          "px-4 py-2.5 text-orange-500 border border-orange-500 rounded-xl",
+          "font-bold"
+        )}
+      >
+        Close
+      </Dialog.Close>
     </AppDialogContent>
   );
 }

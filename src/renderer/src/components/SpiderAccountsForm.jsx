@@ -428,6 +428,9 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
 
   return (
     <>
+      {/* Webview Containers */}
+      <div ref={containerRef}></div>
+
       {/* Country Information */}
       <h2 className="text-lg flex justify-center items-center gap-2 text-orange-500 font-bold">
         <span>{country.emoji}</span>
@@ -494,9 +497,6 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
       {mutation.isPending && (
         <Progress current={progress} max={numberOfAccounts} />
       )}
-
-      {/* Webview Containers */}
-      <div ref={containerRef}></div>
     </>
   );
 }
