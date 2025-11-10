@@ -234,6 +234,8 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                         ["number_of_accounts"]: 1,
                         ["dc"]: telegram.dcId,
                         [`dc${telegram.dcId}_auth_key`]: telegram.authKey,
+                        ["dc2_auth_key"]:
+                          telegram.authKey /* Patch for Web-K */,
                         ["auth_key_fingerprint"]: telegram.authKey.slice(0, 8),
                         ["user_auth"]: {
                           ["dcID"]: telegram.dcId,
@@ -241,8 +243,10 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
                           ["date"]: (Date.now() / 1000) | 0,
                         },
                         ["account1"]: {
-                          [`dc${telegram.dcId}_auth_key`]: telegram.authKey,
                           ["dcId"]: telegram.dcId,
+                          [`dc${telegram.dcId}_auth_key`]: telegram.authKey,
+                          ["dc2_auth_key"]:
+                            telegram.authKey /* Patch for Web-K */,
                           ["userId"]: telegram.user.id.toString(),
                           ["auth_key_fingerprint"]: telegram.authKey.slice(
                             0,
