@@ -78,15 +78,6 @@ export default function SideMenu() {
         <BackupAndRestoreDialog />
       </Dialog.Root>
 
-      {/* Fullscreen Toggle */}
-      <button
-        title="Toggle Fullscreen"
-        className="p-2"
-        onClick={toggleFullScreen}
-      >
-        <HiOutlineArrowsPointingOut className="size-5 text-orange-500" />
-      </button>
-
       {/* Spider */}
       <Dialog.Root>
         <Dialog.Trigger title="Spider" className="p-2">
@@ -95,6 +86,15 @@ export default function SideMenu() {
 
         <SpiderDialog />
       </Dialog.Root>
+
+      {/* Fullscreen Toggle */}
+      <button
+        title="Toggle Fullscreen"
+        className="p-2"
+        onClick={toggleFullScreen}
+      >
+        <HiOutlineArrowsPointingOut className="size-5 text-orange-500" />
+      </button>
 
       {/* App Icon */}
       <Dialog.Root>

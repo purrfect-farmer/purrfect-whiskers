@@ -7,7 +7,8 @@ export default function SpiderBalanceDisplay({ query }) {
         "Error fetching balance."
       ) : (
         <span className="text-green-500">
-          Balance: <strong>${parseFloat(query.data.wallet).toFixed(3)}</strong>
+          Available Balance:{" "}
+          <strong>${parseFloat(query.data.wallet).toFixed(3)}</strong>
         </span>
       )}
     </div>
