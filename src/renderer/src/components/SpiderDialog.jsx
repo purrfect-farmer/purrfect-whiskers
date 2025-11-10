@@ -110,6 +110,8 @@ export default function SpiderDialog() {
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
             />
+          ) : countriesQuery.isPending ? (
+            <p className="text-center">Loading countries...</p>
           ) : null}
         </>
       ) : null}
