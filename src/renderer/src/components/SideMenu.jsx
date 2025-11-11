@@ -105,7 +105,7 @@ export default function SideMenu() {
           {latestVersion && semver.gt(latestVersion, currentVersion) ? (
             <span
               className={cn(
-                "absolute rounded-full size-5 bg-red-500",
+                "absolute rounded-full size-5 bg-red-500 text-white",
                 "flex items-center justify-center",
                 "-left-1 -top-1"
               )}
