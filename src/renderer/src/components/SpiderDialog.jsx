@@ -19,6 +19,8 @@ export default function SpiderDialog() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCountry, setSelectedCountry] = useState(null);
 
+  const enabled = Boolean(spiderApiKey);
+
   /* Balance Query */
   const balanceQuery = useQuery({
     queryKey: ["spider-balance", spiderApiKey],
@@ -26,7 +28,7 @@ export default function SpiderDialog() {
       return new Spider(spiderApiKey).getBalance();
     },
     refetchInterval: 60_000,
-    enabled: Boolean(spiderApiKey),
+    enabled,
   });
 
   /* Balance */
@@ -39,7 +41,7 @@ export default function SpiderDialog() {
       return new Spider(spiderApiKey).getCountries();
     },
     refetchInterval: 60_000,
-    enabled: Boolean(spiderApiKey),
+    enabled,
   });
 
   /* All Countries */
