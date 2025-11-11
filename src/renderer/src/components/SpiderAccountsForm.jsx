@@ -7,14 +7,12 @@ import { useMutation } from "@tanstack/react-query";
 import useAppStore from "../store/useAppStore";
 import { createWebview } from "../lib/utils";
 import Spider from "../lib/Spider";
-import { MemorySession, StringSession } from "telegram/sessions";
 import { TelegramClient } from "telegram";
 import { uuid } from "../lib/utils";
 import useSettingsStore from "../store/useSettingsStore";
 import { getWhiskerData, registerWebviewMessage } from "../lib/partitions";
 import { useProgress } from "../hooks/useProgress";
 import { Progress } from "./Progress";
-import { NewMessage, NewMessageEvent } from "telegram/events";
 import toast from "react-hot-toast";
 import LabelToggle from "./LabelToggle";
 
@@ -119,197 +117,24 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
 
       for (let i = 0; i < count; i++) {
         try {
-          let authResult = null;
-          let used2FA = false;
-          const account = await spider.getNumber(country.code);
+          const purchase = await spider.purchaseAccount({
+            countryCode: country.code,
+            enableLocalTelegramSession,
+            twoFA,
+          });
 
-          if (!account?.["phone"]) {
+          /* Validate Purchae */
+          if (!purchase.success) {
             throw new Error(
-              "No account returned from Spider for country " + country.code
+              purchase.error || "Unknown error purchasing account"
             );
           }
 
-          /* Log Acquired Account */
-          console.log("Acquired account:", account);
+          /* Log Purchase */
+          console.log("Purchased account from Spider:", purchase);
 
-          /* Login to Telegram via Spider */
-          const telegram = await new Promise(async (resolve, reject) => {
-            try {
-              const session = new MemorySession();
-              const client = createTelegramClient(session);
-
-              /* Start Client and Authenticate */
-              await client.start({
-                phoneNumber: async () => account["phone"],
-                phoneCode: async () => {
-                  /* Get Code */
-                  authResult = await spider.getCode(account["hash_code"]);
-
-                  /* Log Received Auth Result */
-                  console.log("Received auth result:", authResult);
-
-                  /* Return Code */
-                  return authResult["code"];
-                },
-                password: async () => {
-                  /* Indicate 2FA Was Used */
-                  used2FA = true;
-
-                  /* Log Password Usage */
-                  console.log(
-                    "Using 2FA password from Spider:",
-                    authResult["password"]
-                  );
-
-                  /* Return Password */
-                  return authResult["password"];
-                },
-                onError: (err) => reject(err),
-              });
-
-              /* Extract Session Details */
-              const authKey = client.session.authKey.getKey().toString("hex");
-              const dcId = client.session.dcId;
-
-              /* Log Successful Login */
-              console.log("Successfully logged in to Telegram");
-
-              console.log("Auth Key:", authKey);
-              console.log("DC ID:", dcId);
-
-              const user = await client.getMe();
-              console.log("Logged in as", user.username || user.firstName);
-
-              if (twoFA || used2FA) {
-                await client.updateTwoFaSettings({
-                  currentPassword: used2FA ? authResult["password"] : undefined,
-                  newPassword: twoFA || undefined,
-                  email: "",
-                  hint: "",
-                });
-              }
-
-              return resolve({
-                account,
-                authResult,
-                used2FA,
-                user,
-                client,
-                authKey,
-                dcId,
-              });
-            } catch (error) {
-              return reject(error);
-            }
-          });
-
-          /* Log Telegram Results */
-          console.log("Telegram results:", telegram);
-
-          let localTelegram = null;
-          if (enableLocalTelegramSession) {
-            /* Log In to Telegram Locally to Get Session */
-            localTelegram = await new Promise(async (resolve, reject) => {
-              try {
-                const session = new StringSession();
-                const client = createTelegramClient(session);
-
-                let authCodeMessage = null;
-
-                /* Add New Message Handler to the SAME client before connecting */
-                telegram.client.addEventHandler(
-                  /**
-                   * @param {NewMessageEvent} event
-                   */
-                  (event) => {
-                    console.log("New message event received:", event.message);
-                    const message = event.message?.message || "";
-                    const match = message.match(/(\d{5})/);
-
-                    if (match) {
-                      authCodeMessage = match[1];
-                      console.log("Extracted auth code:", authCodeMessage);
-                    }
-                  },
-                  new NewMessage({
-                    fromUsers: [777000] /* Telegram Service Notifications */,
-                  })
-                );
-
-                /* Request auth code via Telegram (this will trigger the message) */
-                console.log("Requesting SMS code via Telegram...");
-
-                /* Start Client and Authenticate */
-                await client.start({
-                  phoneNumber: async () => account["phone"],
-                  phoneCode: async () => {
-                    return new Promise((resolveCode, rejectCode) => {
-                      /* Check if we already have the code */
-                      if (authCodeMessage) {
-                        return resolveCode(authCodeMessage);
-                      }
-
-                      /* Wait for the auth code message */
-                      console.log(
-                        "Waiting for auth code message from Telegram..."
-                      );
-
-                      let attempts = 0;
-                      let interval = setInterval(() => {
-                        attempts += 1;
-                        if (authCodeMessage) {
-                          clearInterval(interval);
-                          return resolveCode(authCodeMessage);
-                        }
-
-                        if (attempts >= 10) {
-                          clearInterval(interval);
-                          return rejectCode(new Error("Auth code timeout"));
-                        }
-                      }, 5000);
-                    });
-                  },
-                  password: async () => {
-                    /* Indicate 2FA Was Used */
-                    used2FA = true;
-
-                    /* Log Password Usage */
-                    console.log("Using 2FA password from Spider:", twoFA);
-
-                    /* Return Password */
-                    return twoFA;
-                  },
-                  onError: (err) => reject(err),
-                });
-
-                /* Destroy Client */
-                try {
-                  await client.destroy();
-                } catch (e) {
-                  console.error("Error destroying local client:", e);
-                }
-
-                return resolve({
-                  account,
-                  authResult,
-                  used2FA,
-                  session: client.session.save(),
-                });
-              } catch (error) {
-                return reject(error);
-              }
-            });
-
-            /* Log Local Telegram Results */
-            console.log("Local Telegram results:", localTelegram);
-          }
-
-          /* Destroy Main Client */
-          try {
-            await telegram.client.destroy();
-          } catch (e) {
-            console.error("Error destroying main client:", e);
-          }
+          const { account, localTelegramSession, telegramWebLocalStorage } =
+            purchase;
 
           /* Prepare New Whiskers Account */
           const partition = `persist:${uuid()}`;
@@ -325,19 +150,6 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
           console.log("Restoring backup for account:", newWhiskersAccount);
 
           try {
-            /* Prepare Telegram Web Local Storage */
-            const telegramWebLocalStorage = Object.fromEntries(
-              Object.entries({
-                ["account1"]: {
-                  ["dcId"]: telegram.dcId,
-                  [`dc${telegram.dcId}_auth_key`]: telegram.authKey,
-                  ["dc2_auth_key"]: telegram.authKey /* Patch for Web-K */,
-                  ["userId"]: telegram.user.id.toString(),
-                  ["auth_key_fingerprint"]: telegram.authKey.slice(0, 8),
-                },
-              }).map(([key, value]) => [key, JSON.stringify(value)])
-            );
-
             /* Prepare Chrome Local Storage */
             const chromeLocalStorage = {
               "shared:accounts": [
@@ -352,7 +164,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
             /* Store Local Telegram Session if Enabled */
             if (enableLocalTelegramSession) {
               chromeLocalStorage["account-default:local-telegram-session"] =
-                localTelegram.session;
+                localTelegramSession;
 
               chromeLocalStorage["account-default:settings"] = {
                 farmerMode: "session",
@@ -380,13 +192,8 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
             console.error("Error restoring account backup:", e);
           }
 
-          results.push({
-            success: true,
-            phone: account["phone"],
-            user: telegram.user,
-            authKey: telegram.authKey,
-            dcId: Number(telegram.dcId),
-          });
+          /* Push Result */
+          results.push(purchase);
         } catch (error) {
           console.error("Error purchasing account:", error);
           results.push({ success: false, error: error.message });
@@ -469,6 +276,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
       <LabelToggle
         onChange={(ev) => setEnableLocalTelegramSession(ev.target.checked)}
         checked={enableLocalTelegramSession}
+        disabled={mutation.isPending}
       >
         Enable Local Telegram Session
       </LabelToggle>
