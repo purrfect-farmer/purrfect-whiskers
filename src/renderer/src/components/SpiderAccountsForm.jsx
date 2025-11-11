@@ -15,6 +15,7 @@ import { useProgress } from "../hooks/useProgress";
 import { Progress } from "./Progress";
 import toast from "react-hot-toast";
 import LabelToggle from "./LabelToggle";
+import socket from "../lib/mirror";
 
 const createTelegramClient = (session) =>
   new TelegramClient(session, 2496, "8da85b0d5bfe62527e5b244c209159c3", {
@@ -188,6 +189,22 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
 
             /* Add Partition */
             addPartition(partition);
+
+            /* Wait a moment to ensure data is written */
+            await toast.promise(
+              new Promise((res) => setTimeout(res, 2000)).then(() =>
+                /* Set active tab to telegram-web-k */
+                socket.send({
+                  action: "core.set-active-tab",
+                  data: ["telegram-web-k"],
+                })
+              ),
+              {
+                loading: "Finalizing account setup...",
+                success: "Account setup finalized!",
+                error: "Error finalizing account setup.",
+              }
+            );
           } catch (e) {
             console.error("Error restoring account backup:", e);
           }
