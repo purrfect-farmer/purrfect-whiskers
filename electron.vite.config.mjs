@@ -3,6 +3,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, externalizeDepsPlugin } from "electron-vite";
 import { resolve } from "path";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
+import { imagetools } from "vite-imagetools";
 
 function forceExternalOverride(external) {
   return {
@@ -33,6 +34,7 @@ export default defineConfig({
       /** Plugins */
       react(),
       tailwindcss(),
+      imagetools(),
       nodePolyfills({
         globals: {
           Buffer: false,
