@@ -7,7 +7,6 @@ import { useMutation } from "@tanstack/react-query";
 import useAppStore from "../store/useAppStore";
 import { createWebview } from "../lib/utils";
 import Spider from "../lib/Spider";
-import { TelegramClient } from "telegram";
 import { uuid } from "../lib/utils";
 import useSettingsStore from "../store/useSettingsStore";
 import { getWhiskerData, registerWebviewMessage } from "../lib/partitions";
@@ -16,16 +15,6 @@ import { Progress } from "./Progress";
 import toast from "react-hot-toast";
 import LabelToggle from "./LabelToggle";
 import socket from "../lib/mirror";
-
-const createTelegramClient = (session) =>
-  new TelegramClient(session, 2496, "8da85b0d5bfe62527e5b244c209159c3", {
-    appVersion: "2.2 K",
-    systemLangCode: "en-US",
-    langCode: "en",
-    deviceModel:
-      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
-    systemVersion: "Linux x86_64",
-  });
 
 export default function SpiderAccountsForm({ country, clearSelection }) {
   const containerRef = useRef();
