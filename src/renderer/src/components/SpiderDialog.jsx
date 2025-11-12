@@ -112,28 +112,31 @@ export default function SpiderDialog() {
               country={selectedCountry}
               clearSelection={() => setSelectedCountry(null)}
             />
-          ) : countriesQuery.isSuccess ? (
-            <SpiderCountries
-              selectCountry={selectCountry}
-              filteredCountries={filteredCountries}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-            />
-          ) : countriesQuery.isPending ? (
-            <p className="text-center">Loading countries...</p>
-          ) : null}
+          ) : (
+            <>
+              {countriesQuery.isSuccess ? (
+                <SpiderCountries
+                  selectCountry={selectCountry}
+                  filteredCountries={filteredCountries}
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                />
+              ) : countriesQuery.isPending ? (
+                <p className="text-center">Loading countries...</p>
+              ) : null}
+              {/* Close Dialog */}
+              <Dialog.Close
+                className={cn(
+                  "px-4 py-2.5 text-orange-500 border border-orange-500 rounded-xl",
+                  "font-bold"
+                )}
+              >
+                Close
+              </Dialog.Close>
+            </>
+          )}
         </>
       ) : null}
-
-      {/* Close Dialog */}
-      <Dialog.Close
-        className={cn(
-          "px-4 py-2.5 text-orange-500 border border-orange-500 rounded-xl",
-          "font-bold"
-        )}
-      >
-        Close
-      </Dialog.Close>
     </AppDialogContent>
   );
 }
