@@ -10,9 +10,9 @@ import { HiOutlinePuzzlePiece } from "react-icons/hi2";
 import { cn } from "../lib/utils";
 
 export default function LoaderDialog() {
-  const partitions = useAppStore((state) => state.partitions);
   const extensionPath = useSettingsStore((state) => state.extensionPath);
-  const setPartitions = useAppStore((state) => state.setPartitions);
+  const setAccounts = useAppStore((state) => state.setAccounts);
+  const closeAllAccounts = useAppStore((state) => state.closeAllAccounts);
   const setAutoUpdateExtension = useSettingsStore(
     (state) => state.setAutoUpdateExtension
   );
@@ -23,8 +23,11 @@ export default function LoaderDialog() {
       /** Disable Auto-Update */
       setAutoUpdateExtension(false);
 
-      /** Close Partitions */
-      setPartitions([]);
+      /** Get Current Accounts */
+      const accounts = useAppStore.getState().accounts;
+
+      /** Close Accounts */
+      closeAllAccounts();
 
       /** Install Extension */
       const file = window.electron.webUtils.getPathForFile(acceptedFiles[0]);
@@ -37,10 +40,10 @@ export default function LoaderDialog() {
       /** Toast */
       toast.success("Successfully Installed Extension!");
 
-      /** Restore Partitions */
-      setPartitions(partitions);
+      /** Restore Accounts */
+      setAccounts(accounts);
     },
-    [partitions, extensionPath, setPartitions]
+    [extensionPath, setAccounts, closeAllAccounts, setAutoUpdateExtension]
   );
 
   /** Dropzone */

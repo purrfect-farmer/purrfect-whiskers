@@ -10,7 +10,7 @@ import { cn } from "../lib/utils";
 export default function EditAccountDialog({ account, close }) {
   const updateAccount = useAppStore((state) => state.updateAccount);
   const removeAccount = useAppStore((state) => state.removeAccount);
-  const closePartition = useAppStore((state) => state.closePartition);
+  const closeAccount = useAppStore((state) => state.closeAccount);
 
   /** Save Account Data */
   const saveAccountData = useCallback(
@@ -23,13 +23,13 @@ export default function EditAccountDialog({ account, close }) {
 
   /** Delete Account */
   const deleteAccount = useCallback(async () => {
-    closePartition(account.partition);
+    closeAccount(account.partition);
     removeAccount(account.partition);
     await window.electron.ipcRenderer.invoke(
       "remove-session",
       account.partition
     );
-  }, [account, removeAccount, closePartition]);
+  }, [account, removeAccount, closeAccount]);
 
   return (
     <AppDialogContent

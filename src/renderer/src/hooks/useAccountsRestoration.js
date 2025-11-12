@@ -5,7 +5,7 @@ import useSettingsStore from "../store/useSettingsStore";
 
 export default function useAccountsRestoration() {
   const startupRef = useRef(false);
-  const setPartitions = useAppStore((state) => state.setPartitions);
+  const closeAllAccounts = useAppStore((state) => state.closeAllAccounts);
   const restoreAccountsOnStartup = useSettingsStore(
     (state) => state.restoreAccountsOnStartup
   );
@@ -13,10 +13,10 @@ export default function useAccountsRestoration() {
   useEffect(() => {
     if (startupRef.current) return;
     else if (!restoreAccountsOnStartup) {
-      setPartitions([]);
+      closeAllAccounts();
     }
 
     /** Mark as Restored */
     startupRef.current = true;
-  }, [restoreAccountsOnStartup, setPartitions]);
+  }, [restoreAccountsOnStartup, closeAllAccounts]);
 }

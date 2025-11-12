@@ -25,7 +25,7 @@ export default function BackupAndRestoreDialog() {
   const theme = useSettingsStore((state) => state.theme);
   const allowProxies = useSettingsStore((state) => state.allowProxies);
   const extensionPath = useSettingsStore((state) => state.extensionPath);
-  const setPartitions = useAppStore((state) => state.setPartitions);
+  const closeAllAccounts = useAppStore((state) => state.closeAllAccounts);
   const [isProcessing, setIsProcessing] = useState(false);
   const [total, setTotal] = useState(0);
 
@@ -134,8 +134,8 @@ export default function BackupAndRestoreDialog() {
 
   /** Get Backup Data */
   const getBackupData = useCallback(async () => {
-    /** Close Opened Partitions */
-    setPartitions([]);
+    /** Close opened accounts */
+    closeAllAccounts();
 
     /** Reset State */
     setIsProcessing(true);
@@ -172,7 +172,7 @@ export default function BackupAndRestoreDialog() {
   }, [
     accounts,
     setTotal,
-    setPartitions,
+    closeAllAccounts,
     setIsProcessing,
     getOrRestoreAccountBackup,
   ]);
@@ -198,8 +198,8 @@ export default function BackupAndRestoreDialog() {
   /** Restore Backup */
   const restoreBackup = useCallback(
     async (data) => {
-      /** Close Opened Partitions */
-      setPartitions([]);
+      /** Close opened accounts */
+      closeAllAccounts();
 
       /** Reset State */
       setIsProcessing(true);
@@ -232,7 +232,7 @@ export default function BackupAndRestoreDialog() {
     [
       extensionPath,
       setTotal,
-      setPartitions,
+      closeAllAccounts,
       setIsProcessing,
       getOrRestoreAccountBackup,
     ]

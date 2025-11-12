@@ -29,7 +29,7 @@ export default memo(function Webview({ account }) {
   const containerRef = useRef();
   const [isDesktop, setIsDesktop] = useState(false);
   const allowProxies = useSettingsStore((state) => state.allowProxies);
-  const closePartition = useAppStore((state) => state.closePartition);
+  const closeAccount = useAppStore((state) => state.closeAccount);
 
   /** Edit Account Dialog State */
   const {
@@ -141,7 +141,7 @@ export default memo(function Webview({ account }) {
           {/* Close Button */}
           <WebviewButton
             title="Close Account"
-            onClick={() => closePartition(partition)}
+            onClick={() => closeAccount(partition)}
           >
             <HiOutlineXCircle className="size-4" />
           </WebviewButton>

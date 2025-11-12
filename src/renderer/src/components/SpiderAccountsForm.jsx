@@ -21,7 +21,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
 
   const spiderApiKey = useAppStore((state) => state.spiderApiKey);
   const addAccount = useAppStore((state) => state.addAccount);
-  const addPartition = useAppStore((state) => state.addPartition);
+  const launchAccount = useAppStore((state) => state.launchAccount);
 
   const extensionPath = useSettingsStore((state) => state.extensionPath);
 
@@ -133,7 +133,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
             title: `Spider ${account["phone"]}`,
           };
 
-          /* Store Account and Partition */
+          /* Store Account */
           addAccount(newWhiskersAccount);
 
           /* Log Restoring Backup */
@@ -176,8 +176,8 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
             /* Restore Backup */
             await restoreAccountBackup(newWhiskersAccount, backupData);
 
-            /* Add Partition */
-            addPartition(partition);
+            /* Launch Account */
+            launchAccount(partition);
 
             /* Wait a moment to ensure data is written */
             await toast.promise(

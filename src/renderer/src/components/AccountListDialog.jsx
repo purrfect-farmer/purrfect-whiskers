@@ -11,7 +11,6 @@ import Input from "./Input";
 import ReorderItem from "./ReorderItem";
 import useAppStore from "../store/useAppStore";
 import useDialogState from "../hooks/useDialogState";
-import useLaunchPartition from "../hooks/useLaunchPartition";
 import useSettingsStore from "../store/useSettingsStore";
 import {
   cn,
@@ -137,9 +136,8 @@ const AccountItem = ({ account, active, onClick }) => {
 export default function AccountListDialog() {
   const [search, setSearch] = useState("");
   const accounts = useAppStore((state) => state.accounts);
-  const partitions = useAppStore((state) => state.partitions);
   const setAccounts = useAppStore((state) => state.setAccounts);
-  const launchPartition = useLaunchPartition();
+  const launchAccount = useAppStore((state) => state.launchAccount);
 
   const list = useMemo(
     () =>
@@ -243,8 +241,8 @@ export default function AccountListDialog() {
               >
                 <AccountItem
                   account={item}
-                  active={partitions.includes(item.partition)}
-                  onClick={() => launchPartition(item.partition)}
+                  active={item.running}
+                  onClick={() => launchAccount(item.partition)}
                 />
               </ReorderItem>
             ))}

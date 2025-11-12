@@ -1,6 +1,6 @@
 import { HiOutlineXMark } from "react-icons/hi2";
 import { Toaster } from "react-hot-toast";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 
 import Icon from "./assets/images/icon.png";
 import SideMenu from "./components/SideMenu";
@@ -18,34 +18,21 @@ function App() {
   const setPage = useAppStore((state) => state.setPage);
 
   const accounts = useAppStore((state) => state.accounts);
-  const partitions = useAppStore((state) => state.partitions);
-  const setPartitions = useAppStore((state) => state.setPartitions);
+  const webviews = useMemo(
+    () => accounts.filter((item) => item.running),
+    [accounts]
+  );
+
+  /** Close Page */
+  const closePage = useAppStore((state) => state.closePage);
 
   const theme = useSettingsStore((state) => state.theme);
   const columns = useSettingsStore((state) => state.columns);
   const rows = useSettingsStore((state) => state.rows);
 
   const itemsPerPage = columns * rows;
-  const pageCount = Math.ceil(partitions.length / itemsPerPage);
+  const pageCount = Math.ceil(webviews.length / itemsPerPage);
   const currentPage = Math.max(0, Math.min(page, pageCount - 1));
-
-  /** Webviews */
-  const webviews = useMemo(
-    () => accounts.filter((item) => partitions.includes(item.partition)),
-    [accounts, partitions]
-  );
-
-  /** Close Page */
-  const closePage = useCallback(
-    (pageIndex) => {
-      setPartitions(
-        partitions.filter(
-          (_, index) => pageIndex !== Math.floor(index / itemsPerPage)
-        )
-      );
-    },
-    [partitions, itemsPerPage, setPartitions]
-  );
 
   /** Close Previous Accounts */
   useAccountsRestoration();
