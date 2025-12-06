@@ -17,6 +17,8 @@ import {
   getWhiskerData,
   registerWebviewMessage,
 } from "../lib/partitions";
+import { Progress } from "./Progress";
+import { useProgress } from "../hooks/useProgress";
 
 export default function BackupAndRestoreDialog() {
   const containerRef = useRef();
@@ -27,7 +29,9 @@ export default function BackupAndRestoreDialog() {
   const extensionPath = useSettingsStore((state) => state.extensionPath);
   const closeAllAccounts = useAppStore((state) => state.closeAllAccounts);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [total, setTotal] = useState(0);
+
+  const { target, progress, setTarget, resetProgress, incrementProgress } =
+    useProgress();
 
   /** Save Backup File */
   const saveBackupFile = useCallback(
@@ -139,7 +143,8 @@ export default function BackupAndRestoreDialog() {
 
     /** Reset State */
     setIsProcessing(true);
-    setTotal(0);
+    resetProgress();
+    setTarget(accounts.length);
 
     /** Create Backups Array */
     const backups = [];
@@ -150,7 +155,7 @@ export default function BackupAndRestoreDialog() {
           const result = await getOrRestoreAccountBackup(account);
 
           /** Increment */
-          setTotal((prev) => prev + 1);
+          incrementProgress();
 
           /** Add Backup */
           return {
@@ -173,10 +178,12 @@ export default function BackupAndRestoreDialog() {
     };
   }, [
     accounts,
-    setTotal,
     closeAllAccounts,
-    setIsProcessing,
     getOrRestoreAccountBackup,
+    setIsProcessing,
+    incrementProgress,
+    resetProgress,
+    setTarget,
   ]);
 
   /** Backup All Data */
@@ -205,7 +212,8 @@ export default function BackupAndRestoreDialog() {
 
       /** Reset State */
       setIsProcessing(true);
-      setTotal(0);
+      resetProgress();
+      setTarget(data.backups.length);
 
       /** Destructure Data */
       const { app, settings, backups } = data;
@@ -219,7 +227,7 @@ export default function BackupAndRestoreDialog() {
             await getOrRestoreAccountBackup(account, item.backup);
 
             /** Increment */
-            setTotal((prev) => prev + 1);
+            incrementProgress();
           })
         );
       }
@@ -233,10 +241,12 @@ export default function BackupAndRestoreDialog() {
     },
     [
       extensionPath,
-      setTotal,
       closeAllAccounts,
       setIsProcessing,
       getOrRestoreAccountBackup,
+      incrementProgress,
+      resetProgress,
+      setTarget,
     ]
   );
 
@@ -329,11 +339,7 @@ export default function BackupAndRestoreDialog() {
         </Tabs.Content>
       </Tabs>
 
-      {isProcessing ? (
-        <div className="flex justify-center items-center text-orange-500 font-bold">
-          Processed: {total}
-        </div>
-      ) : null}
+      {isProcessing ? <Progress current={progress} max={target} /> : null}
 
       {/* Webview Containers */}
       <div ref={containerRef}></div>
