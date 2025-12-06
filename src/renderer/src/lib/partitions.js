@@ -32,6 +32,7 @@ export function getWhiskerData({ account, settings }) {
       partition,
     },
     sharedSettings: {
+      theme,
       allowProxies,
       proxyEnabled,
       proxyHost,
@@ -39,9 +40,7 @@ export function getWhiskerData({ account, settings }) {
       proxyUsername,
       proxyPassword,
     },
-    settings: {
-      theme,
-    },
+    settings: {},
   };
 }
 
