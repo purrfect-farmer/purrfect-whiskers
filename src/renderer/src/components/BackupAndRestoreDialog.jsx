@@ -145,20 +145,22 @@ export default function BackupAndRestoreDialog() {
     const backups = [];
 
     for (const chunk of chunkArrayGenerator(accounts, 3)) {
-      await Promise.all(
+      const chunkResults = await Promise.all(
         chunk.map(async (account) => {
           const result = await getOrRestoreAccountBackup(account);
 
-          /** Add Backup */
-          backups.push({
-            partition: account.partition,
-            backup: result,
-          });
-
           /** Increment */
           setTotal((prev) => prev + 1);
+
+          /** Add Backup */
+          return {
+            partition: account.partition,
+            backup: result,
+          };
         })
       );
+
+      backups.push(...chunkResults);
     }
 
     /** Release Lock */
