@@ -67,11 +67,6 @@ export default function useWebviewControls() {
       webview.addEventListener("did-stop-loading", (ev) => {
         setIsLoading(false);
       });
-
-      /** Context Menu */
-      webview.addEventListener("context-menu", () => {
-        webview.openDevTools({ mode: "detach" });
-      });
     }
   }, [setIsReady, setIsLoading]);
 

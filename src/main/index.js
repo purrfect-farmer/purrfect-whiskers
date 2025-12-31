@@ -25,10 +25,16 @@ import {
 } from "./libs/handles";
 import { startMirrorServer, stopMirrorServer } from "./server";
 
+import { registerContextMenu } from "./libs/utils";
+
+registerContextMenu();
+
+let mainWindow;
+
 async function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width,
     height,
     show: false,

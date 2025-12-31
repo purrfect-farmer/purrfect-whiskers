@@ -11,16 +11,20 @@ import {
   webContents,
 } from "electron";
 import { join, resolve } from "path";
-
 import { downloadAndExtract, extractZip } from "./downloader";
 import { mutexify } from "../../renderer/src/lib/utils";
 import { registerWebRequest } from "./webRequest";
+
+import { registerContextMenu } from "./utils";
 
 /** Session Map */
 const sessionMap = new Map();
 
 /** Proxy Handler Map */
 const proxyCredentialsMap = new Map();
+
+/** Context Menu Dispose Map */
+const contextMenuMap = new Map();
 
 /** Register Proxy Auth Handler */
 export function registerProxyAuthHandler() {
@@ -275,6 +279,15 @@ export function enableNewWindowCapture(_event, id) {
   const contents = webContents.fromId(id);
 
   if (contents) {
+    /* Set context menu */
+    contextMenuMap.set(
+      contents,
+      registerContextMenu({
+        window: contents,
+      })
+    );
+
+    /* Override window handler */
     contents.setWindowOpenHandler((details) => {
       if (
         ["default", "foreground-tab", "background-tab"].includes(
@@ -307,6 +320,8 @@ export function cancelNewWindowCapture(_event, id) {
   const contents = webContents.fromId(id);
 
   if (contents) {
+    contextMenuMap.get(contents)?.();
+    contextMenuMap.delete(contents);
     contents.setWindowOpenHandler(() => ({ action: "allow" }));
   }
 }
