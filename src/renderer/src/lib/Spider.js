@@ -60,6 +60,7 @@ export default class Spider {
     return this.makeAction("wallet");
   }
 
+  /** Create Telegram Client */
   createTelegramClient(session) {
     return new TelegramClient(
       session,
