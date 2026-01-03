@@ -26,7 +26,7 @@ export default function AppInfoDialog({ currentVersion, latestVersion }) {
 
         {/* Description */}
         <Dialog.Description className="text-center text-neutral-500 dark:text-neutral-400">
-          Multi-Account sessions for the Purrfect Farmer
+          Efficiently manage multiple instances of the Purrfect Farmer
         </Dialog.Description>
       </div>
 
