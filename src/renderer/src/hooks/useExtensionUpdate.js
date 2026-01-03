@@ -19,7 +19,9 @@ export default function useExtensionUpdate() {
     } else if (autoUpdateExtension) {
       window.electron.ipcRenderer
         .invoke("update-extension", extensionPath)
-        .then((result) => {});
+        .then((result) => {
+          console.log("Extension Update Result:", result);
+        });
     }
   }, [extensionPath, autoUpdateExtension, setExtensionPath]);
 }

@@ -33,10 +33,13 @@ export default function AppInfoDialog({ currentVersion, latestVersion }) {
       {/* Latest Version */}
       {latestVersion && semver.gt(latestVersion, currentVersion) ? (
         <>
+          {/* Update Alert */}
           <Alert variant={"danger"}>
             You are using an old version of the application. Update to the
             latest version.
           </Alert>
+
+          {/* Update Button */}
           <PrimaryButton
             as="a"
             target="_blank"

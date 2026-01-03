@@ -1,137 +1,20 @@
 import { Dialog } from "radix-ui";
-import { HiOutlineCheckBadge, HiOutlinePlus } from "react-icons/hi2";
-import { LiaUser } from "react-icons/lia";
-import { MdOutlineEditNote } from "react-icons/md";
+import { HiOutlinePlus } from "react-icons/hi2";
 import { Reorder } from "motion/react";
 import { useMemo, useState } from "react";
 
 import AddAccountDialog from "./AddAccountDialog";
-import EditAccountDialog from "./EditAccountDialog";
 import Input from "./Input";
 import ReorderItem from "./ReorderItem";
 import useAppStore from "../store/useAppStore";
 import useDialogState from "../hooks/useDialogState";
-import useSettingsStore from "../store/useSettingsStore";
 import {
   cn,
   extractInitDataUnsafe,
   getTelegramUserFullName,
   searchIncludes,
 } from "../lib/utils";
-
-const AccountEditDialog = ({ account }) => {
-  const {
-    opened: openEditAccountDialog,
-    setOpened: setOpenEditAccountDialog,
-    closeDialog: closeEditAccountDialog,
-  } = useDialogState();
-
-  return (
-    <Dialog.Root
-      open={openEditAccountDialog}
-      onOpenChange={setOpenEditAccountDialog}
-    >
-      <Dialog.Trigger
-        className={cn(
-          "bg-neutral-100 dark:bg-neutral-700",
-          "hover:bg-orange-100 hover:text-orange-700",
-          "dark:hover:bg-orange-200 dark:hover:text-orange-500",
-          "flex items-center justify-center",
-          "px-3 rounded-xl shrink-0"
-        )}
-      >
-        <MdOutlineEditNote className="size-4" />
-      </Dialog.Trigger>
-      <EditAccountDialog account={account} close={closeEditAccountDialog} />
-    </Dialog.Root>
-  );
-};
-
-const AccountItem = ({ account, active, onClick }) => {
-  const showAccountDetails = useSettingsStore(
-    (state) => state.showAccountDetails
-  );
-  const user = useMemo(() => {
-    if (account.telegramInitData) {
-      return extractInitDataUnsafe(account.telegramInitData)["user"];
-    } else {
-      return null;
-    }
-  }, [account.telegramInitData]);
-
-  const userFullName = useMemo(
-    () => (user ? getTelegramUserFullName(user) : ""),
-    [user]
-  );
-
-  return (
-    <div className="flex gap-2">
-      <button
-        key={account.partition}
-        onClick={onClick}
-        className={cn(
-          "bg-neutral-100 dark:bg-neutral-700",
-          "hover:bg-orange-100 hover:text-orange-700",
-          "dark:hover:bg-orange-200 dark:hover:text-orange-500",
-          "grow min-w-0 flex items-center gap-2",
-          "rounded-xl text-left",
-          "group",
-          showAccountDetails ? "px-2 py-1" : "px-3 py-2"
-        )}
-      >
-        {/* User  */}
-        {showAccountDetails ? (
-          user?.["photo_url"] ? (
-            <img
-              src={user?.["photo_url"]}
-              className="size-8 shrink-0 rounded-full"
-              loading="lazy"
-            />
-          ) : (
-            <div className="p-1 shrink-0">
-              <LiaUser className="size-5" />
-            </div>
-          )
-        ) : null}
-
-        <div className="flex flex-col grow min-w-0">
-          {/* Title */}
-          <h1 className="font-bold truncate w-full">
-            {account.title}{" "}
-            {showAccountDetails && userFullName ? (
-              <span
-                className={cn(
-                  "text-neutral-500 dark:text-neutral-400",
-                  "group-hover:text-orange-900"
-                )}
-              >
-                ({userFullName})
-              </span>
-            ) : null}
-          </h1>
-          {/* Username */}
-          {showAccountDetails && user?.["username"] ? (
-            <h5
-              className={cn(
-                "truncate",
-                "text-neutral-500 dark:text-neutral-400",
-                "group-hover:text-orange-900"
-              )}
-            >
-              @{user["username"]}
-            </h5>
-          ) : null}
-        </div>
-        {active ? (
-          <HiOutlineCheckBadge className="shrink-0 text-orange-500 size-4" />
-        ) : null}
-      </button>
-
-      {/* Edit Dialog */}
-      <AccountEditDialog account={account} />
-    </div>
-  );
-};
+import { AccountItem } from "./AccountItem";
 
 export default function AccountListDialog() {
   const [search, setSearch] = useState("");
@@ -183,6 +66,7 @@ export default function AccountListDialog() {
         <div className="p-4 flex flex-col gap-2">
           <div className="flex items-center gap-2">
             <div className="flex flex-col grow">
+              {/* Title */}
               <Dialog.Title
                 className={cn(
                   "leading-none font-bold font-turret-road",
@@ -191,6 +75,8 @@ export default function AccountListDialog() {
               >
                 Accounts ({accounts.length})
               </Dialog.Title>
+
+              {/* Description */}
               <Dialog.Description className="text-neutral-500 dark:text-neutral-400 leading-none">
                 Select an account
               </Dialog.Description>
@@ -219,7 +105,9 @@ export default function AccountListDialog() {
             </Dialog.Root>
           </div>
 
+          {/* Search Input */}
           <Input
+            autoFocus
             type="search"
             placeholder={"Search"}
             value={search}
@@ -227,6 +115,7 @@ export default function AccountListDialog() {
           />
         </div>
 
+        {/* Account List */}
         <div className="flex flex-col px-4 pb-4 gap-2 grow overflow-auto">
           <Reorder.Group
             values={accounts}

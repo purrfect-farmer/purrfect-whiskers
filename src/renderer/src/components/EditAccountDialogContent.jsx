@@ -7,7 +7,7 @@ import AppDialogContent from "./AppDialogContent";
 import useAppStore from "../store/useAppStore";
 import { cn } from "../lib/utils";
 
-export default function EditAccountDialog({ account, close }) {
+export default function EditAccountDialogContent({ account, close }) {
   const updateAccount = useAppStore((state) => state.updateAccount);
   const removeAccount = useAppStore((state) => state.removeAccount);
   const closeAccount = useAppStore((state) => state.closeAccount);

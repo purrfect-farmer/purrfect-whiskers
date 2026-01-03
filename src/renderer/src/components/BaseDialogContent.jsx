@@ -10,7 +10,7 @@ export default function BaseDialogContent({ children, ...props }) {
           onOpenAutoFocus={(ev) => ev.preventDefault()}
           {...props}
           className={cn(
-            "w-[90vw] max-w-[450px]",
+            "w-[90vw] max-w-112.5",
             "flex flex-col gap-2",
             "rounded-2xl p-6",
             "bg-white dark:bg-neutral-800",
