@@ -1,6 +1,6 @@
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import { defineConfig, externalizeDepsPlugin } from "electron-vite";
+import { defineConfig } from "electron-vite";
 import { resolve } from "path";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import { imagetools } from "vite-imagetools";
@@ -19,10 +19,10 @@ function forceExternalOverride(external) {
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()],
+    plugins: [],
   },
   preload: {
-    plugins: [externalizeDepsPlugin(), forceExternalOverride(["electron"])],
+    plugins: [forceExternalOverride(["electron"])],
   },
   renderer: {
     resolve: {
