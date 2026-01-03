@@ -4,6 +4,11 @@ import { useMedia } from "react-use";
 export default function useTheme(theme) {
   const systemIsDark = useMedia("(prefers-color-scheme: dark)");
 
+  /** Configure Theme in Main Process */
+  useEffect(() => {
+    window.electron.ipcRenderer.invoke("configure-theme", theme);
+  }, [theme]);
+
   /** Apply Theme */
   useEffect(() => {
     const isDark = theme === "dark" || (theme === "system" && systemIsDark);

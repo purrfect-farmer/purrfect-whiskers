@@ -7,6 +7,7 @@ import {
   Notification,
   dialog,
   session,
+  nativeTheme,
 } from "electron";
 import { Conf } from "electron-conf/main";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
@@ -110,6 +111,7 @@ class App {
     ipcMain.handle("configure-proxy", this.configureProxy.bind(this));
     ipcMain.handle("setup-session", this.setupSession.bind(this));
     ipcMain.handle("remove-session", this.removeSession.bind(this));
+    ipcMain.handle("configure-theme", this.configureTheme.bind(this));
   }
 
   /** Get App Version */
@@ -303,6 +305,14 @@ class App {
    */
   updateDeclarativeNetRules(event, rules) {
     registerWebRequest(event.sender.session, rules);
+  }
+
+  /** Configure Theme
+   * @param {Electron.IpcMainInvokeEvent} event
+   * @param {string} theme
+   */
+  configureTheme(_event, theme) {
+    nativeTheme.themeSource = theme;
   }
 
   /** Remove Session */
