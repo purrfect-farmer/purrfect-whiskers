@@ -49,10 +49,12 @@ export function getWhiskerData({ account, settings }) {
  * @param {Electron.WebviewTag} webview
  */
 export function registerWebviewMessage(webview, handlers) {
+  /* Reply Function */
   const reply = (data) => {
     webview.send("host-message", data);
   };
 
+  /* Listen for Messages */
   const listener = (event) => {
     if (event.channel === "webview-message") {
       const { action, data } = event.args[0];

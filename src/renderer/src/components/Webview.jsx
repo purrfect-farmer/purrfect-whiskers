@@ -15,7 +15,6 @@ import { cn } from "../lib/utils";
 import { configureProxy } from "../lib/partitions";
 
 export default memo(function Webview({ account }) {
-  const browser = useBrowser();
   const {
     title,
     partition,
@@ -26,6 +25,7 @@ export default memo(function Webview({ account }) {
     proxyPassword,
   } = account;
 
+  const browser = useBrowser(partition);
   const containerRef = useRef();
   const [isDesktop, setIsDesktop] = useState(false);
   const allowProxies = useSettingsStore((state) => state.allowProxies);

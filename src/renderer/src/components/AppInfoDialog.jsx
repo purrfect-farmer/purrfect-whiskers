@@ -21,7 +21,7 @@ export default function AppInfoDialog({ currentVersion, latestVersion }) {
 
         {/* Version */}
         <div className="text-base font-turret-road text-orange-500 text-center font-bold">
-          Version: {currentVersion}
+          {currentVersion}
         </div>
 
         {/* Description */}

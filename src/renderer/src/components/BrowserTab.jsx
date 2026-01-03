@@ -11,9 +11,7 @@ import { memo, useCallback, useEffect, useRef } from "react";
 import Input from "./Input";
 import WebviewButton from "./WebviewButton";
 import useWebviewControls from "../hooks/useWebviewControls";
-import useWebviewNewWindow from "../hooks/useWebviewNewWindow";
 import { cn } from "../lib/utils";
-import { userAgentDesktop } from "../lib/userAgent";
 
 export default memo(function BrowserTab({
   id,
@@ -24,16 +22,8 @@ export default memo(function BrowserTab({
   updateTitle,
   updateIcon,
 }) {
-  const {
-    ref,
-    isReady,
-    isLoading,
-    goBack,
-    goForward,
-    reload,
-    stop,
-    callWebviewMethod,
-  } = useWebviewControls();
+  const { ref, isLoading, goBack, goForward, reload, stop, callWebviewMethod } =
+    useWebviewControls();
 
   /** Address Bar */
   const addressBarRef = useRef();
@@ -77,9 +67,6 @@ export default memo(function BrowserTab({
       addressBarRef.current.value = ev.url;
     });
   }, []);
-
-  /** Handle New Window Open */
-  useWebviewNewWindow(ref, isReady, addTab);
 
   /** Handle Window Close */
   useEffect(() => {
@@ -170,7 +157,6 @@ export default memo(function BrowserTab({
         className="grow bg-white"
         partition={partition}
         ref={ref}
-        useragent={userAgentDesktop}
       />
     </div>
   );

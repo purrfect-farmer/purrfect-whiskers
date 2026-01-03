@@ -11,10 +11,8 @@ import useAppStore from "../store/useAppStore";
 import useRefCallback from "../hooks/useRefCallback";
 import useSettingsStore from "../store/useSettingsStore";
 import useWebviewControls from "../hooks/useWebviewControls";
-import useWebviewNewWindow from "../hooks/useWebviewNewWindow";
 import { cn } from "../lib/utils";
 import { getWhiskerData, registerWebviewMessage } from "../lib/partitions";
-import { userAgentTelegram } from "../lib/userAgent";
 
 export default memo(function ({ browser, account }) {
   const updateAccount = useAppStore((state) => state.updateAccount);
@@ -81,9 +79,6 @@ export default memo(function ({ browser, account }) {
     [account, updateAccount]
   );
 
-  /** Handle New Window Open */
-  useWebviewNewWindow(ref, isReady, browser.addTab);
-
   /** Setup Webview */
   useEffect(() => {
     const webview = ref.current;
@@ -132,7 +127,6 @@ export default memo(function ({ browser, account }) {
       <webview
         allowpopups="true"
         className="grow"
-        useragent={userAgentTelegram}
         partition={partition}
         disablewebsecurity={"true"}
         webpreferences="webSecurity=no"

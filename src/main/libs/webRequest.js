@@ -15,8 +15,10 @@ export const registerWebRequest = (session, rules = []) => {
         return callback({ requestHeaders: details.requestHeaders });
       }
 
+      /* Get Request Headers */
       const requestHeaders = details.requestHeaders || {};
 
+      /* Modify Headers */
       for (const rule of rules) {
         if (
           rule.condition.requestDomains.includes(new URL(details.url).hostname)
@@ -32,12 +34,14 @@ export const registerWebRequest = (session, rules = []) => {
         }
       }
 
+      /* Save Request Info */
       requestMap.set(details.id, {
         origin: requestHeaders["Origin"],
         method: requestHeaders["Access-Control-Request-Method"],
         headers: requestHeaders["Access-Control-Request-Headers"],
       });
 
+      /* Return Headers */
       callback({ requestHeaders });
     }
   );
@@ -50,7 +54,10 @@ export const registerWebRequest = (session, rules = []) => {
         return callback({ responseHeaders: details.responseHeaders });
       }
 
+      /* Get Status Line */
       let statusLine = details.statusLine;
+
+      /* Get Response Headers */
       const responseHeaders = Object.fromEntries(
         Object.entries(details.responseHeaders || {}).filter(([key]) => {
           return ![
@@ -67,6 +74,7 @@ export const registerWebRequest = (session, rules = []) => {
         })
       );
 
+      /* Modify Headers */
       for (const rule of rules) {
         if (
           rule.condition.requestDomains.includes(new URL(details.url).hostname)
@@ -108,6 +116,7 @@ export const registerWebRequest = (session, rules = []) => {
         console.error(e);
       }
 
+      /* Return Headers */
       callback({ responseHeaders, statusLine });
     }
   );
