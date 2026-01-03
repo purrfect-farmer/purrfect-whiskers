@@ -4,7 +4,7 @@ import { MdOutlineEditNote, MdOutlineFullscreen } from "react-icons/md";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import Browser from "./Browser";
-import EditAccountDialog from "./EditAccountDialog";
+import EditAccountDialogContent from "./EditAccountDialogContent";
 import FarmerWebview from "./FarmerWebview";
 import WebviewButton from "./WebviewButton";
 import useAppStore from "../store/useAppStore";
@@ -132,7 +132,7 @@ export default memo(function Webview({ account }) {
             </Dialog.Trigger>
 
             {/* Account Dialog */}
-            <EditAccountDialog
+            <EditAccountDialogContent
               account={account}
               close={closeEditAccountDialog}
             />
