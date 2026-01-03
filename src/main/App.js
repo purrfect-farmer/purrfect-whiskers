@@ -120,13 +120,13 @@ class App {
   }
 
   /** Get Session Cookie */
-  getSessionCookie(_event, options) {
-    return _event.sender.session.cookies.get(options);
+  getSessionCookie(event, options) {
+    return event.sender.session.cookies.get(options);
   }
 
   /** Set Session Cookie */
-  setSessionCookie(_event, options) {
-    return _event.sender.session.cookies.set(options);
+  setSessionCookie(event, options) {
+    return event.sender.session.cookies.set(options);
   }
 
   /** Save Backup File */
