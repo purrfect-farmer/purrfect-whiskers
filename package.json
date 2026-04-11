@@ -84,6 +84,7 @@
       "@tailwindcss/oxide",
       "bufferutil",
       "electron",
+      "electron-winstaller",
       "es5-ext",
       "esbuild",
       "sharp",
