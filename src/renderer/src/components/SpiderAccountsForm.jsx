@@ -1,20 +1,22 @@
 import { HiOutlineArrowLeft, HiOutlineCurrencyDollar } from "react-icons/hi2";
-import { NumberInput } from "./NumberInput";
-import { useCallback, useRef, useState } from "react";
-import PrimaryButton from "./PrimaryButton";
-import Input from "./Input";
-import { useMutation } from "@tanstack/react-query";
-import useAppStore from "../store/useAppStore";
-import { createWebview } from "../lib/utils";
-import Spider from "../lib/Spider";
-import { uuid } from "../lib/utils";
-import useSettingsStore from "../store/useSettingsStore";
 import { getWhiskerData, registerWebviewMessage } from "../lib/partitions";
-import { useProgress } from "../hooks/useProgress";
-import { Progress } from "./Progress";
-import toast from "react-hot-toast";
+import { useCallback, useRef, useState } from "react";
+
+import Input from "./Input";
 import LabelToggle from "./LabelToggle";
+import { NumberInput } from "./NumberInput";
+import PrimaryButton from "./PrimaryButton";
+import { Progress } from "./Progress";
+import Slider from "./Slider";
+import Spider from "../lib/Spider";
+import { createWebview } from "../lib/utils";
 import socket from "../lib/mirror";
+import toast from "react-hot-toast";
+import useAppStore from "../store/useAppStore";
+import { useMutation } from "@tanstack/react-query";
+import { useProgress } from "../hooks/useProgress";
+import useSettingsStore from "../store/useSettingsStore";
+import { uuid } from "../lib/utils";
 
 export default function SpiderAccountsForm({ country, clearSelection }) {
   const containerRef = useRef();
@@ -25,7 +27,8 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
 
   const extensionPath = useSettingsStore((state) => state.extensionPath);
 
-  const [numberOfAccounts, setNumberOfAccounts] = useState(1);
+  const [count, setCount] = useState(1);
+  const [batch, setBatch] = useState(3);
   const [password, setPassword] = useState("");
   const [enableLocalTelegramSession, setEnableLocalTelegramSession] =
     useState(true);
@@ -33,7 +36,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
   const { progress, resetProgress, incrementProgress } = useProgress();
 
   /** Calculate Total Price */
-  const totalPrice = (numberOfAccounts * country.price).toFixed(2);
+  const totalPrice = (count * country.price).toFixed(2);
 
   /** Restore account backup */
   const restoreAccountBackup = useCallback(
@@ -91,121 +94,134 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
         /** Initialize */
         initializeWebview();
       }),
-    [extensionPath]
+    [extensionPath],
   );
 
   const mutation = useMutation({
     mutationKey: ["purchase-spider-accounts", spiderApiKey, country.code],
-    mutationFn: async ({ count, twoFA, enableLocalTelegramSession }) => {
+    mutationFn: async ({
+      count,
+      batch = 1,
+      twoFA,
+      enableLocalTelegramSession,
+    }) => {
       resetProgress();
 
       const spider = new Spider(spiderApiKey);
       const results = [];
 
       console.log("Starting purchase of", count, "accounts");
+      console.log("Purchasing in batch:", batch);
       console.log("Using 2FA password:", twoFA);
 
-      for (let i = 0; i < count; i++) {
-        try {
-          const purchase = await spider.purchaseAccount({
-            countryCode: country.code,
-            enableLocalTelegramSession,
-            twoFA,
-          });
+      for (let i = 0; i < count; i += batch) {
+        const chunk = Array.from(
+          { length: Math.min(batch, count - i) },
+          async () => {
+            try {
+              const purchase = await spider.purchaseAccount({
+                countryCode: country.code,
+                enableLocalTelegramSession,
+                twoFA,
+              });
 
-          /* Validate Purchae */
-          if (!purchase.success) {
-            throw new Error(
-              purchase.error || "Unknown error purchasing account"
-            );
-          }
-
-          /* Log Purchase */
-          console.log("Purchased account from Spider:", purchase);
-
-          const { account, localTelegramSession, telegramWebLocalStorage } =
-            purchase;
-
-          /* Prepare New Whiskers Account */
-          const partition = `persist:${uuid()}`;
-          const newWhiskersAccount = {
-            partition,
-            title: `Spider ${account["phone"]}`,
-          };
-
-          /* Store Account */
-          addAccount(newWhiskersAccount);
-
-          /* Log Restoring Backup */
-          console.log("Restoring backup for account:", newWhiskersAccount);
-
-          try {
-            /* Prepare Chrome Local Storage */
-            const chromeLocalStorage = {
-              "shared:accounts": [
-                {
-                  id: "default",
-                  partition: partition,
-                  title: newWhiskersAccount.title,
-                },
-              ],
-            };
-
-            /* Store Local Telegram Session if Enabled */
-            if (enableLocalTelegramSession) {
-              chromeLocalStorage["account-default:local-telegram-session"] =
-                localTelegramSession;
-
-              chromeLocalStorage["account-default:settings"] = {
-                farmerMode: "session",
-                onboarded: true,
-              };
-            }
-
-            /* Prepare Backup Data */
-            const backupData = {
-              data: {
-                telegramWebLocalStorage,
-                chromeLocalStorage,
-              },
-            };
-
-            /* Log Backup Data */
-            console.log("Backup data to restore:", backupData);
-
-            /* Restore Backup */
-            await restoreAccountBackup(newWhiskersAccount, backupData);
-
-            /* Launch Account */
-            launchAccount(partition);
-
-            /* Wait a moment to ensure data is written */
-            await toast.promise(
-              new Promise((res) => setTimeout(res, 2000)).then(() =>
-                /* Set active tab to telegram-web-k */
-                socket.send({
-                  action: "core.set-active-tab",
-                  data: ["telegram-web-k"],
-                })
-              ),
-              {
-                loading: "Finalizing account setup...",
-                success: "Account setup finalized!",
-                error: "Error finalizing account setup.",
+              /* Validate Purchae */
+              if (!purchase.success) {
+                throw new Error(
+                  purchase.error || "Unknown error purchasing account",
+                );
               }
-            );
-          } catch (e) {
-            console.error("Error restoring account backup:", e);
-          }
 
-          /* Push Result */
-          results.push(purchase);
-        } catch (error) {
-          console.error("Error purchasing account:", error);
-          results.push({ success: false, error: error.message });
-        } finally {
-          incrementProgress();
-        }
+              /* Log Purchase */
+              console.log("Purchased account from Spider:", purchase);
+
+              const { account, localTelegramSession, telegramWebLocalStorage } =
+                purchase;
+
+              /* Prepare New Whiskers Account */
+              const partition = `persist:${uuid()}`;
+              const newWhiskersAccount = {
+                partition,
+                title: `Spider ${account["phone"]}`,
+              };
+
+              /* Store Account */
+              addAccount(newWhiskersAccount);
+
+              /* Log Restoring Backup */
+              console.log("Restoring backup for account:", newWhiskersAccount);
+
+              try {
+                /* Prepare Chrome Local Storage */
+                const chromeLocalStorage = {
+                  "shared:accounts": [
+                    {
+                      id: "default",
+                      partition: partition,
+                      title: newWhiskersAccount.title,
+                    },
+                  ],
+                };
+
+                /* Store Local Telegram Session if Enabled */
+                if (enableLocalTelegramSession) {
+                  chromeLocalStorage["account-default:local-telegram-session"] =
+                    localTelegramSession;
+
+                  chromeLocalStorage["account-default:settings"] = {
+                    farmerMode: "session",
+                    onboarded: true,
+                  };
+                }
+
+                /* Prepare Backup Data */
+                const backupData = {
+                  data: {
+                    telegramWebLocalStorage,
+                    chromeLocalStorage,
+                  },
+                };
+
+                /* Log Backup Data */
+                console.log("Backup data to restore:", backupData);
+
+                /* Restore Backup */
+                await restoreAccountBackup(newWhiskersAccount, backupData);
+
+                /* Launch Account */
+                launchAccount(partition);
+
+                /* Wait a moment to ensure data is written */
+                await toast.promise(
+                  new Promise((res) => setTimeout(res, 2000)).then(() =>
+                    /* Set active tab to telegram-web-k */
+                    socket.send({
+                      action: "core.set-active-tab",
+                      data: ["telegram-web-k"],
+                    }),
+                  ),
+                  {
+                    loading: "Finalizing account setup...",
+                    success: "Account setup finalized!",
+                    error: "Error finalizing account setup.",
+                  },
+                );
+              } catch (e) {
+                console.error("Error restoring account backup:", e);
+              }
+
+              /* Push Result */
+              results.push(purchase);
+            } catch (error) {
+              console.error("Error purchasing account:", error);
+              results.push({ success: false, error: error.message });
+            } finally {
+              incrementProgress();
+            }
+          },
+        );
+
+        await Promise.allSettled(chunk);
       }
 
       return results;
@@ -215,19 +231,15 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
   /** Purchase Accounts */
   const purchaseAccounts = async () => {
     /* Log Purchase Details */
-    console.log(
-      "Purchasing",
-      numberOfAccounts,
-      "accounts for country",
-      country.code
-    );
+    console.log("Purchasing", count, "accounts for country", country.code);
 
     /* Log 2FA Password */
     console.log("Using 2FA password:", password);
 
     /* Execute Mutation */
     const results = await mutation.mutateAsync({
-      count: numberOfAccounts,
+      count,
+      batch,
       twoFA: password,
       enableLocalTelegramSession,
     });
@@ -272,11 +284,25 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
       {/* Number of Accounts */}
       <NumberInput
         label="Number of Accounts"
-        value={numberOfAccounts}
-        onChange={setNumberOfAccounts}
+        value={count}
+        onChange={setCount}
         readOnly={false}
         disabled={mutation.isPending}
       />
+
+      {/* Batch */}
+      <div className="flex flex-col">
+        <label className="text-orange-500 text-center">
+          Batch: <span className="font-bold">{batch}</span>
+        </label>
+        <Slider
+          step={1}
+          min={1}
+          max={3}
+          value={[batch]}
+          onValueChange={(value) => setBatch(value[0])}
+        />
+      </div>
 
       {/* Enable Local Telegram Session */}
       <LabelToggle
@@ -308,9 +334,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
       </PrimaryButton>
 
       {/* Progress */}
-      {mutation.isPending && (
-        <Progress current={progress} max={numberOfAccounts} />
-      )}
+      {mutation.isPending && <Progress current={progress} max={count} />}
     </>
   );
 }
