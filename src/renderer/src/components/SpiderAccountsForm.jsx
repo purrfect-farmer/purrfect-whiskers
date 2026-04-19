@@ -28,7 +28,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
   const extensionPath = useSettingsStore((state) => state.extensionPath);
 
   const [count, setCount] = useState(1);
-  const [batch, setBatch] = useState(3);
+  const [batch, setBatch] = useState(2);
   const [password, setPassword] = useState("");
   const [enableLocalTelegramSession, setEnableLocalTelegramSession] =
     useState(true);
@@ -100,17 +100,17 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
   const mutation = useMutation({
     mutationKey: ["purchase-spider-accounts", spiderApiKey, country.code],
     mutationFn: async ({
-      count,
+      count = 1,
       batch = 1,
-      twoFA,
-      enableLocalTelegramSession,
+      twoFA = "",
+      enableLocalTelegramSession = true,
     }) => {
       resetProgress();
 
       const spider = new Spider(spiderApiKey);
       const results = [];
 
-      console.log("Starting purchase of", count, "accounts");
+      console.log("Starting purchase of accounts:", count);
       console.log("Purchasing in batch:", batch);
       console.log("Using 2FA password:", twoFA);
 
