@@ -1,13 +1,27 @@
+import * as changeCase from "change-case";
 import * as yup from "yup";
-import { Controller, FormProvider, useForm } from "react-hook-form";
-import { memo } from "react";
-import { yupResolver } from "@hookform/resolvers/yup";
 
+import {
+  Combobox,
+  ComboboxInput,
+  ComboboxOption,
+  ComboboxOptions,
+} from "@headlessui/react";
+import {
+  Controller,
+  FormProvider,
+  useFieldArray,
+  useForm,
+} from "react-hook-form";
+import { memo, useState } from "react";
+
+import { HiXMark } from "react-icons/hi2";
 import Input from "./Input";
 import LabelToggle from "./LabelToggle";
 import PrimaryButton from "./PrimaryButton";
-import useAppStore from "../store/useAppStore";
 import { cn } from "../lib/utils";
+import useAppStore from "../store/useAppStore";
+import { yupResolver } from "@hookform/resolvers/yup";
 
 const schema = yup
   .object({
@@ -19,11 +33,26 @@ const schema = yup
     proxyPort: yup.string().nullable(),
     proxyUsername: yup.string().nullable(),
     proxyPassword: yup.string().nullable(),
+    tags: yup.array().of(yup.string()).nullable(),
   })
   .required();
 
+const TagOption = (props) => (
+  <ComboboxOption
+    {...props}
+    className={cn(
+      "px-2 py-1 bg-neutral-100 dark:bg-neutral-600 rounded-lg cursor-pointer",
+      "data-focus:bg-orange-500 data-focus:text-white",
+      "truncate",
+    )}
+  />
+);
+
 export default memo(function AccountForm({ account, handleFormSubmit }) {
   const accounts = useAppStore((state) => state.accounts);
+  const tags = useAppStore((state) => state.tags);
+  const addTag = useAppStore((state) => state.addTag);
+
   /** Form */
   const form = useForm({
     resolver: yupResolver(schema),
@@ -39,8 +68,45 @@ export default memo(function AccountForm({ account, handleFormSubmit }) {
       proxyPort: account?.proxyPort || null,
       proxyUsername: account?.proxyUsername || null,
       proxyPassword: account?.proxyPassword || null,
+      tags: account?.tags || [],
     },
   });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "tags",
+    keyName: "fieldId",
+  });
+  const [query, setQuery] = useState("");
+  const selectedTags = form.watch("tags");
+  const filteredTags = tags.filter(
+    (tag) =>
+      !selectedTags?.includes(tag.id) &&
+      tag.name.toLowerCase().includes(query.toLowerCase()),
+  );
+
+  const handleTagAdd = (tag) => {
+    console.log("Selected tag:", tag);
+    if (!tag) return;
+    else if (!tag.id) {
+      const name = query.trim();
+      if (name.length === 0) return;
+      const newTag = {
+        id: changeCase.kebabCase(name),
+        name,
+      };
+
+      const existingTag = tags.find((item) => item.id === newTag.id);
+      if (existingTag) {
+        append(existingTag.id);
+      } else {
+        addTag(newTag);
+        append(newTag.id);
+      }
+    } else {
+      append(tag.id);
+    }
+  };
 
   return (
     <FormProvider {...form}>
@@ -144,6 +210,79 @@ export default memo(function AccountForm({ account, handleFormSubmit }) {
               </div>
             )}
           />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label className="text-neutral-500">Tags</label>
+          <div className="flex flex-wrap gap-2">
+            {fields.map((tag, index) => (
+              <Controller
+                key={tag.fieldId}
+                name={`tags.${index}`}
+                render={({ field }) => (
+                  <div
+                    key={index}
+                    className={cn(
+                      "flex items-center gap-1",
+                      "px-2 py-1",
+                      "bg-neutral-100 dark:bg-neutral-700",
+                      "rounded-full",
+                    )}
+                  >
+                    {tags.find((item) => item.id === field.value)?.name ||
+                      field.value}
+                    <button
+                      type="button"
+                      onClick={() => remove(index)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <HiXMark className="size-4" />
+                    </button>
+                  </div>
+                )}
+              />
+            ))}
+            <Combobox
+              immediate
+              as={"div"}
+              className="relative"
+              onClose={() => {
+                setQuery("");
+              }}
+              onChange={handleTagAdd}
+            >
+              <ComboboxInput
+                aria-label="Tag"
+                displayValue={(tag) => tag?.name}
+                className={cn("p-2 outline-0")}
+                placeholder="Add Tag"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+              />
+              <ComboboxOptions
+                anchor="bottom"
+                style={{ pointerEvents: "all" }}
+                className={cn(
+                  "empty:invisible w-52",
+                  "bg-white dark:bg-neutral-700",
+                  "flex flex-col gap-1 max-h-56 z-100",
+                  "rounded-xl p-2 shadow",
+                )}
+              >
+                <h3 className="font-bold text-xs text-center">Suggestions</h3>
+                {query.length > 0 && (
+                  <TagOption value={{ id: null, name: query }}>
+                    Create <span className="font-bold">"{query}"</span>
+                  </TagOption>
+                )}
+                {filteredTags.map((tag) => (
+                  <TagOption key={tag.id} value={tag}>
+                    {tag.name}
+                  </TagOption>
+                ))}
+              </ComboboxOptions>
+            </Combobox>
+          </div>
         </div>
 
         {/* Save Button */}

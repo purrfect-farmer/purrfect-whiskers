@@ -1,26 +1,31 @@
-import { Dialog } from "radix-ui";
-import { HiOutlinePlus } from "react-icons/hi2";
-import { Reorder } from "motion/react";
-import { useMemo, useState } from "react";
-
-import AddAccountDialog from "./AddAccountDialog";
-import Input from "./Input";
-import ReorderItem from "./ReorderItem";
-import useAppStore from "../store/useAppStore";
-import useDialogState from "../hooks/useDialogState";
 import {
   cn,
   extractInitDataUnsafe,
   getTelegramUserFullName,
   searchIncludes,
 } from "../lib/utils";
+import { useMemo, useState } from "react";
+
 import { AccountItem } from "./AccountItem";
+import AddAccountDialog from "./AddAccountDialog";
+import { Dialog } from "radix-ui";
+import { HiOutlinePlus } from "react-icons/hi2";
+import Input from "./Input";
+import { Reorder } from "motion/react";
+import ReorderItem from "./ReorderItem";
+import useAppStore from "../store/useAppStore";
+import useDialogState from "../hooks/useDialogState";
 
 export default function AccountListDialog() {
   const [search, setSearch] = useState("");
+  const [selectedTag, setSelectedTag] = useState(null);
+  const tags = useAppStore((state) => state.tags);
   const accounts = useAppStore((state) => state.accounts);
   const setAccounts = useAppStore((state) => state.setAccounts);
   const launchAccount = useAppStore((state) => state.launchAccount);
+  const activeTag = selectedTag
+    ? tags.find((item) => item.id === selectedTag)
+    : null;
 
   const list = useMemo(
     () =>
@@ -41,8 +46,10 @@ export default function AccountListDialog() {
               searchIncludes(userId, search)
             );
           })
-        : accounts,
-    [search, accounts]
+        : activeTag
+          ? accounts.filter((item) => item.tags?.includes(activeTag.id))
+          : accounts,
+    [search, activeTag, accounts],
   );
 
   const {
@@ -60,7 +67,7 @@ export default function AccountListDialog() {
           "fixed inset-y-0 left-0",
           "w-5/6 max-w-xs",
           "bg-white dark:bg-neutral-800",
-          "flex flex-col"
+          "flex flex-col",
         )}
       >
         <div className="p-4 flex flex-col gap-2">
@@ -70,7 +77,7 @@ export default function AccountListDialog() {
               <Dialog.Title
                 className={cn(
                   "leading-none font-bold font-turret-road",
-                  "text-lg text-orange-500"
+                  "text-lg text-orange-500",
                 )}
               >
                 Accounts ({accounts.length})
@@ -95,7 +102,7 @@ export default function AccountListDialog() {
                   "dark:bg-orange-200 dark:text-orange-500",
                   "flex items-center gap-2",
                   "p-2 px-3 rounded-xl text-left",
-                  "font-bold"
+                  "font-bold",
                 )}
               >
                 <HiOutlinePlus className="size-5 text-orange-500" />
@@ -113,6 +120,27 @@ export default function AccountListDialog() {
             value={search}
             onChange={(ev) => setSearch(ev.target.value)}
           />
+
+          {/* Tags */}
+          <div className="flex flex-wrap gap-1 empty:hidden">
+            {tags.map((tag) => (
+              <button
+                key={tag.id}
+                onClick={() =>
+                  setSelectedTag((prev) => (prev === tag.id ? null : tag.id))
+                }
+                className={cn(
+                  "flex items-center gap-1",
+                  "px-2 py-1 rounded-full",
+                  activeTag && activeTag.id === tag.id
+                    ? "bg-orange-500 text-white"
+                    : "bg-neutral-100 dark:bg-neutral-700",
+                )}
+              >
+                {tag.name}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Account List */}
@@ -126,7 +154,7 @@ export default function AccountListDialog() {
               <ReorderItem
                 key={item.partition}
                 value={item}
-                disabled={Boolean(search)}
+                disabled={Boolean(search || activeTag)}
               >
                 <AccountItem
                   account={item}

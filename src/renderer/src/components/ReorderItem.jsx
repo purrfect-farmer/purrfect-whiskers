@@ -1,9 +1,9 @@
-import propTypes from "prop-types";
-import { HiOutlineSquares2X2 } from "react-icons/hi2";
 import { Reorder, useDragControls } from "motion/react";
-import { memo } from "react";
 
+import { HiOutlineSquares2X2 } from "react-icons/hi2";
 import { cn } from "../lib/utils";
+import { memo } from "react";
+import propTypes from "prop-types";
 
 const ReorderItem = memo(function ReorderItem({
   children,
@@ -23,7 +23,7 @@ const ReorderItem = memo(function ReorderItem({
             "dark:hover:bg-orange-200 dark:hover:text-orange-500",
             "flex items-center justify-center",
             "px-3 rounded-xl shrink-0",
-            "touch-none disabled:opacity-50"
+            "touch-none disabled:opacity-50",
           )}
           onPointerDown={(event) => !disabled && dragControls.start(event)}
         >
