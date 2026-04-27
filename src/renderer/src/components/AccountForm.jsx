@@ -20,6 +20,7 @@ import Input from "./Input";
 import LabelToggle from "./LabelToggle";
 import PrimaryButton from "./PrimaryButton";
 import { cn } from "../lib/utils";
+import toast from "react-hot-toast";
 import useAppStore from "../store/useAppStore";
 import { yupResolver } from "@hookform/resolvers/yup";
 
@@ -33,7 +34,7 @@ const schema = yup
     proxyPort: yup.string().nullable(),
     proxyUsername: yup.string().nullable(),
     proxyPassword: yup.string().nullable(),
-    tags: yup.array().of(yup.string()).nullable(),
+    tags: yup.array().of(yup.string()).required().default([]),
   })
   .required();
 
@@ -86,25 +87,29 @@ export default memo(function AccountForm({ account, handleFormSubmit }) {
   );
 
   const handleTagAdd = (tag) => {
-    console.log("Selected tag:", tag);
     if (!tag) return;
-    else if (!tag.id) {
-      const name = query.trim();
-      if (name.length === 0) return;
-      const newTag = {
-        id: changeCase.kebabCase(name),
-        name,
-      };
+    const name = tag.name.trim();
+    if (name.length === 0) return;
 
-      const existingTag = tags.find((item) => item.id === newTag.id);
-      if (existingTag) {
-        append(existingTag.id);
-      } else {
-        addTag(newTag);
-        append(newTag.id);
-      }
+    /* Create new tag object */
+    const newTag = {
+      id: changeCase.kebabCase(name),
+      name,
+    };
+
+    /* Check if tag already exists */
+    const existingTag = tags.find((item) => item.id === newTag.id);
+
+    /* If tag doesn't exist, add it to the store */
+    if (!existingTag) {
+      addTag(newTag);
+    }
+
+    /* Check if tag is already selected */
+    if (selectedTags.includes(newTag.id)) {
+      toast.error("Tag already added");
     } else {
-      append(tag.id);
+      append(newTag.id);
     }
   };
 

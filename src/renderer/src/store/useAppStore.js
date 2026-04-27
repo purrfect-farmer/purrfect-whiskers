@@ -96,7 +96,20 @@ export default create(
         /** Tags */
         addTag: (tag) => set({ tags: [...get().tags, tag] }),
         removeTag: (id) =>
-          set({ tags: get().tags.filter((item) => item.id !== id) }),
+          set({
+            tags: get().tags.filter((item) => item.id !== id),
+            accounts: get().accounts.map((account) => ({
+              ...account,
+              tags: account.tags?.filter?.((tagId) => tagId !== id),
+            })),
+          }),
+        updateTag: (id, name) =>
+          set({
+            tags: get().tags.map((item) =>
+              item.id === id ? { ...item, name } : item,
+            ),
+          }),
+        setTags: (tags) => set({ tags }),
       }),
     ),
     {

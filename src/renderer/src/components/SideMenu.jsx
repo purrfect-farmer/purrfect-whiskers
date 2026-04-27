@@ -1,6 +1,3 @@
-import axios from "axios";
-import semver from "semver";
-import { Dialog } from "radix-ui";
 import {
   HiOutlineArrowPath,
   HiOutlineArrowsPointingOut,
@@ -8,19 +5,23 @@ import {
   HiOutlineCog6Tooth,
   HiOutlinePuzzlePiece,
 } from "react-icons/hi2";
-import { LuDatabaseBackup } from "react-icons/lu";
-import { MdOutlineBrowserUpdated } from "react-icons/md";
+import { LuDatabaseBackup, LuTags } from "react-icons/lu";
 import { useCallback, useEffect, useState } from "react";
 
 import AccountListDialog from "./AccountListDialog";
 import AppInfoDialog from "./AppInfoDialog";
 import BackupAndRestoreDialog from "./BackupAndRestoreDialog";
-import Icon from "../assets/images/icon.png";
-import SettingsDialog from "./SettingsDialog";
-import { cn } from "../lib/utils";
-import LoaderDialog from "./LoaderDialog";
+import { Dialog } from "radix-ui";
 import { FaSpider } from "react-icons/fa";
+import Icon from "../assets/images/icon.png";
+import LoaderDialog from "./LoaderDialog";
+import { MdOutlineBrowserUpdated } from "react-icons/md";
+import SettingsDialog from "./SettingsDialog";
 import SpiderDialog from "./SpiderDialog";
+import TagsDialog from "./TagsDialog";
+import axios from "axios";
+import { cn } from "../lib/utils";
+import semver from "semver";
 
 export default function SideMenu() {
   const [currentVersion, setCurrentVersion] = useState(null);
@@ -58,6 +59,15 @@ export default function SideMenu() {
         </Dialog.Trigger>
 
         <AccountListDialog />
+      </Dialog.Root>
+
+      {/* Tags */}
+      <Dialog.Root>
+        <Dialog.Trigger title="Tags" className="p-2">
+          <LuTags className="size-5 text-orange-500" />
+        </Dialog.Trigger>
+
+        <TagsDialog />
       </Dialog.Root>
 
       {/* Settings */}
@@ -107,7 +117,7 @@ export default function SideMenu() {
               className={cn(
                 "absolute rounded-full size-5 bg-red-500 text-white",
                 "flex items-center justify-center",
-                "-left-1 -top-1"
+                "-left-1 -top-1",
               )}
             >
               <MdOutlineBrowserUpdated className="size-4" />
