@@ -19,6 +19,7 @@ import { memo, useState } from "react";
 
 import Input from "./Input";
 import LabelToggle from "./LabelToggle";
+import { MdLightbulb } from "react-icons/md";
 import PrimaryButton from "./PrimaryButton";
 import { cn } from "../lib/utils";
 import toast from "react-hot-toast";
@@ -287,15 +288,21 @@ export default memo(function AccountForm({ account, handleFormSubmit }) {
                 anchor="bottom"
                 style={{ pointerEvents: "all" }}
                 className={cn(
-                  "empty:invisible w-60",
+                  "empty:invisible w-72",
                   "bg-white dark:bg-neutral-900",
                   "flex flex-col gap-2 max-h-56 z-100",
                   "rounded-2xl p-2 shadow",
                 )}
               >
-                <h3 className="font-bold text-xs text-center">
-                  Suggestions ({filteredTags.length})
-                </h3>
+                <div className="flex flex-col">
+                  <h3 className="font-bold text-xs text-center flex items-center justify-center gap-2">
+                    <MdLightbulb className="size-4" /> Suggestions (
+                    {filteredTags.length})
+                  </h3>
+                  <p className="text-neutral-500 dark:text-neutral-400 text-center text-xs">
+                    Select a tag or create a new one
+                  </p>
+                </div>
 
                 <div className="flex flex-col gap-1">
                   {query.length > 0 && (
