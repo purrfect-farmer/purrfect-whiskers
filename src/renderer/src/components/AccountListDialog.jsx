@@ -1,3 +1,4 @@
+import { HiOutlinePlus, HiTag } from "react-icons/hi2";
 import {
   cn,
   extractInitDataUnsafe,
@@ -9,7 +10,6 @@ import { useMemo, useState } from "react";
 import { AccountItem } from "./AccountItem";
 import AddAccountDialog from "./AddAccountDialog";
 import { Dialog } from "radix-ui";
-import { HiOutlinePlus } from "react-icons/hi2";
 import Input from "./Input";
 import { Reorder } from "motion/react";
 import ReorderItem from "./ReorderItem";
@@ -137,7 +137,16 @@ export default function AccountListDialog() {
                     : "bg-neutral-100 dark:bg-neutral-700",
                 )}
               >
-                {tag.name}
+                <HiTag
+                  className={cn(
+                    "size-4",
+                    activeTag && activeTag.id === tag.id
+                      ? "text-white"
+                      : "text-orange-500",
+                  )}
+                />
+                {tag.name} (
+                {accounts.filter((item) => item.tags?.includes(tag.id)).length})
               </button>
             ))}
           </div>
