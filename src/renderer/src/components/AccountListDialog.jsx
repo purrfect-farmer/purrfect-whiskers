@@ -131,7 +131,7 @@ export default function AccountListDialog() {
                 }
                 className={cn(
                   "flex items-center gap-1",
-                  "px-2 py-1 rounded-full",
+                  "p-2 rounded-full",
                   activeTag && activeTag.id === tag.id
                     ? "bg-orange-500 text-white"
                     : "bg-neutral-100 dark:bg-neutral-700",

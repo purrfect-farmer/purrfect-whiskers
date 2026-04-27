@@ -3,6 +3,7 @@ import * as yup from "yup";
 
 import {
   Combobox,
+  ComboboxButton,
   ComboboxInput,
   ComboboxOption,
   ComboboxOptions,
@@ -13,9 +14,9 @@ import {
   useFieldArray,
   useForm,
 } from "react-hook-form";
+import { HiChevronDown, HiTag, HiXMark } from "react-icons/hi2";
 import { memo, useState } from "react";
 
-import { HiXMark } from "react-icons/hi2";
 import Input from "./Input";
 import LabelToggle from "./LabelToggle";
 import PrimaryButton from "./PrimaryButton";
@@ -42,11 +43,19 @@ const TagOption = (props) => (
   <ComboboxOption
     {...props}
     className={cn(
-      "px-2 py-1 bg-neutral-100 dark:bg-neutral-600 rounded-lg cursor-pointer",
-      "data-focus:bg-orange-500 data-focus:text-white",
-      "truncate",
+      "p-2 bg-neutral-100 dark:bg-neutral-800 rounded-lg cursor-pointer",
+      "data-focus:bg-orange-500 data-focus:text-white group",
+      "truncate flex items-center gap-2",
     )}
-  />
+  >
+    <HiTag
+      className={cn(
+        "size-4 shrink-0",
+        "text-orange-500 group-data-active:text-white",
+      )}
+    />{" "}
+    {props.children}
+  </ComboboxOption>
 );
 
 export default memo(function AccountForm({ account, handleFormSubmit }) {
@@ -229,11 +238,12 @@ export default memo(function AccountForm({ account, handleFormSubmit }) {
                     key={index}
                     className={cn(
                       "flex items-center gap-1",
-                      "px-2 py-1",
+                      "p-2",
                       "bg-neutral-100 dark:bg-neutral-700",
                       "rounded-full",
                     )}
                   >
+                    <HiTag className={cn("size-4", "text-orange-500")} />
                     {tags.find((item) => item.id === field.value)?.name ||
                       field.value}
                     <button
@@ -256,35 +266,49 @@ export default memo(function AccountForm({ account, handleFormSubmit }) {
               }}
               onChange={handleTagAdd}
             >
-              <ComboboxInput
-                aria-label="Tag"
-                displayValue={(tag) => tag?.name}
-                className={cn("p-2 outline-0")}
-                placeholder="Add Tag"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-              />
+              <div className="flex bg-neutral-100 dark:bg-neutral-700 rounded-full p-1">
+                <ComboboxInput
+                  aria-label="Tag"
+                  displayValue={(tag) => tag?.name}
+                  className={cn("p-1 outline-0")}
+                  placeholder="Add Tag"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                />
+
+                {/* Dropdown Button */}
+                <ComboboxButton className="group p-1">
+                  <HiChevronDown className="size-4 group-data-open:rotate-180 transition duration-500" />
+                </ComboboxButton>
+              </div>
+
+              {/* Dropdown Options */}
               <ComboboxOptions
                 anchor="bottom"
                 style={{ pointerEvents: "all" }}
                 className={cn(
-                  "empty:invisible w-52",
-                  "bg-white dark:bg-neutral-700",
-                  "flex flex-col gap-1 max-h-56 z-100",
-                  "rounded-xl p-2 shadow",
+                  "empty:invisible w-60",
+                  "bg-white dark:bg-neutral-900",
+                  "flex flex-col gap-2 max-h-56 z-100",
+                  "rounded-2xl p-2 shadow",
                 )}
               >
-                <h3 className="font-bold text-xs text-center">Suggestions</h3>
-                {query.length > 0 && (
-                  <TagOption value={{ id: null, name: query }}>
-                    Create <span className="font-bold">"{query}"</span>
-                  </TagOption>
-                )}
-                {filteredTags.map((tag) => (
-                  <TagOption key={tag.id} value={tag}>
-                    {tag.name}
-                  </TagOption>
-                ))}
+                <h3 className="font-bold text-xs text-center">
+                  Suggestions ({filteredTags.length})
+                </h3>
+
+                <div className="flex flex-col gap-1">
+                  {query.length > 0 && (
+                    <TagOption value={{ id: null, name: query }}>
+                      Create <span className="font-bold">"{query}"</span>
+                    </TagOption>
+                  )}
+                  {filteredTags.map((tag) => (
+                    <TagOption key={tag.id} value={tag}>
+                      {tag.name}
+                    </TagOption>
+                  ))}
+                </div>
               </ComboboxOptions>
             </Combobox>
           </div>
