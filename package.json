@@ -67,7 +67,7 @@
     "@tailwindcss/vite": "^4.1.18",
     "@vitejs/plugin-react": "^5.1.2",
     "chrome-types": "^0.1.404",
-    "electron": "^39.8.7",
+    "electron": "^39.8.9",
     "electron-builder": "^26.0.12",
     "electron-vite": "^5.0.0",
     "eslint": "^9.39.2",
