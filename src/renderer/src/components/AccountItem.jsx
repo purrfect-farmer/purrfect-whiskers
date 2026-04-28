@@ -86,7 +86,9 @@ export const AccountItem = ({ account, active, onClick }) => {
           ) : null}
         </div>
 
-        {account.tags?.length && <HiTag className="shrink-0 text-orange-500" />}
+        {account.tags?.length ? (
+          <HiTag className="shrink-0 text-orange-500" />
+        ) : null}
         {active ? (
           <HiOutlineCheckBadge className="shrink-0 text-orange-500 size-4" />
         ) : null}
