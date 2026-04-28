@@ -1,17 +1,18 @@
-import { useMemo } from "react";
-import { HiOutlineCheckBadge } from "react-icons/hi2";
-import { LiaUser } from "react-icons/lia";
+import { HiOutlineCheckBadge, HiTag } from "react-icons/hi2";
 import {
+  cn,
   extractInitDataUnsafe,
   getTelegramUserFullName,
-  cn,
 } from "../lib/utils";
-import useSettingsStore from "../store/useSettingsStore";
+
 import { AccountEditDialog } from "./AccountEditDialog";
+import { LiaUser } from "react-icons/lia";
+import { useMemo } from "react";
+import useSettingsStore from "../store/useSettingsStore";
 
 export const AccountItem = ({ account, active, onClick }) => {
   const showAccountDetails = useSettingsStore(
-    (state) => state.showAccountDetails
+    (state) => state.showAccountDetails,
   );
   const user = useMemo(() => {
     if (account.telegramInitData) {
@@ -23,7 +24,7 @@ export const AccountItem = ({ account, active, onClick }) => {
 
   const userFullName = useMemo(
     () => (user ? getTelegramUserFullName(user) : ""),
-    [user]
+    [user],
   );
 
   return (
@@ -38,7 +39,7 @@ export const AccountItem = ({ account, active, onClick }) => {
           "grow min-w-0 flex items-center gap-2",
           "rounded-xl text-left",
           "group",
-          showAccountDetails ? "px-2 py-1" : "px-3 py-2"
+          showAccountDetails ? "px-2 py-1" : "px-3 py-2",
         )}
       >
         {/* User  */}
@@ -64,7 +65,7 @@ export const AccountItem = ({ account, active, onClick }) => {
               <span
                 className={cn(
                   "text-neutral-500 dark:text-neutral-400",
-                  "group-hover:text-orange-900"
+                  "group-hover:text-orange-900",
                 )}
               >
                 ({userFullName})
@@ -77,13 +78,15 @@ export const AccountItem = ({ account, active, onClick }) => {
               className={cn(
                 "truncate",
                 "text-neutral-500 dark:text-neutral-400",
-                "group-hover:text-orange-900"
+                "group-hover:text-orange-900",
               )}
             >
               @{user["username"]}
             </h5>
           ) : null}
         </div>
+
+        {account.tags?.length && <HiTag className="shrink-0 text-orange-500" />}
         {active ? (
           <HiOutlineCheckBadge className="shrink-0 text-orange-500 size-4" />
         ) : null}
