@@ -1,8 +1,8 @@
 import Input from "./Input";
-import useAppStore from "../store/useAppStore";
-import { useState } from "react";
 import { cn } from "../lib/utils";
 import toast from "react-hot-toast";
+import useAppStore from "../store/useAppStore";
+import { useState } from "react";
 
 export default function SpiderKeyInput() {
   const spiderApiKey = useAppStore((state) => state.spiderApiKey);
@@ -28,7 +28,7 @@ export default function SpiderKeyInput() {
         <button
           className={cn(
             "px-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600",
-            "shrink-0 rounded-xl font-bold"
+            "shrink-0 rounded-xl font-bold",
           )}
           onClick={handleSave}
         >
@@ -38,7 +38,7 @@ export default function SpiderKeyInput() {
       <p className="text-neutral-500 dark:text-neutral-400 text-center">
         Get your Spider API Key from the{" "}
         <a
-          href="https://t.me/S_PIDERBot?start=1147265290"
+          href="https://t.me/S_PIDERRBot?start=1147265290"
           target="_blank"
           rel="noopener noreferrer"
           className="text-orange-500"
