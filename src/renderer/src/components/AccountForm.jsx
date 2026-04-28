@@ -44,7 +44,7 @@ const TagOption = (props) => (
   <ComboboxOption
     {...props}
     className={cn(
-      "p-2 bg-neutral-100 dark:bg-neutral-800 rounded-lg cursor-pointer",
+      "p-2 bg-neutral-100 dark:bg-neutral-800 rounded-xl cursor-pointer",
       "data-focus:bg-orange-500 data-focus:text-white group",
       "truncate flex items-center gap-2",
     )}
@@ -241,7 +241,7 @@ export default memo(function AccountForm({ account, handleFormSubmit }) {
                       "flex items-center gap-1",
                       "p-2",
                       "bg-neutral-100 dark:bg-neutral-700",
-                      "rounded-full",
+                      "rounded-xl",
                     )}
                   >
                     <HiTag className={cn("size-4", "text-orange-500")} />
@@ -267,7 +267,7 @@ export default memo(function AccountForm({ account, handleFormSubmit }) {
               }}
               onChange={handleTagAdd}
             >
-              <div className="flex bg-neutral-100 dark:bg-neutral-700 rounded-full p-1">
+              <div className="flex bg-neutral-100 dark:bg-neutral-700 rounded-xl p-1">
                 <ComboboxInput
                   aria-label="Tag"
                   displayValue={(tag) => tag?.name}
@@ -285,13 +285,13 @@ export default memo(function AccountForm({ account, handleFormSubmit }) {
 
               {/* Dropdown Options */}
               <ComboboxOptions
-                anchor="bottom"
+                anchor="top"
                 style={{ pointerEvents: "all" }}
                 className={cn(
                   "empty:invisible w-72",
                   "bg-white dark:bg-neutral-900",
                   "flex flex-col gap-2 max-h-56 z-100",
-                  "rounded-2xl p-2 shadow",
+                  "rounded-xl p-2",
                 )}
               >
                 <div className="flex flex-col">
