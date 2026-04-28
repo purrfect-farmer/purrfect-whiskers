@@ -1,18 +1,19 @@
-import { FaSpider } from "react-icons/fa";
-import AppDialogContent from "./AppDialogContent";
-import useAppStore from "../store/useAppStore";
 import { useMemo, useState } from "react";
-import toast from "react-hot-toast";
-import { useQuery } from "@tanstack/react-query";
+
+import AppDialogContent from "./AppDialogContent";
+import { Dialog } from "radix-ui";
+import { FaSpider } from "react-icons/fa";
 import Spider from "../lib/Spider";
+import SpiderAccountsForm from "./SpiderAccountsForm";
+import SpiderBalanceDisplay from "./SpiderBalanceDisplay";
+import SpiderCountries from "./SpiderCountries";
+import SpiderKeyInput from "./SpiderKeyInput";
+import { cn } from "../lib/utils";
 import { getCountryData } from "countries-list";
 import { getEmojiFlag } from "countries-list";
-import SpiderCountries from "./SpiderCountries";
-import SpiderBalanceDisplay from "./SpiderBalanceDisplay";
-import SpiderKeyInput from "./SpiderKeyInput";
-import SpiderAccountsForm from "./SpiderAccountsForm";
-import { cn } from "../lib/utils";
-import { Dialog } from "radix-ui";
+import toast from "react-hot-toast";
+import useAppStore from "../store/useAppStore";
+import { useQuery } from "@tanstack/react-query";
 
 export default function SpiderDialog() {
   const spiderApiKey = useAppStore((state) => state.spiderApiKey);
@@ -62,9 +63,9 @@ export default function SpiderDialog() {
                     name,
                     group,
                   };
-                })
+                }),
               ),
-            []
+            [],
           )
         : [];
     } catch (e) {
@@ -83,7 +84,7 @@ export default function SpiderDialog() {
   /* Filtered Countries */
   const filteredCountries = useMemo(() => {
     return availableCountries.filter((item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase())
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [availableCountries, searchTerm]);
 
@@ -128,7 +129,7 @@ export default function SpiderDialog() {
               <Dialog.Close
                 className={cn(
                   "px-4 py-2.5 text-orange-500 border border-orange-500 rounded-xl",
-                  "font-bold"
+                  "font-bold",
                 )}
               >
                 Close

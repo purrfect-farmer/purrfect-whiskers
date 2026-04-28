@@ -1,11 +1,16 @@
+import BaseDialogContent from "./BaseDialogContent";
 import { Dialog } from "radix-ui";
 import { memo } from "react";
 
-import BaseDialogContent from "./BaseDialogContent";
-
-export default memo(function ({ icon: Icon, title, description, children }) {
+export default memo(function ({
+  icon: Icon,
+  title,
+  description,
+  children,
+  ...props
+}) {
   return (
-    <BaseDialogContent>
+    <BaseDialogContent {...props}>
       {typeof Icon === "string" ? (
         <img src={Icon} className="size-10 mx-auto" />
       ) : (
