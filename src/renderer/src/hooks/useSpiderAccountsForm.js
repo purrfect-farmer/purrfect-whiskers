@@ -11,7 +11,7 @@ import { useProgress } from "../hooks/useProgress";
 import useSettingsStore from "../store/useSettingsStore";
 import { uuid } from "../lib/utils";
 
-const useSpiderAccountsForm = ({ country, clearSelection }) => {
+const useSpiderAccountsForm = ({ country }) => {
   const containerRef = useRef();
 
   const spiderApiKey = useAppStore((state) => state.spiderApiKey);
@@ -260,7 +260,6 @@ const useSpiderAccountsForm = ({ country, clearSelection }) => {
     totalPrice,
 
     country,
-    clearSelection,
 
     containerRef,
     mutation,

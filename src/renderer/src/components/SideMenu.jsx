@@ -18,6 +18,7 @@ import LoaderDialog from "./LoaderDialog";
 import { MdOutlineBrowserUpdated } from "react-icons/md";
 import SettingsDialog from "./SettingsDialog";
 import SpiderDialog from "./SpiderDialog";
+import { SpiderProvider } from "./SpiderProvider";
 import TagsDialog from "./TagsDialog";
 import axios from "axios";
 import { cn } from "../lib/utils";
@@ -93,8 +94,9 @@ export default function SideMenu() {
         <Dialog.Trigger title="Spider" className="p-2">
           <FaSpider className="size-5 text-orange-500" />
         </Dialog.Trigger>
-
-        <SpiderDialog />
+        <SpiderProvider>
+          <SpiderDialog />
+        </SpiderProvider>
       </Dialog.Root>
 
       {/* Fullscreen Toggle */}

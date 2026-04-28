@@ -6,10 +6,12 @@ import { NumberInput } from "./NumberInput";
 import PrimaryButton from "./PrimaryButton";
 import { Progress } from "./Progress";
 import Slider from "./Slider";
-import { useSpiderAccountsForm } from "../hooks/useSpiderAccountsForm";
+import { useSpider } from "./SpiderProvider";
 
 export default function SpiderAccountsForm({ country, clearSelection }) {
+  const { form } = useSpider();
   const {
+    /** Container ref */
     containerRef,
 
     /** Count */
@@ -33,7 +35,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
     progress,
     totalPrice,
     purchaseAccounts,
-  } = useSpiderAccountsForm({ country, clearSelection });
+  } = form;
 
   return (
     <>
