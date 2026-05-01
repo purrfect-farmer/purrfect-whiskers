@@ -1,18 +1,14 @@
-import { HiOutlinePlus, HiTag } from "react-icons/hi2";
-import {
-  cn,
-  extractInitDataUnsafe,
-  getTelegramUserFullName,
-  searchIncludes,
-} from "../lib/utils";
+import { cn, matchesSearch } from "../lib/utils";
 import { useMemo, useState } from "react";
 
 import { AccountItem } from "./AccountItem";
 import AddAccountDialog from "./AddAccountDialog";
 import { Dialog } from "radix-ui";
+import { HiOutlinePlus } from "react-icons/hi2";
 import Input from "./Input";
 import { Reorder } from "motion/react";
 import ReorderItem from "./ReorderItem";
+import TagsList from "./TagsList";
 import useAppStore from "../store/useAppStore";
 import useDialogState from "../hooks/useDialogState";
 
@@ -30,22 +26,7 @@ export default function AccountListDialog() {
   const list = useMemo(
     () =>
       search
-        ? accounts.filter((item) => {
-            const user = item.telegramInitData
-              ? extractInitDataUnsafe(item.telegramInitData)["user"]
-              : null;
-
-            const fullName = user ? getTelegramUserFullName(user) : "";
-            const username = user?.["username"] || "";
-            const userId = user?.["id"] || "";
-
-            return (
-              searchIncludes(item.title, search) ||
-              searchIncludes(fullName, search) ||
-              searchIncludes(username, search) ||
-              searchIncludes(userId, search)
-            );
-          })
+        ? accounts.filter((item) => matchesSearch(search, item))
         : activeTag
           ? accounts.filter((item) => item.tags?.includes(activeTag.id))
           : accounts,
@@ -122,34 +103,12 @@ export default function AccountListDialog() {
           />
 
           {/* Tags */}
-          <div className="flex flex-wrap gap-1 empty:hidden">
-            {tags.map((tag) => (
-              <button
-                key={tag.id}
-                onClick={() =>
-                  setSelectedTag((prev) => (prev === tag.id ? null : tag.id))
-                }
-                className={cn(
-                  "flex items-center gap-1",
-                  "p-2 rounded-full",
-                  activeTag && activeTag.id === tag.id
-                    ? "bg-orange-500 text-white"
-                    : "bg-neutral-100 dark:bg-neutral-700",
-                )}
-              >
-                <HiTag
-                  className={cn(
-                    "size-4",
-                    activeTag && activeTag.id === tag.id
-                      ? "text-white"
-                      : "text-orange-500",
-                  )}
-                />
-                {tag.name} (
-                {accounts.filter((item) => item.tags?.includes(tag.id)).length})
-              </button>
-            ))}
-          </div>
+          <TagsList
+            accounts={accounts}
+            tags={tags}
+            activeTag={activeTag}
+            setSelectedTag={setSelectedTag}
+          />
         </div>
 
         {/* Account List */}

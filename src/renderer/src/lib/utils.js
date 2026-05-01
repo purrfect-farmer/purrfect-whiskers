@@ -27,7 +27,7 @@ export function searchIncludes(value, search) {
 /** Extract InitDataUnsafe */
 export function extractInitDataUnsafe(initData) {
   const parsedInitData = Object.fromEntries(
-    new URLSearchParams(initData).entries()
+    new URLSearchParams(initData).entries(),
   );
 
   return {
@@ -61,4 +61,21 @@ export function createWebview(partition, extensionPath, proxyOptions) {
     });
 
   return webview;
+}
+
+export function matchesSearch(search, item) {
+  const user = item.telegramInitData
+    ? extractInitDataUnsafe(item.telegramInitData)["user"]
+    : null;
+
+  const fullName = user ? getTelegramUserFullName(user) : "";
+  const username = user?.["username"] || "";
+  const userId = user?.["id"] || "";
+
+  return (
+    searchIncludes(item.title, search) ||
+    searchIncludes(fullName, search) ||
+    searchIncludes(username, search) ||
+    searchIncludes(userId, search)
+  );
 }

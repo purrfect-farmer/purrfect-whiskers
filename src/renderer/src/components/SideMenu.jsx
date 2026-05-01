@@ -5,7 +5,7 @@ import {
   HiOutlineCog6Tooth,
   HiOutlinePuzzlePiece,
 } from "react-icons/hi2";
-import { LuDatabaseBackup, LuTags } from "react-icons/lu";
+import { LuArrowUpDown, LuDatabaseBackup, LuTags } from "react-icons/lu";
 import { useCallback, useEffect, useState } from "react";
 
 import AccountListDialog from "./AccountListDialog";
@@ -14,6 +14,7 @@ import BackupAndRestoreDialog from "./BackupAndRestoreDialog";
 import { Dialog } from "radix-ui";
 import { FaSpider } from "react-icons/fa";
 import Icon from "../assets/images/icon.png";
+import ImportAndExportAccountsDialog from "./ImportAndExportAccountsDialog";
 import LoaderDialog from "./LoaderDialog";
 import { MdOutlineBrowserUpdated } from "react-icons/md";
 import SettingsDialog from "./SettingsDialog";
@@ -87,6 +88,15 @@ export default function SideMenu() {
         </Dialog.Trigger>
 
         <BackupAndRestoreDialog />
+      </Dialog.Root>
+
+      {/* Import and Export Accounts */}
+      <Dialog.Root>
+        <Dialog.Trigger title="Import and Export accounts" className="p-2">
+          <LuArrowUpDown className="size-5 text-orange-500" />
+        </Dialog.Trigger>
+
+        <ImportAndExportAccountsDialog />
       </Dialog.Root>
 
       {/* Spider */}

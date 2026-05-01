@@ -1,59 +1,65 @@
 import { chunkArrayGenerator, cn } from "../lib/utils";
 import { useCallback, useState } from "react";
 
+import AccountsPicker from "./AccountsPicker";
 import Alert from "./Alert";
 import AppDialogContent from "./AppDialogContent";
-import { LuDatabaseBackup } from "react-icons/lu";
+import { LuUsers } from "react-icons/lu";
 import PrimaryButton from "./PrimaryButton";
 import { Progress } from "./Progress";
 import Tabs from "./Tabs";
 import { formatDate } from "date-fns";
 import toast from "react-hot-toast";
+import useAccountsSelector from "../hooks/useAccountsSelector";
 import useAppStore from "../store/useAppStore";
 import useBackupAndRestore from "../hooks/useBackupAndRestore";
 import { useDropzone } from "react-dropzone";
 import { useProgress } from "../hooks/useProgress";
-import useSettingsStore from "../store/useSettingsStore";
 import useTabs from "../hooks/useTabs";
 
-export default function BackupAndRestoreDialog() {
-  const accounts = useAppStore((state) => state.accounts);
-  const theme = useSettingsStore((state) => state.theme);
-  const allowProxies = useSettingsStore((state) => state.allowProxies);
-  const extensionPath = useSettingsStore((state) => state.extensionPath);
-  const closeAllAccounts = useAppStore((state) => state.closeAllAccounts);
+export default function ImportAndExportAccountsDialog() {
   const [isProcessing, setIsProcessing] = useState(false);
+
+  const accounts = useAppStore((state) => state.accounts);
+  const importAccounts = useAppStore((state) => state.importAccounts);
+  const closeAllAccounts = useAppStore((state) => state.closeAllAccounts);
 
   const { target, progress, setTarget, resetProgress, incrementProgress } =
     useProgress();
 
   const { containerRef, getOrRestoreAccountBackup } = useBackupAndRestore();
 
+  /** Tabs */
+  const tabs = useTabs(["export", "import"], "export");
+
+  /** Selector */
+  const selector = useAccountsSelector(accounts);
+
   /** Save Backup File */
   const saveBackupFile = useCallback(
     (data) =>
       window.electron.ipcRenderer.invoke(
         "save-backup-file",
-        `purrfect-whiskers-backup-${formatDate(new Date(), "yyyyMMdd-HHmmss")}.json`,
+        `purrfect-whiskers-accounts-export-${formatDate(new Date(), "yyyyMMdd-HHmmss")}.json`,
         JSON.stringify(data, null, 2),
       ),
     [],
   );
 
-  /** Get Backup Data */
-  const getBackupData = useCallback(async () => {
+  /** Get Export Data */
+  const getExportData = async () => {
     /** Close opened accounts */
     closeAllAccounts();
 
     /** Reset State */
     setIsProcessing(true);
     resetProgress();
-    setTarget(accounts.length);
+    setTarget(selector.selectedAccounts.length);
 
     /** Create Backups Array */
     const backups = [];
 
-    for (const chunk of chunkArrayGenerator(accounts, 3)) {
+    for (const chunk of chunkArrayGenerator(selector.selectedAccounts, 3)) {
       const chunkResults = await Promise.all(
         chunk.map(async (account) => {
           const result = await getOrRestoreAccountBackup(account);
@@ -63,7 +69,7 @@ export default function BackupAndRestoreDialog() {
 
           /** Add Backup */
           return {
-            partition: account.partition,
+            account,
             backup: result,
           };
         }),
@@ -76,83 +82,62 @@ export default function BackupAndRestoreDialog() {
     setIsProcessing(false);
 
     return {
-      app: useAppStore.getState(),
-      settings: useSettingsStore.getState(),
-      backups,
+      accounts: backups,
     };
-  }, [
-    accounts,
-    closeAllAccounts,
-    getOrRestoreAccountBackup,
-    setIsProcessing,
-    incrementProgress,
-    resetProgress,
-    setTarget,
-  ]);
+  };
 
-  /** Backup All Data */
-  const backupData = useCallback(async () => {
+  /** Export accounts */
+  const exportAccounts = useCallback(async () => {
     toast
       .promise(
-        getBackupData().then((data) => {
+        getExportData().then((data) => {
           saveBackupFile(data);
         }),
         {
-          loading: "Creating Backup...",
-          error: "Failed to Create Backup!",
-          success: "Backup was successfully created!",
+          loading: "Exporting Accounts...",
+          error: "Failed to Export Accounts!",
+          success: "Accounts were successfully exported!",
         },
       )
       .catch((e) => {
         console.error(e);
       });
-  }, [getBackupData, saveBackupFile]);
+  }, [getExportData, saveBackupFile]);
 
-  /** Restore Backup */
-  const restoreBackup = useCallback(
-    async (data) => {
-      /** Close opened accounts */
-      closeAllAccounts();
+  /** Import Accounts */
+  const importAccountsBackup = async (data) => {
+    /** Close opened accounts */
+    closeAllAccounts();
 
-      /** Reset State */
-      setIsProcessing(true);
-      resetProgress();
-      setTarget(data.backups.length);
+    /** Reset State */
+    setIsProcessing(true);
+    resetProgress();
+    setTarget(data.accounts.length);
 
-      /** Destructure Data */
-      const { app, settings, backups } = data;
+    /** Destructure Data */
+    const { accounts } = data;
 
-      for (const chunk of chunkArrayGenerator(backups, 3)) {
-        await Promise.all(
-          chunk.map(async (item) => {
-            const account = app.accounts.find(
-              (account) => account.partition === item.partition,
-            );
-            await getOrRestoreAccountBackup(account, item.backup);
+    for (const chunk of chunkArrayGenerator(accounts, 3)) {
+      await Promise.all(
+        chunk.map(async (item) => {
+          const { account, backup } = item;
+          await getOrRestoreAccountBackup(account, backup);
 
-            /** Increment */
-            incrementProgress();
-          }),
-        );
-      }
+          /** Increment */
+          incrementProgress();
+        }),
+      );
+    }
 
-      /** Restore States */
-      useAppStore.setState(app);
-      useSettingsStore.setState({ ...settings, extensionPath });
+    /** Imported list */
+    const imported = accounts.map((item) => item.account);
 
-      /** Release Lock */
-      setIsProcessing(false);
-    },
-    [
-      extensionPath,
-      closeAllAccounts,
-      setIsProcessing,
-      getOrRestoreAccountBackup,
-      incrementProgress,
-      resetProgress,
-      setTarget,
-    ],
-  );
+    /** Import accounts */
+    importAccounts(imported);
+
+    /** Release Lock */
+    setIsProcessing(false);
+  };
 
   /** On backup file drop */
   const onDrop = useCallback(
@@ -164,10 +149,10 @@ export default function BackupAndRestoreDialog() {
         try {
           const data = JSON.parse(e.target.result);
           toast
-            .promise(restoreBackup(data), {
-              loading: "Restoring Backup...",
-              error: "Failed to Restore Backup!",
-              success: "Backup was successfully restored!",
+            .promise(importAccountsBackup(data), {
+              loading: "Importing accounts...",
+              error: "Failed to Import Accounts!",
+              success: "Accounts were successfully imported!",
             })
             .catch((e) => {
               console.error(e);
@@ -178,7 +163,7 @@ export default function BackupAndRestoreDialog() {
       });
       reader.readAsText(file);
     },
-    [restoreBackup],
+    [importAccounts],
   );
 
   /** Dropzone */
@@ -192,33 +177,26 @@ export default function BackupAndRestoreDialog() {
     disabled: isProcessing,
   });
 
-  /** Tabs */
-  const tabs = useTabs(["backup", "restore"], "backup");
-
   return (
     <AppDialogContent
-      title={"Backup and Restore"}
-      description={"Create or Restore Backup"}
-      icon={LuDatabaseBackup}
+      title={"Import and Export"}
+      description={"Export or Import accounts"}
+      icon={LuUsers}
     >
       <Tabs tabs={tabs}>
-        {/* Backup */}
-        <Tabs.Content value="backup" className="flex flex-col gap-2">
-          <Alert variant={"warning"} className="text-center">
-            You are about to backup all data of the application. This includes
-            accounts and their Telegram Web data.
-          </Alert>
+        {/* Export */}
+        <Tabs.Content value="export" className="flex flex-col gap-2">
+          <AccountsPicker {...selector} disabled={isProcessing} />
 
-          <PrimaryButton disabled={isProcessing} onClick={backupData}>
-            Backup Now
+          <PrimaryButton disabled={isProcessing} onClick={exportAccounts}>
+            Export
           </PrimaryButton>
         </Tabs.Content>
 
-        {/* Restore */}
-        <Tabs.Content value="restore" className="flex flex-col gap-2">
+        {/* Import */}
+        <Tabs.Content value="import" className="flex flex-col gap-2">
           <Alert variant={"warning"} className="text-center">
-            You are about to restore all data of the application. This includes
-            accounts and their Telegram Web data.
+            You are about to import new accounts into the application.
           </Alert>
 
           {/* Drop Zone */}

@@ -18,6 +18,15 @@ export default create(
         setSpiderApiKey: (key) => set({ spiderApiKey: key }),
 
         addAccount: (data) => set({ accounts: [...get().accounts, data] }),
+        importAccounts: (data) => {
+          const existing = get().accounts;
+          const filtered = data.filter(
+            (item) =>
+              !existing.some((account) => account.partition === item.partition),
+          );
+
+          return set({ accounts: [...existing, ...filtered] });
+        },
         setAccounts: (accounts) => set({ accounts }),
         updateAccount: (data) =>
           set({
