@@ -1,6 +1,9 @@
 import { HiOutlineGlobeAlt, HiOutlineXCircle } from "react-icons/hi2";
-import { MdOutlineEditNote, MdOutlineFullscreen } from "react-icons/md";
-import { RiDraggable, RiPushpin2Fill } from "react-icons/ri";
+import {
+  MdOutlineDragHandle,
+  MdOutlineEditNote,
+  MdOutlineFullscreen,
+} from "react-icons/md";
 import { memo, useCallback, useEffect, useId, useRef, useState } from "react";
 
 import Browser from "./Browser";
@@ -9,6 +12,7 @@ import { Dialog } from "radix-ui";
 import Draggable from "react-draggable";
 import EditAccountDialogContent from "./EditAccountDialogContent";
 import FarmerWebview from "./FarmerWebview";
+import { RiPushpin2Fill } from "react-icons/ri";
 import WebviewButton from "./WebviewButton";
 import { cn } from "../lib/utils";
 import { configureProxy } from "../lib/partitions";
@@ -20,7 +24,9 @@ import useSettingsStore from "../store/useSettingsStore";
 
 export default memo(function Webview({ account, pageIndex }) {
   const dragHandleClass = "draggable-handle-" + useId();
-  const { currentPage } = useAppContext();
+  const { currentPage, itemsPerPage } = useAppContext();
+  const rows = useSettingsStore((state) => state.rows);
+
   const {
     title,
     partition,
@@ -41,6 +47,8 @@ export default memo(function Webview({ account, pageIndex }) {
   const [isDesktop, setIsDesktop] = useState(false);
   const allowProxies = useSettingsStore((state) => state.allowProxies);
   const closeAccount = useAppStore((state) => state.closeAccount);
+
+  const pinnedTranslation = (currentPage - pageIndex) * rows * 100;
 
   /** Edit Account Dialog State */
   const {
@@ -116,13 +124,13 @@ export default memo(function Webview({ account, pageIndex }) {
           pinned
             ? [
                 "transition-transform duration-500",
-                "translate-y-(--current-page)",
+                "translate-y-(--pinned-translation)",
                 "z-999",
               ]
             : null,
         )}
         style={{
-          "--current-page": pinned ? `${(currentPage - pageIndex) * 100}%` : 0,
+          "--pinned-translation": pinned ? `${pinnedTranslation}%` : 0,
         }}
       >
         <Draggable
@@ -196,7 +204,7 @@ export default memo(function Webview({ account, pageIndex }) {
                   disabled={!pinned}
                   className={dragHandleClass}
                 >
-                  <RiDraggable className="size-4" />
+                  <MdOutlineDragHandle className="size-4" />
                 </WebviewButton>
 
                 {/* Edit Dialog */}
