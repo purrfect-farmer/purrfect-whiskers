@@ -10,7 +10,7 @@ export default memo((props) => (
       "not-disabled:hover:text-orange-500",
       "dark:not-disabled:hover:bg-orange-200",
       "flex items-center justify-center",
-      "p-1.5 rounded-full shrink-0",
+      "p-2 rounded-full shrink-0",
       "disabled:opacity-50",
       props.className,
     )}

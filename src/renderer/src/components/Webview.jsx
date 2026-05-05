@@ -126,6 +126,7 @@ export default memo(function Webview({ account, pageIndex }) {
                 "transition-transform duration-500",
                 "translate-y-(--pinned-translation)",
                 "z-999",
+                "pointer-events-none",
               ]
             : null,
         )}
@@ -151,10 +152,12 @@ export default memo(function Webview({ account, pageIndex }) {
               "grow flex flex-col shrink-0",
               "divide-y dark:divide-neutral-700",
               "bg-white dark:bg-neutral-800 dark:text-white",
-              pinned ? "border border-orange-500" : null,
+              pinned
+                ? ["border border-orange-500", "pointer-events-auto"]
+                : null,
             )}
           >
-            <div className="flex gap-2 items-center justify-between p-2">
+            <div className="flex gap-2 justify-between p-2">
               <div className="flex gap-1">
                 {/* Toggle Browser */}
                 <WebviewButton
@@ -189,13 +192,21 @@ export default memo(function Webview({ account, pageIndex }) {
               </div>
 
               {/* Title */}
-              <h1
+              <div
+                role="button"
                 className={cn(
-                  "text-orange-500 truncate font-bold text-center grow min-w-0",
+                  "flex justify-center items-center grow min-w-0",
+                  dragHandleClass,
                 )}
               >
-                {title}
-              </h1>
+                <h1
+                  className={cn(
+                    "text-orange-500 truncate font-bold text-center grow min-w-0",
+                  )}
+                >
+                  {title}
+                </h1>
+              </div>
 
               <div className="flex gap-1">
                 {/* Drag */}
