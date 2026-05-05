@@ -20,17 +20,11 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v6
-        name: Install pnpm
-        with:
-          version: "latest"
-          run_install: false
-
       - name: Install Node.js
         uses: actions/setup-node@v6
         with:
           node-version: "latest"
-          cache: "pnpm"
+          cache: "yarn"
 
       - name: Install Python
         uses: actions/setup-python@v5
@@ -42,7 +36,7 @@ jobs:
           pip install setuptools
 
       - name: Install Dependencies
-        run: pnpm install
+        run: yarn
 
       - name: Install Linux Dependencies
         if: matrix.os == 'ubuntu-latest'
@@ -51,15 +45,15 @@ jobs:
 
       - name: build-linux
         if: matrix.os == 'ubuntu-latest'
-        run: pnpm build:linux
+        run: yarn run build:linux
 
       - name: build-mac
         if: matrix.os == 'macos-latest'
-        run: pnpm build:mac
+        run: yarn run build:mac
 
       - name: build-win
         if: matrix.os == 'windows-latest'
-        run: pnpm build:win
+        run: yarn run build:win
 
       - name: release
         uses: softprops/action-gh-release@v3
