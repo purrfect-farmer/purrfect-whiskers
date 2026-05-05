@@ -113,19 +113,21 @@ export default memo(function Webview({ account, pageIndex }) {
   return (
     <div className="grow flex flex-col relative">
       {pinned && (
-        <div className="grow flex flex-col gap-2 justify-center items-center">
-          <h1 className="text-xl text-orange-500">{title}</h1>
+        <div className="grow flex flex-col gap-2 justify-center items-center p-4">
+          <h1 className="text-xl text-orange-500 max-w-full truncate">
+            {title}
+          </h1>
           <p>This account is current pinned</p>
         </div>
       )}
       <div
         className={cn(
-          "grow flex flex-col absolute inset-0",
+          "grow flex flex-col",
           pinned
             ? [
                 "transition-transform duration-500",
                 "translate-y-(--pinned-translation)",
-                "z-999",
+                "z-999 absolute inset-0",
                 "pointer-events-none",
               ]
             : null,
