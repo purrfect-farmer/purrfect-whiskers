@@ -1,18 +1,18 @@
-import { memo } from "react";
-
 import { cn } from "../lib/utils";
+import { memo } from "react";
 
 export default memo((props) => (
   <button
     {...props}
     className={cn(
       "bg-neutral-100 dark:bg-neutral-700",
-      "hover:bg-orange-100 hover:text-orange-500",
-      "dark:hover:bg-orange-200",
+      "not-disabled:hover:bg-orange-100",
+      "not-disabled:hover:text-orange-500",
+      "dark:not-disabled:hover:bg-orange-200",
       "flex items-center justify-center",
-      "p-2 rounded-full shrink-0",
+      "p-1.5 rounded-full shrink-0",
       "disabled:opacity-50",
-      props.className
+      props.className,
     )}
   />
 ));

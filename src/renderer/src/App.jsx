@@ -1,17 +1,17 @@
+import { AppProvider } from "./providers/AppProvider";
 import { HiOutlineXMark } from "react-icons/hi2";
-import { Toaster } from "react-hot-toast";
-import { useMemo } from "react";
-
 import Icon from "./assets/images/icon.png";
 import SideMenu from "./components/SideMenu";
+import { Toaster } from "react-hot-toast";
 import Webview from "./components/Webview";
+import { cn } from "./lib/utils";
 import useAccountsRestoration from "./hooks/useAccountsRestoration";
 import useAppStore from "./store/useAppStore";
 import useExtensionUpdate from "./hooks/useExtensionUpdate";
+import { useMemo } from "react";
 import useSettingsStore from "./store/useSettingsStore";
 import useTheme from "./hooks/useTheme";
 import useWakeLock from "./hooks/useWakeLock";
-import { cn } from "./lib/utils";
 
 function App() {
   const page = useAppStore((state) => state.page);
@@ -20,7 +20,7 @@ function App() {
   const accounts = useAppStore((state) => state.accounts);
   const webviews = useMemo(
     () => accounts.filter((item) => item.running),
-    [accounts]
+    [accounts],
   );
 
   /** Close Page */
@@ -47,7 +47,13 @@ function App() {
   useExtensionUpdate();
 
   return (
-    <>
+    <AppProvider
+      value={{
+        pageCount,
+        currentPage,
+        itemsPerPage,
+      }}
+    >
       {/* Application */}
       <div className="flex h-screen w-screen divide-x dark:divide-neutral-700">
         <SideMenu />
@@ -57,7 +63,7 @@ function App() {
               "h-full grid grid-cols-(--grid-cols) auto-rows-(--auto-rows)",
               "-translate-y-(--current-page)",
               "transition-transform duration-500",
-              "divide-x dark:divide-neutral-700"
+              "divide-x dark:divide-neutral-700",
             )}
             style={{
               "--current-page": `${currentPage * 100}%`,
@@ -66,14 +72,22 @@ function App() {
             }}
           >
             {webviews.length > 0 ? (
-              webviews.map((item) => (
-                <Webview key={item.partition} account={item} />
-              ))
+              webviews.map((item, index) => {
+                const pageIndex = Math.floor(index / itemsPerPage);
+
+                return (
+                  <Webview
+                    key={item.partition}
+                    account={item}
+                    pageIndex={pageIndex}
+                  />
+                );
+              })
             ) : (
               <div
                 className={cn(
                   "flex flex-col justify-center items-center gap-4",
-                  "col-span-(--col-span) row-span-(--row-span)"
+                  "col-span-(--col-span) row-span-(--row-span)",
                 )}
                 style={{
                   "--col-span": columns,
@@ -93,7 +107,7 @@ function App() {
         <div
           className={cn(
             "shrink-0 p-2 flex flex-col gap-2",
-            "overflow-auto empty:hidden"
+            "overflow-auto empty:hidden",
           )}
         >
           {Array.from({ length: pageCount }).map((_, pageIndex) => (
@@ -107,7 +121,7 @@ function App() {
                         "dark:bg-neutral-700 dark:text-orange-500",
                         "font-bold",
                       ]
-                    : "bg-neutral-100 dark:bg-neutral-700"
+                    : "bg-neutral-100 dark:bg-neutral-700",
                 )}
                 onClick={() => setPage(pageIndex)}
               >
@@ -120,7 +134,7 @@ function App() {
                   "p-2 rounded-xl border border-transparent",
                   "bg-neutral-100 dark:bg-neutral-700",
                   "hover:bg-orange-100 hover:text-orange-500",
-                  "dark:hover:bg-neutral-600"
+                  "dark:hover:bg-neutral-600",
                 )}
                 onClick={() => closePage(pageIndex)}
               >
@@ -141,7 +155,7 @@ function App() {
           },
         }}
       />
-    </>
+    </AppProvider>
   );
 }
 
