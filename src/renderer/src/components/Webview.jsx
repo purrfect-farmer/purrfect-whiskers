@@ -117,7 +117,7 @@ export default memo(function Webview({ account, pageIndex }) {
           <h1 className="text-xl text-orange-500 max-w-full truncate">
             {title}
           </h1>
-          <p>This account is current pinned</p>
+          <p>This account is currently pinned</p>
         </div>
       )}
       <div
