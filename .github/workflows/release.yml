@@ -42,7 +42,7 @@ jobs:
           pip install setuptools
 
       - name: Install Dependencies
-        run: npm i
+        run: pnpm install
 
       - name: Install Linux Dependencies
         if: matrix.os == 'ubuntu-latest'
@@ -51,15 +51,15 @@ jobs:
 
       - name: build-linux
         if: matrix.os == 'ubuntu-latest'
-        run: npm run build:linux
+        run: pnpm build:linux
 
       - name: build-mac
         if: matrix.os == 'macos-latest'
-        run: npm run build:mac
+        run: pnpm build:mac
 
       - name: build-win
         if: matrix.os == 'windows-latest'
-        run: npm run build:win
+        run: pnpm build:win
 
       - name: release
         uses: softprops/action-gh-release@v3
