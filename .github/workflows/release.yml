@@ -42,7 +42,7 @@ jobs:
           pip install setuptools
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm i
 
       - name: Install Linux Dependencies
         if: matrix.os == 'ubuntu-latest'
