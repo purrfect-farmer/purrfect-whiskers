@@ -1,5 +1,3 @@
-import isUrl from "is-url";
-import normalizeUrl from "normalize-url";
 import {
   HiOutlineArrowLeft,
   HiOutlineArrowPath,
@@ -10,8 +8,10 @@ import { memo, useCallback, useEffect, useRef } from "react";
 
 import Input from "./Input";
 import WebviewButton from "./WebviewButton";
-import useWebviewControls from "../hooks/useWebviewControls";
 import { cn } from "../lib/utils";
+import isUrl from "is-url";
+import normalizeUrl from "normalize-url";
+import useWebviewControls from "../hooks/useWebviewControls";
 
 export default memo(function BrowserTab({
   id,
@@ -47,11 +47,11 @@ export default memo(function BrowserTab({
         webview.loadURL(
           isUrl(url)
             ? url
-            : `https://www.google.com/search?q=${encodeURIComponent(input)}`
+            : `https://www.google.com/search?q=${encodeURIComponent(input)}`,
         );
       });
     },
-    [callWebviewMethod]
+    [callWebviewMethod],
   );
 
   /** Address Bar Update */
@@ -116,7 +116,7 @@ export default memo(function BrowserTab({
     <div
       className={cn(
         "grow flex flex-col shrink-0",
-        "divide-y dark:divide-neutral-700"
+        "divide-y dark:divide-neutral-700",
       )}
     >
       <div className="p-2 flex gap-1 items-center">

@@ -4,23 +4,25 @@ import {
   HiOutlineArrowRight,
   HiOutlineXMark,
 } from "react-icons/hi2";
+import { getWhiskerData, registerWebviewMessage } from "../lib/partitions";
 import { memo, useEffect } from "react";
 
+import { BsPinAngle } from "react-icons/bs";
+import { RiPushpin2Fill } from "react-icons/ri";
 import WebviewButton from "./WebviewButton";
+import { cn } from "../lib/utils";
 import useAppStore from "../store/useAppStore";
 import useRefCallback from "../hooks/useRefCallback";
 import useSettingsStore from "../store/useSettingsStore";
 import useWebviewControls from "../hooks/useWebviewControls";
-import { cn } from "../lib/utils";
-import { getWhiskerData, registerWebviewMessage } from "../lib/partitions";
 
-export default memo(function ({ browser, account }) {
+export default memo(function ({ browser, account, pinned, togglePinned }) {
   const updateAccount = useAppStore((state) => state.updateAccount);
   const theme = useSettingsStore((state) => state.theme);
   const allowProxies = useSettingsStore((state) => state.allowProxies);
   const extensionPath = useSettingsStore((state) => state.extensionPath);
   const showWebviewToolbar = useSettingsStore(
-    (state) => state.showWebviewToolbar
+    (state) => state.showWebviewToolbar,
   );
   const { partition } = account;
   const {
@@ -44,7 +46,7 @@ export default memo(function ({ browser, account }) {
           theme,
         },
       }),
-    [account, allowProxies, theme]
+    [account, allowProxies, theme],
   );
 
   /** Send Whisker Data */
@@ -53,7 +55,7 @@ export default memo(function ({ browser, account }) {
       webview.send("host-message", {
         action: "set-whisker-data",
         data: getCurrentWhiskerData(),
-      })
+      }),
     );
   }, [getCurrentWhiskerData, callWebviewMethod]);
 
@@ -65,7 +67,7 @@ export default memo(function ({ browser, account }) {
         ...data,
       });
     },
-    [account, updateAccount]
+    [account, updateAccount],
   );
 
   /** Update Telegram InitData */
@@ -76,7 +78,7 @@ export default memo(function ({ browser, account }) {
         ...data,
       });
     },
-    [account, updateAccount]
+    [account, updateAccount],
   );
 
   /** Setup Webview */
@@ -120,7 +122,7 @@ export default memo(function ({ browser, account }) {
     <div
       className={cn(
         "grow flex flex-col shrink-0",
-        "divide-y dark:divide-neutral-700"
+        "divide-y dark:divide-neutral-700",
       )}
     >
       {/* Webiew Tag */}
@@ -137,6 +139,19 @@ export default memo(function ({ browser, account }) {
       {showWebviewToolbar ? (
         <div className="p-2 flex shrink-0 justify-center gap-1">
           <div className="flex gap-1">
+            {/* Pin Toggle */}
+            <WebviewButton
+              title="Toggle Pin"
+              onClick={togglePinned}
+              className={pinned && "text-orange-500"}
+            >
+              {pinned ? (
+                <RiPushpin2Fill className="size-4" />
+              ) : (
+                <BsPinAngle className="size-4" />
+              )}
+            </WebviewButton>
+
             {/* Back */}
             <WebviewButton title="Go Back" onClick={goBack}>
               <HiOutlineArrowLeft className="size-4" />

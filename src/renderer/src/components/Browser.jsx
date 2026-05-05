@@ -1,10 +1,10 @@
-import { HiOutlinePlus } from "react-icons/hi2";
+import { cn, uuid } from "../lib/utils";
 import { memo, useCallback, useRef } from "react";
 
 import BrowserTab from "./BrowserTab";
-import WebviewButton from "./WebviewButton";
-import { cn, uuid } from "../lib/utils";
+import { HiOutlinePlus } from "react-icons/hi2";
 import { TabButton } from "./TabButton";
+import WebviewButton from "./WebviewButton";
 
 const INITIAL_URL = import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
 
@@ -45,7 +45,7 @@ export default memo(function Browser({ browser, account, isDesktop }) {
         className={cn(
           "w-full relative z-0",
           "flex items-center shrink-0 py-1 pr-2",
-          "overflow-auto scrollbar-thin"
+          "overflow-x-scroll scrollbar-thin",
         )}
       >
         {/* Main */}
@@ -75,7 +75,7 @@ export default memo(function Browser({ browser, account, isDesktop }) {
             key={item.id}
             className={cn(
               "absolute inset-0 flex flex-col",
-              !item.active && "invisible"
+              !item.active && "invisible",
             )}
           >
             <BrowserTab

@@ -1,18 +1,12 @@
 import { HiOutlineGlobeAlt, HiOutlineXCircle } from "react-icons/hi2";
-import {
-  MdOutlineDragHandle,
-  MdOutlineEditNote,
-  MdOutlineFullscreen,
-} from "react-icons/md";
+import { MdOutlineEditNote, MdOutlineFullscreen } from "react-icons/md";
 import { memo, useCallback, useEffect, useId, useRef, useState } from "react";
 
 import Browser from "./Browser";
-import { BsPinAngle } from "react-icons/bs";
 import { Dialog } from "radix-ui";
 import Draggable from "react-draggable";
 import EditAccountDialogContent from "./EditAccountDialogContent";
 import FarmerWebview from "./FarmerWebview";
-import { RiPushpin2Fill } from "react-icons/ri";
 import WebviewButton from "./WebviewButton";
 import { cn } from "../lib/utils";
 import { configureProxy } from "../lib/partitions";
@@ -159,8 +153,8 @@ export default memo(function Webview({ account, pageIndex }) {
                 : null,
             )}
           >
-            <div className="flex gap-2 justify-between p-2">
-              <div className="flex gap-1">
+            <div className="flex justify-between px-2">
+              <div className="flex gap-1 py-2">
                 {/* Toggle Browser */}
                 <WebviewButton
                   title="Toggle Browser"
@@ -178,30 +172,18 @@ export default memo(function Webview({ account, pageIndex }) {
                 >
                   <MdOutlineFullscreen className="size-4" />
                 </WebviewButton>
-
-                {/* Pin Toggle */}
-                <WebviewButton
-                  title="Toggle Pin"
-                  onClick={togglePinned}
-                  className={pinned && "text-orange-500"}
-                >
-                  {pinned ? (
-                    <RiPushpin2Fill className="size-4" />
-                  ) : (
-                    <BsPinAngle className="size-4" />
-                  )}
-                </WebviewButton>
               </div>
 
               {/* Title */}
               <div
                 role="button"
                 className={cn(
-                  "flex justify-center items-center grow min-w-0",
+                  "flex justify-center items-center grow min-w-0 px-2",
                   dragHandleClass,
                 )}
               >
                 <h1
+                  title={title}
                   className={cn(
                     "text-orange-500 truncate font-bold text-center grow min-w-0",
                   )}
@@ -210,16 +192,7 @@ export default memo(function Webview({ account, pageIndex }) {
                 </h1>
               </div>
 
-              <div className="flex gap-1">
-                {/* Drag */}
-                <WebviewButton
-                  title="Drag"
-                  disabled={!pinned}
-                  className={dragHandleClass}
-                >
-                  <MdOutlineDragHandle className="size-4" />
-                </WebviewButton>
-
+              <div className="flex gap-1 py-2">
                 {/* Edit Dialog */}
                 <Dialog.Root
                   open={openEditAccountDialog}
@@ -266,7 +239,12 @@ export default memo(function Webview({ account, pageIndex }) {
                 }}
               >
                 {/* Farmer Webview */}
-                <FarmerWebview browser={browser} account={account} />
+                <FarmerWebview
+                  pinned={pinned}
+                  togglePinned={togglePinned}
+                  browser={browser}
+                  account={account}
+                />
 
                 {/* Browser */}
                 {browser.enabled ? (
