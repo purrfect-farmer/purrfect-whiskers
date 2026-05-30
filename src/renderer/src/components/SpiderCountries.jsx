@@ -1,6 +1,7 @@
 import { FaSortAmountDown, FaSortAmountUp } from "react-icons/fa";
 
 import { cn } from "../lib/utils";
+import IconButton from "./IconButton";
 import Input from "./Input";
 import Select from "./Select";
 
@@ -34,20 +35,12 @@ export default function SpiderCountries({
           <option value="name">Sort by Name</option>
           <option value="price">Sort by Price</option>
         </Select>
-        <button
-          type="button"
+        <IconButton
           onClick={toggleSortDir}
           title={sortDir === "asc" ? "Ascending" : "Descending"}
-          className={cn(
-            "flex items-center justify-center shrink-0",
-            "p-2.5 rounded-xl",
-            "bg-neutral-100 dark:bg-neutral-700",
-            "hover:bg-neutral-200 dark:hover:bg-neutral-600",
-            "focus:outline-hidden focus:ring-3 focus:ring-orange-300"
-          )}
         >
           {sortDir === "asc" ? <FaSortAmountUp /> : <FaSortAmountDown />}
-        </button>
+        </IconButton>
       </div>
       <div className="max-h-96 overflow-auto -mx-2 p-2">
         <div className="flex flex-col gap-2">
