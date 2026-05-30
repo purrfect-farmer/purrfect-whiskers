@@ -21,7 +21,7 @@ import Input from "./Input";
 import LabelToggle from "./LabelToggle";
 import { MdLightbulb } from "react-icons/md";
 import PrimaryButton from "./PrimaryButton";
-import { cn } from "../lib/utils";
+import { cn, safeField } from "../lib/utils";
 import toast from "react-hot-toast";
 import useAppStore from "../store/useAppStore";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -96,6 +96,15 @@ export default memo(function AccountForm({ account, handleFormSubmit }) {
       tag.name.toLowerCase().includes(query.toLowerCase()),
   );
 
+  /** Clear all proxy field values at once */
+  const clearProxy = () => {
+    form.setValue("proxyEnabled", false);
+    form.setValue("proxyHost", null);
+    form.setValue("proxyPort", null);
+    form.setValue("proxyUsername", null);
+    form.setValue("proxyPassword", null);
+  };
+
   const handleTagAdd = (tag) => {
     if (!tag) return;
     const name = tag.name.trim();
@@ -135,7 +144,7 @@ export default memo(function AccountForm({ account, handleFormSubmit }) {
           render={({ field, fieldState }) => (
             <>
               <label className="text-neutral-500">Title</label>
-              <Input {...field} autoComplete="off" placeholder="Title" />
+              <Input {...safeField(field)} autoComplete="off" placeholder="Title" />
               {fieldState.error?.message ? (
                 <p className="text-red-500">{fieldState.error?.message}</p>
               ) : null}
@@ -148,7 +157,20 @@ export default memo(function AccountForm({ account, handleFormSubmit }) {
           name="proxyEnabled"
           render={({ field, fieldState }) => (
             <>
-              <label className="text-orange-500 mt-2">Proxy Options</label>
+              <div className="flex items-center justify-between mt-2">
+                <label className="text-orange-500">Proxy Options</label>
+                <button
+                  type="button"
+                  onClick={clearProxy}
+                  className={cn(
+                    "flex items-center gap-1",
+                    "text-red-500 hover:text-red-700",
+                  )}
+                >
+                  <HiXMark className="size-4" />
+                  Clear Proxy
+                </button>
+              </div>
               <LabelToggle onChange={field.onChange} checked={field.value}>
                 Enable Proxy
               </LabelToggle>
@@ -166,7 +188,11 @@ export default memo(function AccountForm({ account, handleFormSubmit }) {
             render={({ field, fieldState }) => (
               <div className="flex flex-col gap-2">
                 <label className="text-neutral-500">Proxy Host</label>
-                <Input {...field} autoComplete="off" placeholder="Proxy Host" />
+                <Input
+                  {...safeField(field)}
+                  autoComplete="off"
+                  placeholder="Proxy Host"
+                />
                 {fieldState.error?.message ? (
                   <p className="text-red-500">{fieldState.error?.message}</p>
                 ) : null}
@@ -180,7 +206,11 @@ export default memo(function AccountForm({ account, handleFormSubmit }) {
             render={({ field, fieldState }) => (
               <div className="flex flex-col gap-2">
                 <label className="text-neutral-500">Proxy Port</label>
-                <Input {...field} autoComplete="off" placeholder="Proxy Port" />
+                <Input
+                  {...safeField(field)}
+                  autoComplete="off"
+                  placeholder="Proxy Port"
+                />
                 {fieldState.error?.message ? (
                   <p className="text-red-500">{fieldState.error?.message}</p>
                 ) : null}
@@ -197,7 +227,7 @@ export default memo(function AccountForm({ account, handleFormSubmit }) {
               <div className="flex flex-col gap-2">
                 <label className="text-neutral-500">Proxy Username</label>
                 <Input
-                  {...field}
+                  {...safeField(field)}
                   autoComplete="off"
                   placeholder="Proxy Username"
                 />
@@ -215,7 +245,7 @@ export default memo(function AccountForm({ account, handleFormSubmit }) {
               <div className="flex flex-col gap-2">
                 <label className="text-neutral-500">Proxy Password</label>
                 <Input
-                  {...field}
+                  {...safeField(field)}
                   autoComplete="off"
                   placeholder="Proxy Password"
                 />

@@ -14,6 +14,14 @@ export function* chunkArrayGenerator(arr, size) {
   }
 }
 
+/** Safe Field — normalizes null/undefined field values to "" for controlled inputs */
+export function safeField(field) {
+  return {
+    ...field,
+    value: field.value ?? "",
+  };
+}
+
 /** Get Telegram User Full Name */
 export function getTelegramUserFullName(user) {
   return [user["first_name"], user["last_name"]].filter(Boolean).join(" ");
