@@ -34,8 +34,12 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
     mutation,
     progress,
     totalPrice,
+    maxCount,
     purchaseAccounts,
   } = form;
+
+  /** Exceeds available stock */
+  const exceedsStock = count > maxCount;
 
   return (
     <>
@@ -57,6 +61,10 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
         <p className="text-center text-purple-500 dark:text-purple-300 font-bold">
           Total: ${totalPrice}
         </p>
+
+        <p className="text-center text-emerald-500 dark:text-emerald-300 font-bold">
+          {maxCount} available
+        </p>
       </div>
 
       {/* Return to Countries */}
@@ -71,7 +79,10 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
       <NumberInput
         label="Number of Accounts"
         value={count}
-        onChange={setCount}
+        onChange={(value) => {
+          const parsed = parseInt(value) || 1;
+          setCount(Math.max(1, Math.min(parsed, maxCount)));
+        }}
         readOnly={false}
         disabled={mutation.isPending}
       />
@@ -114,7 +125,10 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
       </p>
 
       {/* Purchase Button */}
-      <PrimaryButton onClick={purchaseAccounts} disabled={mutation.isPending}>
+      <PrimaryButton
+        onClick={purchaseAccounts}
+        disabled={mutation.isPending || exceedsStock}
+      >
         <HiOutlineCurrencyDollar className="size-5" />
         {mutation.isPending ? "Purchasing..." : "Purchase Accounts"}
       </PrimaryButton>

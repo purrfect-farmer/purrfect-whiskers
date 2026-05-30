@@ -28,6 +28,9 @@ const useSpiderAccountsForm = ({ country }) => {
 
   const { progress, resetProgress, incrementProgress } = useProgress();
 
+  /** Maximum purchasable accounts (available stock) */
+  const maxCount = country?.quantity ?? 0;
+
   /** Calculate Total Price */
   const totalPrice = country ? (count * country.price).toFixed(2) : 0;
 
@@ -223,6 +226,12 @@ const useSpiderAccountsForm = ({ country }) => {
 
   /** Purchase Accounts */
   const purchaseAccounts = async () => {
+    /* Prevent purchasing above available quantity */
+    if (count > maxCount) {
+      toast.error(`Only ${maxCount} account(s) available for this country.`);
+      return;
+    }
+
     /* Log Purchase Details */
     console.log("Purchasing", count, "accounts for country", country.code);
 
@@ -258,6 +267,7 @@ const useSpiderAccountsForm = ({ country }) => {
     setEnableLocalTelegramSession,
 
     totalPrice,
+    maxCount,
 
     country,
 
