@@ -10,6 +10,8 @@ import { useQuery } from "@tanstack/react-query";
 const useSpiderCore = () => {
   const spiderApiKey = useAppStore((state) => state.spiderApiKey);
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortKey, setSortKey] = useState("name");
+  const [sortDir, setSortDir] = useState("asc");
   const [selectedCountry, setSelectedCountry] = useState(null);
 
   /** Enabled */
@@ -69,17 +71,24 @@ const useSpiderCore = () => {
 
   /* Available Countries (Group 1) */
   const availableCountries = useMemo(() => {
-    return allCountries
-      .filter((item) => item.group === "1")
-      .sort((a, b) => a.name.localeCompare(b.name));
+    return allCountries.filter((item) => item.group === "1");
   }, [allCountries]);
 
-  /* Filtered Countries */
+  /* Filtered & Sorted Countries */
   const filteredCountries = useMemo(() => {
-    return availableCountries.filter((item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
-  }, [availableCountries, searchTerm]);
+    const term = searchTerm.toLowerCase();
+    const direction = sortDir === "desc" ? -1 : 1;
+
+    return availableCountries
+      .filter((item) => item.name.toLowerCase().includes(term))
+      .sort((a, b) => {
+        const comparison =
+          sortKey === "price"
+            ? a.price - b.price
+            : a.name.localeCompare(b.name);
+        return comparison * direction;
+      });
+  }, [availableCountries, searchTerm, sortKey, sortDir]);
 
   /** Select Country */
   const selectCountry = (item) => {
@@ -94,6 +103,10 @@ const useSpiderCore = () => {
     spiderApiKey,
     searchTerm,
     setSearchTerm,
+    sortKey,
+    setSortKey,
+    sortDir,
+    setSortDir,
 
     selectedCountry,
     setSelectedCountry,
