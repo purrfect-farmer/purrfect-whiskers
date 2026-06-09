@@ -1,3 +1,5 @@
+import { app } from "electron";
+
 /**
  * registerWebRequest
  * @param {Electron.Session} session
@@ -17,6 +19,105 @@ export const registerWebRequest = (session, rules = []) => {
 
       /* Get Request Headers */
       const requestHeaders = details.requestHeaders || {};
+
+      /** Get Request Header */
+      const getRequestHeader = (key) => {
+        for (const headerKey in requestHeaders) {
+          if (key.toLowerCase() === headerKey.toLowerCase()) {
+            return requestHeaders[headerKey];
+          }
+        }
+        return null;
+      };
+
+      /** Set Header */
+      const setRequestHeader = (key, value) => {
+        for (const headerKey in requestHeaders) {
+          if (key.toLowerCase() === headerKey.toLowerCase()) {
+            requestHeaders[headerKey] = value;
+            return;
+          }
+        }
+        requestHeaders[key] = value;
+      };
+
+      /** Delete Header */
+      const deleteRequestHeader = (key) => {
+        for (const headerKey in requestHeaders) {
+          if (key.toLowerCase() === headerKey.toLowerCase()) {
+            delete requestHeaders[headerKey];
+            return;
+          }
+        }
+      };
+
+      /* Remove Sec-Fetch-Headers */
+      for (const headerKey in requestHeaders) {
+        if (headerKey.toLowerCase().startsWith("sec-fetch-")) {
+          delete requestHeaders[headerKey];
+        }
+      }
+
+      /* Set X-Requested-With */
+      setRequestHeader("X-Requested-With", "org.telegram.messenger");
+
+      /* Set Sec-Ch-Ua */
+      const chromeVersion = process.versions.chrome.split(".")[0];
+      setRequestHeader(
+        "Sec-Ch-Ua",
+        `"Android WebView";v="${chromeVersion}", "Chromium";v="${chromeVersion}", "Not)A;Brand";v="24"`,
+      );
+      setRequestHeader("Sec-Ch-Ua-Mobile", `?1`);
+      setRequestHeader("Sec-Ch-Ua-Platform", `"Android"`);
+
+      const frame = details.frame;
+
+      if (frame && frame.parent) {
+        const frameUrl = frame?.url;
+        if (frameUrl) {
+          const refererUrl = new URL(frameUrl);
+          /** Set Referer */
+          setRequestHeader("Referer", refererUrl.origin);
+        } else {
+          deleteRequestHeader("Referer");
+        }
+      }
+
+      /* Modify user-agent */
+      if (getRequestHeader("User-Agent")) {
+        const versionPattern = "/\\d+\\.\\d+\\.\\d+\\s*";
+        const appRegex = new RegExp(app.name + versionPattern);
+        const electronRegex = new RegExp("Electron" + versionPattern);
+
+        let replacedUserAgent = getRequestHeader("User-Agent")
+          .replace(appRegex, "")
+          .replace(electronRegex, "")
+          .trim();
+
+        /** Add Android */
+        if (!replacedUserAgent.includes("Android")) {
+          const platformRegex = new RegExp("\\([^)]+\\) AppleWebKit");
+          replacedUserAgent = replacedUserAgent.replace(
+            platformRegex,
+            "(Linux; Android 16; K) AppleWebKit",
+          );
+        }
+
+        /** Add Mobile Safari */
+        if (!replacedUserAgent.includes("Mobile Safari")) {
+          replacedUserAgent = replacedUserAgent.replace(
+            "Safari",
+            "Mobile Safari",
+          );
+        }
+
+        /** Add Telegram-Android */
+        if (!replacedUserAgent.includes("Telegram-Android")) {
+          replacedUserAgent = `${replacedUserAgent} Telegram-Android/12.7.3 (Android 16; SDK 36; HIGH)`;
+        }
+
+        setRequestHeader("User-Agent", replacedUserAgent);
+      }
 
       /* Modify Headers */
       for (const rule of rules) {
@@ -43,7 +144,7 @@ export const registerWebRequest = (session, rules = []) => {
 
       /* Return Headers */
       callback({ requestHeaders });
-    }
+    },
   );
 
   /** onHeadersReceived */
@@ -71,7 +172,7 @@ export const registerWebRequest = (session, rules = []) => {
             "access-control-allow-methods",
             "access-control-allow-header",
           ].includes(key.toLowerCase());
-        })
+        }),
       );
 
       /* Modify Headers */
@@ -116,8 +217,11 @@ export const registerWebRequest = (session, rules = []) => {
         console.error(e);
       }
 
+      /* Delete Request Info */
+      requestMap.delete(details.id);
+
       /* Return Headers */
       callback({ responseHeaders, statusLine });
-    }
+    },
   );
 };
