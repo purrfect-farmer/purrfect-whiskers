@@ -1,4 +1,24 @@
 import { app } from "electron";
+import { getRandomDevice } from "../../shared/lib/ua";
+
+/**
+ * User Agent Map
+ * @type {Map<Electron.Session, string>}
+ */
+const userAgentMap = new Map();
+
+/**
+ * Sets the user agent for a given session
+ * @param {Electron.Session} session
+ * @param {string} userAgent
+ */
+export const setUserAgent = (session, userAgent) => {
+  if (userAgent) {
+    userAgentMap.set(session, userAgent);
+  } else {
+    userAgentMap.delete(session);
+  }
+};
 
 /**
  * registerWebRequest
@@ -85,38 +105,47 @@ export const registerWebRequest = (session, rules = []) => {
 
       /* Modify user-agent */
       if (getRequestHeader("User-Agent")) {
-        const versionPattern = "/\\d+\\.\\d+\\.\\d+\\s*";
-        const appRegex = new RegExp(app.name + versionPattern);
-        const electronRegex = new RegExp("Electron" + versionPattern);
+        const userAgent = userAgentMap.get(session);
 
-        let replacedUserAgent = getRequestHeader("User-Agent")
-          .replace(appRegex, "")
-          .replace(electronRegex, "")
-          .trim();
+        if (userAgent) {
+          setRequestHeader("User-Agent", userAgent);
+        } else {
+          const { androidVersion, device, quality, telegramVersion } =
+            getRandomDevice();
+          const versionPattern = "/\\d+\\.\\d+\\.\\d+\\s*";
+          const appRegex = new RegExp(app.name + versionPattern);
+          const electronRegex = new RegExp("Electron" + versionPattern);
 
-        /** Add Android */
-        if (!replacedUserAgent.includes("Android")) {
-          const platformRegex = new RegExp("\\([^)]+\\) AppleWebKit");
-          replacedUserAgent = replacedUserAgent.replace(
-            platformRegex,
-            "(Linux; Android 16; K) AppleWebKit",
-          );
+          let replacedUserAgent = getRequestHeader("User-Agent")
+            .replace(appRegex, "")
+            .replace(electronRegex, "")
+            .trim();
+
+          /** Add Android */
+          if (!replacedUserAgent.includes("Android")) {
+            const platformRegex = new RegExp("\\([^)]+\\) AppleWebKit");
+            replacedUserAgent = replacedUserAgent.replace(
+              platformRegex,
+              `(Linux; Android ${androidVersion.version}; K) AppleWebKit`,
+            );
+          }
+
+          /** Add Mobile Safari */
+          if (!replacedUserAgent.includes("Mobile Safari")) {
+            replacedUserAgent = replacedUserAgent.replace(
+              "Safari",
+              "Mobile Safari",
+            );
+          }
+
+          /** Add Telegram-Android */
+          if (!replacedUserAgent.includes("Telegram-Android")) {
+            replacedUserAgent = `${replacedUserAgent} Telegram-Android/${telegramVersion} (${device.name}; Android ${androidVersion.version}; SDK ${androidVersion.sdk}; ${quality})`;
+          }
+
+          setRequestHeader("User-Agent", replacedUserAgent);
+          setUserAgent(session, replacedUserAgent);
         }
-
-        /** Add Mobile Safari */
-        if (!replacedUserAgent.includes("Mobile Safari")) {
-          replacedUserAgent = replacedUserAgent.replace(
-            "Safari",
-            "Mobile Safari",
-          );
-        }
-
-        /** Add Telegram-Android */
-        if (!replacedUserAgent.includes("Telegram-Android")) {
-          replacedUserAgent = `${replacedUserAgent} Telegram-Android/12.7.3 (Android 16; SDK 36; HIGH)`;
-        }
-
-        setRequestHeader("User-Agent", replacedUserAgent);
       }
 
       /* Modify Headers */

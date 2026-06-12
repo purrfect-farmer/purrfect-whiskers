@@ -25,6 +25,7 @@ export default function useBackupAndRestore() {
           proxyPort,
           proxyUsername,
           proxyPassword,
+          userAgent,
         } = account;
 
         /** Configure Proxy */
@@ -35,6 +36,7 @@ export default function useBackupAndRestore() {
           proxyPort,
           proxyUsername,
           proxyPassword,
+          userAgent,
         });
 
         let interval, webview;
@@ -66,6 +68,7 @@ export default function useBackupAndRestore() {
                   settings: {
                     allowProxies,
                     theme,
+                    userAgent,
                   },
                 }),
               });
@@ -86,6 +89,7 @@ export default function useBackupAndRestore() {
             "set-proxy": (data) => {
               configureProxy(partition, {
                 ...data,
+                userAgent,
                 allowProxies,
               });
             },

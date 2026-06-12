@@ -29,6 +29,7 @@ export default memo(function Webview({ account, pageIndex }) {
     proxyPort,
     proxyUsername,
     proxyPassword,
+    userAgent,
   } = account;
 
   const [pinned, setPinned] = useState(false);
@@ -80,6 +81,7 @@ export default memo(function Webview({ account, pageIndex }) {
       proxyPort,
       proxyUsername,
       proxyPassword,
+      userAgent,
     });
   }, [
     partition,
@@ -89,6 +91,7 @@ export default memo(function Webview({ account, pageIndex }) {
     proxyPort,
     proxyUsername,
     proxyPassword,
+    userAgent,
     configureProxy,
   ]);
 

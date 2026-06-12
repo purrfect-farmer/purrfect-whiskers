@@ -15,13 +15,13 @@ import {
   useForm,
 } from "react-hook-form";
 import { HiChevronDown, HiTag, HiXMark } from "react-icons/hi2";
+import { cn, safeField } from "../lib/utils";
 import { memo, useState } from "react";
 
 import Input from "./Input";
 import LabelToggle from "./LabelToggle";
 import { MdLightbulb } from "react-icons/md";
 import PrimaryButton from "./PrimaryButton";
-import { cn, safeField } from "../lib/utils";
 import toast from "react-hot-toast";
 import useAppStore from "../store/useAppStore";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -31,6 +31,7 @@ const schema = yup
     partition: yup.string().nullable(),
     telegramInitData: yup.string().nullable(),
     title: yup.string().required().label("Title"),
+    userAgent: yup.string().nullable().label("User-Agent"),
     proxyEnabled: yup.bool().required(),
     proxyHost: yup.string().nullable(),
     proxyPort: yup.string().nullable(),
@@ -79,6 +80,7 @@ export default memo(function AccountForm({ account, handleFormSubmit }) {
       proxyPort: account?.proxyPort || null,
       proxyUsername: account?.proxyUsername || null,
       proxyPassword: account?.proxyPassword || null,
+      userAgent: account?.userAgent || null,
       tags: account?.tags || [],
     },
   });
@@ -144,7 +146,29 @@ export default memo(function AccountForm({ account, handleFormSubmit }) {
           render={({ field, fieldState }) => (
             <>
               <label className="text-neutral-500">Title</label>
-              <Input {...safeField(field)} autoComplete="off" placeholder="Title" />
+              <Input
+                {...safeField(field)}
+                autoComplete="off"
+                placeholder="Title"
+              />
+              {fieldState.error?.message ? (
+                <p className="text-red-500">{fieldState.error?.message}</p>
+              ) : null}
+            </>
+          )}
+        />
+
+        {/* User-Agent */}
+        <Controller
+          name="userAgent"
+          render={({ field, fieldState }) => (
+            <>
+              <label className="text-neutral-500">User-Agent</label>
+              <Input
+                {...safeField(field)}
+                autoComplete="off"
+                placeholder="User-Agent (leave empty for default)"
+              />
               {fieldState.error?.message ? (
                 <p className="text-red-500">{fieldState.error?.message}</p>
               ) : null}

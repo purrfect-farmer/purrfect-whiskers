@@ -1,6 +1,7 @@
 import { app, session } from "electron";
 import { join, resolve } from "path";
-import { registerWebRequest } from "./libs/webRequest";
+import { registerWebRequest, setUserAgent } from "./libs/webRequest";
+
 import { buildChromeContextMenu } from "electron-chrome-context-menu";
 import isEqual from "fast-deep-equal";
 
@@ -113,6 +114,9 @@ class Profile {
     /** Close All Connections */
     await this.session.closeAllConnections();
 
+    /** Set User Agent */
+    setUserAgent(this.session, options.userAgent);
+
     /** Configure Web Request */
     registerWebRequest(this.session);
   }
@@ -170,7 +174,7 @@ class Profile {
     contents.setWindowOpenHandler((details) => {
       if (
         ["default", "foreground-tab", "background-tab"].includes(
-          details.disposition
+          details.disposition,
         )
       ) {
         if (contents.hostWebContents) {
@@ -217,7 +221,7 @@ class Profile {
         if (!extension) {
           extension = await this.session.extensions.loadExtension(
             extensionPath,
-            { allowFileAccess: true }
+            { allowFileAccess: true },
           );
         }
       } catch (e) {
