@@ -1,4 +1,8 @@
-import { HiOutlineArrowLeft, HiOutlineCurrencyDollar } from "react-icons/hi2";
+import {
+  HiOutlineArrowLeft,
+  HiOutlineCurrencyDollar,
+  HiXMark,
+} from "react-icons/hi2";
 
 import Input from "./Input";
 import LabelToggle from "./LabelToggle";
@@ -35,6 +39,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
     progress,
     totalPrice,
     maxCount,
+    cancelPurchase,
     purchaseAccounts,
   } = form;
 
@@ -135,6 +140,17 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
 
       {/* Progress */}
       {mutation.isPending && <Progress current={progress} max={count} />}
+
+      {/* Cancel button */}
+      {mutation.isPending ? (
+        <button
+          onClick={cancelPurchase}
+          className="p-2 text-red-500 inline-flex justify-center items-center gap-2"
+        >
+          <HiXMark className="size-5" />
+          Cancel operation
+        </button>
+      ) : null}
     </>
   );
 }

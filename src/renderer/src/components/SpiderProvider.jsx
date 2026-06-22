@@ -8,7 +8,7 @@ const SpiderContext = createContext();
 export const SpiderProvider = ({ children }) => {
   const core = useSpiderCore();
   const form = useSpiderAccountsForm({
-    country: core.selectedCountry,
+    core,
   });
 
   return (

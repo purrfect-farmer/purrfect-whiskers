@@ -1,8 +1,8 @@
-import axios from "axios";
-import { TelegramClient } from "telegram";
-
 import { MemorySession, StringSession } from "telegram/sessions";
-import { NewMessage, NewMessageEvent } from "telegram/events";
+
+import { NewMessage } from "telegram/events";
+import { TelegramClient } from "telegram";
+import axios from "axios";
 
 export default class Spider {
   constructor(apiKey) {
@@ -73,7 +73,7 @@ export default class Spider {
         deviceModel:
           "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
         systemVersion: "Linux x86_64",
-      }
+      },
     );
   }
 
@@ -106,7 +106,7 @@ export default class Spider {
             /* Log Password Usage */
             console.log(
               "Using 2FA password from Spider:",
-              authResult["password"]
+              authResult["password"],
             );
 
             /* Return Password */
@@ -180,7 +180,7 @@ export default class Spider {
           },
           new NewMessage({
             fromUsers: [777000] /* Telegram Service Notifications */,
-          })
+          }),
         );
 
         /* Request auth code via Telegram (this will trigger the message) */
@@ -254,7 +254,7 @@ export default class Spider {
       /* Validate Account */
       if (!account?.["phone"]) {
         throw new Error(
-          "No account returned from Spider for country " + countryCode
+          "No account returned from Spider for country " + countryCode,
         );
       }
 
@@ -297,7 +297,7 @@ export default class Spider {
             ["userId"]: telegram.user.id.toString(),
             ["auth_key_fingerprint"]: telegram.authKey.slice(0, 8),
           },
-        }).map(([key, value]) => [key, JSON.stringify(value)])
+        }).map(([key, value]) => [key, JSON.stringify(value)]),
       );
 
       /* Prepare Local Telegram Session */
@@ -316,6 +316,9 @@ export default class Spider {
         authKey,
         telegramWebLocalStorage,
         localTelegramSession,
+        enableLocalTelegramSession,
+        countryCode,
+        twoFA,
       };
     } catch (error) {
       console.error("Error purchasing account:", error);

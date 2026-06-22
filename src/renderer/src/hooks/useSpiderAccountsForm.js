@@ -3,6 +3,7 @@ import { useCallback, useRef, useState } from "react";
 
 import Spider from "../lib/Spider";
 import { createWebview } from "../lib/utils";
+import { formatDate } from "date-fns";
 import socket from "../lib/mirror";
 import toast from "react-hot-toast";
 import useAppStore from "../store/useAppStore";
@@ -11,7 +12,9 @@ import { useProgress } from "../hooks/useProgress";
 import useSettingsStore from "../store/useSettingsStore";
 import { uuid } from "../lib/utils";
 
-const useSpiderAccountsForm = ({ country }) => {
+const useSpiderAccountsForm = ({ core }) => {
+  const country = core.selectedCountry;
+  const abortControllerRef = useRef(null);
   const containerRef = useRef();
 
   const spiderApiKey = useAppStore((state) => state.spiderApiKey);
@@ -101,6 +104,9 @@ const useSpiderAccountsForm = ({ country }) => {
       twoFA = "",
       enableLocalTelegramSession = true,
     }) => {
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       resetProgress();
 
       const spider = new Spider(spiderApiKey);
@@ -111,10 +117,14 @@ const useSpiderAccountsForm = ({ country }) => {
       console.log("Using 2FA password:", twoFA);
 
       for (let i = 0; i < count; i += batch) {
+        if (controller.signal.aborted) break;
+
         const chunk = Array.from(
           { length: Math.min(batch, count - i) },
           async () => {
             try {
+              if (controller.signal.aborted) return;
+
               const purchase = await spider.purchaseAccount({
                 countryCode: country.code,
                 enableLocalTelegramSession,
@@ -249,8 +259,21 @@ const useSpiderAccountsForm = ({ country }) => {
     /* Log Results */
     console.log("Purchase results:", results);
 
+    /** Save results */
+    window.electron.ipcRenderer.invoke(
+      "save-backup-file",
+      `spider-purchase-results-${formatDate(new Date(), "yyyyMMdd-HHmmss")}.json`,
+      JSON.stringify(results, null, 2),
+    );
+
     /* Toast Completion */
     toast.success("Account purchase process completed.");
+  };
+
+  /** Cancel purchase */
+  const cancelPurchase = () => {
+    abortControllerRef.current?.abort?.();
+    toast.success("Initiated cancellation...");
   };
 
   return {
@@ -278,6 +301,7 @@ const useSpiderAccountsForm = ({ country }) => {
     incrementProgress,
     restoreAccountBackup,
     purchaseAccounts,
+    cancelPurchase,
   };
 };
 
