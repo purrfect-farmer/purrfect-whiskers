@@ -15,8 +15,10 @@ const userAgentMap = new Map();
 export const setUserAgent = (session, userAgent) => {
   if (userAgent) {
     userAgentMap.set(session, userAgent);
+    session.setUserAgent(userAgent);
   } else {
     userAgentMap.delete(session);
+    session.setUserAgent("");
   }
 };
 
