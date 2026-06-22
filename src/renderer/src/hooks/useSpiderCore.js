@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import Spider from "../lib/Spider";
 import { getCountryData } from "countries-list";
@@ -13,6 +13,8 @@ const useSpiderCore = () => {
   const [sortKey, setSortKey] = useState("name");
   const [sortDir, setSortDir] = useState("asc");
   const [selectedCountry, setSelectedCountry] = useState(null);
+
+  const abortControllerRef = useRef(null);
 
   /** Enabled */
   const enabled = Boolean(spiderApiKey);
@@ -129,6 +131,7 @@ const useSpiderCore = () => {
     availableCountries,
     filteredCountries,
     selectCountry,
+    abortControllerRef,
   };
 };
 

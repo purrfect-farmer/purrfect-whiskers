@@ -41,7 +41,7 @@ const useSpiderAccountsForm = ({ country }) => {
         const { partition } = account;
 
         let interval, webview;
-        const container = containerRef.current;
+        const container = document.getElementById("webviews-container");
         const initializeWebview = () => {
           webview?.remove();
           webview = createWebview(partition, extensionPath);
