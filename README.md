@@ -57,6 +57,17 @@
 
 ---
 
+## Arch Linux
+Install http-parser if you haven't
+```bash
+yay -Sy http-parser
+```
+
+Install Purrfect Whiskers
+```bash
+sudo pacman -U purrfect-whiskers-{version}.pacman
+```
+
 ## MacOS
 Mac users need to run the following command in Terminal after installing for fix launch error
 ```bash
