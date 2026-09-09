@@ -1,3 +1,13 @@
+> [!WARNING]
+> **PROJECT ARCHIVED & UNMAINTAINED**
+> 
+> As of September 2026, active development, bug fixes, and feature updates for this repository have officially ended. 
+> 
+> - **Public Support:** Issues, pull requests, and discussions are permanently closed.
+> - **License:** The source code remains available "as-is" under its existing license for historical and reference purposes. 
+
+---
+
 # Purrfect Whiskers
 
 **Purrfect Whiskers** is a desktop application designed to efficiently manage multiple instances of the **Purrfect Farmer** Chrome extension. Launch several instances side by side, organize them in rows or columns, and streamline your automation workflow.
