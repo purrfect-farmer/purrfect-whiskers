@@ -1,10 +1,10 @@
 {
   "name": "purrfect-whiskers",
-  "version": "2.3.4",
+  "version": "2.3.5",
   "description": "Efficiently manage multiple instances of the Purrfect Farmer",
   "main": "./out/main/index.js",
-  "author": "purrfectfarmer.com",
-  "homepage": "https://purrfectfarmer.com",
+  "author": "purrfect-farmer.github.io",
+  "homepage": "https://purrfect-farmer.github.io",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
