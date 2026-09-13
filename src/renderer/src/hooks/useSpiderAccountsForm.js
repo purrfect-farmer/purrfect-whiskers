@@ -26,6 +26,9 @@ const useSpiderAccountsForm = ({ core }) => {
   const [count, setCount] = useState(1);
   const [batch, setBatch] = useState(1);
   const [password, setPassword] = useState("");
+  const [titlePrefix, setTitlePrefix] = useState("");
+  const [startNumber, setStartNumber] = useState(1);
+  const [tags, setTags] = useState([]);
   const [enableLocalTelegramSession, setEnableLocalTelegramSession] =
     useState(true);
 
@@ -103,6 +106,9 @@ const useSpiderAccountsForm = ({ core }) => {
       batch = 1,
       twoFA = "",
       enableLocalTelegramSession = true,
+      titlePrefix = "",
+      startNumber = 1,
+      tags = [],
     }) => {
       const controller = new AbortController();
       abortControllerRef.current = controller;
@@ -121,7 +127,10 @@ const useSpiderAccountsForm = ({ core }) => {
 
         const chunk = Array.from(
           { length: Math.min(batch, count - i) },
-          async () => {
+          async (_, j) => {
+            /* Fix the account's number before the chunk runs in parallel */
+            const index = i + j;
+
             try {
               if (controller.signal.aborted) return;
 
@@ -148,7 +157,10 @@ const useSpiderAccountsForm = ({ core }) => {
               const partition = `persist:${uuid()}`;
               const newWhiskersAccount = {
                 partition,
-                title: `Spider ${account["phone"]}`,
+                title: titlePrefix
+                  ? `${titlePrefix}${startNumber + index}`
+                  : `Spider ${account["phone"]}`,
+                tags: [...tags],
               };
 
               /* Store Account */
@@ -254,6 +266,9 @@ const useSpiderAccountsForm = ({ core }) => {
       batch,
       twoFA: password,
       enableLocalTelegramSession,
+      titlePrefix,
+      startNumber,
+      tags,
     });
 
     /* Log Results */
@@ -285,6 +300,15 @@ const useSpiderAccountsForm = ({ core }) => {
 
     password,
     setPassword,
+
+    titlePrefix,
+    setTitlePrefix,
+
+    startNumber,
+    setStartNumber,
+
+    tags,
+    setTags,
 
     enableLocalTelegramSession,
     setEnableLocalTelegramSession,

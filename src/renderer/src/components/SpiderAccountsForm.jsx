@@ -10,6 +10,7 @@ import { NumberInput } from "./NumberInput";
 import PrimaryButton from "./PrimaryButton";
 import { Progress } from "./Progress";
 import Slider from "./Slider";
+import TagsInput from "./TagsInput";
 import { useSpider } from "./SpiderProvider";
 
 export default function SpiderAccountsForm({ country, clearSelection }) {
@@ -30,6 +31,18 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
     password,
     setPassword,
 
+    /** Title prefix */
+    titlePrefix,
+    setTitlePrefix,
+
+    /** Starting number */
+    startNumber,
+    setStartNumber,
+
+    /** Tags */
+    tags,
+    setTags,
+
     /** Local telegram session */
     enableLocalTelegramSession,
     setEnableLocalTelegramSession,
@@ -45,6 +58,13 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
 
   /** Exceeds available stock */
   const exceedsStock = count > maxCount;
+
+  /** Preview the titles the current prefix would produce */
+  const titlePreview = titlePrefix
+    ? count > 1
+      ? `${titlePrefix}${startNumber} … ${titlePrefix}${startNumber + count - 1}`
+      : `${titlePrefix}${startNumber}`
+    : "Spider <phone number>";
 
   return (
     <>
@@ -103,6 +123,44 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
           max={3}
           value={[batch]}
           onValueChange={(value) => setBatch(value[0])}
+        />
+      </div>
+
+      {/* Title Prefix */}
+      <Input
+        placeholder="Title Prefix (Optional)"
+        value={titlePrefix}
+        disabled={mutation.isPending}
+        onChange={(e) => setTitlePrefix(e.target.value)}
+      />
+
+      {/* Starting Number */}
+      {titlePrefix ? (
+        <NumberInput
+          label="Starting Number"
+          value={startNumber}
+          onChange={(value) => {
+            const parsed = parseInt(value) || 1;
+            setStartNumber(Math.max(1, parsed));
+          }}
+          readOnly={false}
+          disabled={mutation.isPending}
+        />
+      ) : null}
+
+      {/* Title Preview */}
+      <p className="text-center text-neutral-500 dark:text-neutral-400 px-2">
+        Accounts will be named{" "}
+        <span className="font-bold text-orange-500">{titlePreview}</span>
+      </p>
+
+      {/* Tags */}
+      <div className="flex flex-col gap-2">
+        <label className="text-neutral-500">Tags</label>
+        <TagsInput
+          value={tags}
+          onChange={setTags}
+          disabled={mutation.isPending}
         />
       </div>
 

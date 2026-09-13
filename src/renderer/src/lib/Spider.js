@@ -1,8 +1,12 @@
+import { Api, TelegramClient } from "telegram";
 import { MemorySession, StringSession } from "telegram/sessions";
 
 import { NewMessage } from "telegram/events";
-import { TelegramClient } from "telegram";
 import axios from "axios";
+
+/** Telegram Web-K API credentials */
+const TELEGRAM_API_ID = 2496;
+const TELEGRAM_API_HASH = "8da85b0d5bfe62527e5b244c209159c3";
 
 export default class Spider {
   constructor(apiKey) {
@@ -62,19 +66,14 @@ export default class Spider {
 
   /** Create Telegram Client */
   createTelegramClient(session) {
-    return new TelegramClient(
-      session,
-      2496,
-      "8da85b0d5bfe62527e5b244c209159c3",
-      {
-        appVersion: "2.2 K",
-        systemLangCode: "en-US",
-        langCode: "en",
-        deviceModel:
-          "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.7977.54 Safari/537.36",
-        systemVersion: "Linux x86_64",
-      },
-    );
+    return new TelegramClient(session, TELEGRAM_API_ID, TELEGRAM_API_HASH, {
+      appVersion: "2.2 K",
+      systemLangCode: "en-US",
+      langCode: "en",
+      deviceModel:
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.7977.54 Safari/537.36",
+      systemVersion: "Linux x86_64",
+    });
   }
 
   /** Get Telegram Account */
@@ -153,8 +152,8 @@ export default class Spider {
     });
   }
 
-  /** Get Local Telegram Session */
-  async getLocalTelegramSession({ telegram, account, twoFA }) {
+  /** Get Local Telegram Session via Login Code */
+  async getLocalTelegramSessionViaLoginCode({ telegram, account, twoFA }) {
     return new Promise(async (resolve, reject) => {
       try {
         const session = new StringSession();
@@ -243,6 +242,167 @@ export default class Spider {
         return reject(error);
       }
     });
+  }
+
+  /**
+   * Get Local Telegram Session via Exported Login Token
+   *
+   * This is the QR-login handshake: the new client exports a login token,
+   * the already-authorized client from `getTelegramAccount` accepts it, and
+   * the new client re-exports to receive its own authorization. No second
+   * login code is requested, so there is nothing to wait for or scrape.
+   */
+  async getLocalTelegramSessionViaLoginToken({ telegram, account, twoFA }) {
+    const client = this.createTelegramClient(new StringSession());
+    let used2FA = false;
+
+    /* Destroy Client */
+    const destroyClient = async () => {
+      try {
+        await client.destroy();
+      } catch (e) {
+        console.error("Error destroying local client:", e);
+      }
+    };
+
+    try {
+      /* Connect Without Authenticating */
+      await client.connect();
+
+      /* Export Login Token */
+      console.log("Exporting login token...");
+      const exported = await client.invoke(
+        new Api.auth.ExportLoginToken({
+          apiId: TELEGRAM_API_ID,
+          apiHash: TELEGRAM_API_HASH,
+          exceptIds: [],
+        }),
+      );
+
+      if (!(exported instanceof Api.auth.LoginToken)) {
+        throw new Error(
+          "Unexpected result while exporting login token: " +
+            exported.className,
+        );
+      }
+
+      /* Accept the Token on the Already-Authorized Client */
+      console.log("Accepting login token on the authorized client...");
+      await telegram.client.invoke(
+        new Api.auth.AcceptLoginToken({ token: exported.token }),
+      );
+
+      /* Re-Export to Collect the Authorization */
+      let result = await client.invoke(
+        new Api.auth.ExportLoginToken({
+          apiId: TELEGRAM_API_ID,
+          apiHash: TELEGRAM_API_HASH,
+          exceptIds: [],
+        }),
+      );
+
+      /* Follow the Token to Its Home DC */
+      if (result instanceof Api.auth.LoginTokenMigrateTo) {
+        console.log("Migrating login token to DC:", result.dcId);
+        await client._switchDC(result.dcId);
+        result = await client.invoke(
+          new Api.auth.ImportLoginToken({ token: result.token }),
+        );
+      }
+
+      if (!(result instanceof Api.auth.LoginTokenSuccess)) {
+        throw new Error(
+          "Unexpected result while importing login token: " + result.className,
+        );
+      }
+
+      console.log("Logged in locally via login token");
+    } catch (error) {
+      if (error.errorMessage !== "SESSION_PASSWORD_NEEDED") {
+        await destroyClient();
+        throw error;
+      }
+
+      /* Indicate 2FA Was Used */
+      used2FA = true;
+
+      /**
+       * Prefer the password we just rotated to in `getTelegramAccount`,
+       * and fall back to the one Spider supplied.
+       */
+      const password = twoFA || telegram.authResult?.["password"];
+
+      /* Log Password Usage */
+      console.log("Using 2FA password for login token:", password);
+
+      try {
+        await client.signInWithPassword(
+          { apiId: TELEGRAM_API_ID, apiHash: TELEGRAM_API_HASH },
+          {
+            password: async () => password,
+            onError: (err) => {
+              throw err;
+            },
+          },
+        );
+      } catch (passwordError) {
+        await destroyClient();
+        throw passwordError;
+      }
+    }
+
+    /* Save Session Before Destroying the Client */
+    const session = client.session.save();
+
+    await destroyClient();
+
+    return {
+      account,
+      used2FA,
+      session,
+    };
+  }
+
+  /**
+   * Get Local Telegram Session
+   *
+   * `method` picks the login strategy:
+   * - "token" - exported login token only
+   * - "code"  - login code only
+   * - "auto"  - token first, falling back to the login code (default)
+   */
+  async getLocalTelegramSession({ telegram, account, twoFA, method = "auto" }) {
+    if (method === "code") {
+      return this.getLocalTelegramSessionViaLoginCode({
+        telegram,
+        account,
+        twoFA,
+      });
+    }
+
+    try {
+      return await this.getLocalTelegramSessionViaLoginToken({
+        telegram,
+        account,
+        twoFA,
+      });
+    } catch (error) {
+      if (method === "token") {
+        throw error;
+      }
+
+      /* Fall Back to the Login Code */
+      console.warn(
+        "Login token failed, falling back to the login code:",
+        error,
+      );
+
+      return this.getLocalTelegramSessionViaLoginCode({
+        telegram,
+        account,
+        twoFA,
+      });
+    }
   }
 
   /** Purchase Account */
