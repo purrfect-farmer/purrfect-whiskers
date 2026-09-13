@@ -22,6 +22,7 @@ import SpiderDialog from "./SpiderDialog";
 import { SpiderProvider } from "./SpiderProvider";
 import TagsDialog from "./TagsDialog";
 import axios from "axios";
+import { getGithubHeaders } from "../../../shared/lib/github";
 import { cn } from "../lib/utils";
 import semver from "semver";
 
@@ -48,7 +49,9 @@ export default function SideMenu() {
   /** Get Latest Release */
   useEffect(() => {
     axios
-      .get(import.meta.env.VITE_APP_RELEASE_API_URL)
+      .get(import.meta.env.VITE_APP_RELEASE_API_URL, {
+        headers: getGithubHeaders(),
+      })
       .then((res) => setLatestVersion(res.data["tag_name"]));
   }, [setLatestVersion]);
 

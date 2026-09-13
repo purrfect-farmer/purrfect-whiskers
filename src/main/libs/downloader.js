@@ -18,13 +18,14 @@ export async function cleanDirectory(dir) {
 }
 
 /** Download Zip */
-export async function downloadZip(url, outputPath) {
+export async function downloadZip(url, outputPath, headers = {}) {
   const writer = createWriteStream(outputPath);
 
   const response = await axios({
     url,
     method: "GET",
     responseType: "stream",
+    headers,
   });
 
   response.data.pipe(writer);
@@ -52,14 +53,14 @@ export async function extractZip(zipPath, extractToDir) {
 }
 
 /** Download and Extract */
-export async function downloadAndExtract(url, extractToDir) {
+export async function downloadAndExtract(url, extractToDir, headers = {}) {
   const tempDir = await fs.mkdtemp(join(os.tmpdir(), "whiskers-"));
   const zipPath = join(tempDir, "temp.zip");
 
   try {
     /** Download ZIP */
     console.log("Downloading ZIP to temp dir...");
-    await downloadZip(url, zipPath);
+    await downloadZip(url, zipPath, headers);
     console.log("Download complete:", zipPath);
 
     /** Extract ZIP */
@@ -68,6 +69,7 @@ export async function downloadAndExtract(url, extractToDir) {
     console.log("Extraction complete.");
   } catch (err) {
     console.error("Error:", err);
+    throw err;
   } finally {
     /** Clean up the temp ZIP file and temp directory */
     try {

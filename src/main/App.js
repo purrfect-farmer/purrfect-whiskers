@@ -22,6 +22,7 @@ import semver from "semver";
 
 import { buildChromeContextMenu } from "electron-chrome-context-menu";
 import { downloadAndExtract, extractZip } from "./libs/downloader";
+import { getGithubHeaders, hasGithubToken } from "../shared/lib/github";
 import Profile from "./Profile";
 import { registerWebRequest } from "./libs/webRequest";
 
@@ -93,7 +94,7 @@ class App {
     ipcMain.handle("set-session-cookie", this.setSessionCookie.bind(this));
     ipcMain.handle(
       "update-declarative-net-rules",
-      this.updateDeclarativeNetRules.bind(this)
+      this.updateDeclarativeNetRules.bind(this),
     );
     ipcMain.handle("save-backup-file", this.saveBackupFile.bind(this));
     ipcMain.handle("open-path", this.openPath.bind(this));
@@ -101,11 +102,11 @@ class App {
     ipcMain.handle("update-extension", this.updateExtension.bind(this));
     ipcMain.handle(
       "get-extension-version",
-      this.getExtensionVersion.bind(this)
+      this.getExtensionVersion.bind(this),
     );
     ipcMain.handle(
       "get-default-extension-path",
-      this.getDefaultExtensionPath.bind(this)
+      this.getDefaultExtensionPath.bind(this),
     );
     ipcMain.handle("pick-extension-path", this.pickExtensionPath.bind(this));
     ipcMain.handle("configure-proxy", this.configureProxy.bind(this));
@@ -134,7 +135,7 @@ class App {
     /** Backup Directory */
     const backupDir = join(
       app.getPath("documents"),
-      "Purrfect Whiskers Backup"
+      "Purrfect Whiskers Backup",
     );
 
     /** Full Backup File Path */
@@ -198,12 +199,14 @@ class App {
       /* Get Current Extension Version */
       const currentExtensionVersion = await this.getExtensionVersion(
         _event,
-        path
+        path,
       );
 
       /* Fetch Latest Release Info */
       const latestRelease = await axios
-        .get(import.meta.env.VITE_EXTENSION_RELEASE_API_URL)
+        .get(import.meta.env.VITE_EXTENSION_RELEASE_API_URL, {
+          headers: getGithubHeaders(),
+        })
         .then((res) => res.data);
 
       /* Get Latest Tag */
@@ -218,18 +221,27 @@ class App {
         const filePattern = new RegExp(
           import.meta.env.VITE_EXTENSION_RELEASE_FILE_PATTERN.replaceAll(
             "*",
-            "\\d+"
-          ).replaceAll(".", "\\.")
+            "\\d+",
+          ).replaceAll(".", "\\."),
         );
 
         /* Get Release File */
         const releaseFile = latestRelease.assets.find((item) =>
-          filePattern.test(item.name)
+          filePattern.test(item.name),
         );
 
         if (releaseFile) {
+          /** Use API Asset */
+          const useApiAsset = hasGithubToken();
+
           /* Download and Extract */
-          await downloadAndExtract(releaseFile["browser_download_url"], path);
+          await downloadAndExtract(
+            useApiAsset
+              ? releaseFile["url"]
+              : releaseFile["browser_download_url"],
+            path,
+            useApiAsset ? getGithubHeaders("application/octet-stream") : {},
+          );
 
           /* Show Notification */
           new Notification({
