@@ -5,7 +5,7 @@ export default function TagsList({
   accounts,
   tags,
   activeTag,
-  setSelectedTag,
+  selectTag,
   disabled,
 }) {
   return (
@@ -14,9 +14,7 @@ export default function TagsList({
         <button
           key={tag.id}
           disabled={disabled}
-          onClick={() =>
-            setSelectedTag((prev) => (prev === tag.id ? null : tag.id))
-          }
+          onClick={() => selectTag(tag.id)}
           className={cn(
             "flex items-center gap-1",
             "p-2 rounded-full disabled:opacity-60",

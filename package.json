@@ -51,6 +51,7 @@
     "react-hot-toast": "^2.6.0",
     "react-icons": "^5.6.0",
     "react-use": "^17.6.0",
+    "react-virtuoso": "^4.18.14",
     "semver": "^7.7.4",
     "set-cookie-parser": "^3.1.0",
     "socket.io": "^4.8.3",

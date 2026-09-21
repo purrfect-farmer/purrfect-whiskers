@@ -19,7 +19,10 @@ export default memo(function Toggle({ className, ...props }) {
           "before:inline-block before:h-4 before:w-4",
           "before:transform before:transition",
           "before:rounded-full",
-          "before:bg-neutral-400 peer-checked:before:bg-white"
+          "before:bg-neutral-400 peer-checked:before:bg-white",
+
+          // Focus
+          "peer-focus:ring-2 peer-focus:ring-orange-500 peer-focus:ring-offset-2",
         )}
       />
     </>

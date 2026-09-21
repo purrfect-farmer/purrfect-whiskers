@@ -1,43 +1,41 @@
-import { cn, matchesSearch } from "../lib/utils";
-import { useMemo, useState } from "react";
-
 import { AccountItem } from "./AccountItem";
+import AccountsReorderDialog from "./AccountsReorderDialog";
 import AddAccountDialog from "./AddAccountDialog";
 import { Dialog } from "radix-ui";
 import { HiOutlinePlus } from "react-icons/hi2";
 import Input from "./Input";
-import { Reorder } from "motion/react";
-import ReorderItem from "./ReorderItem";
+import { LuArrowUpDown } from "react-icons/lu";
 import TagsList from "./TagsList";
+import { Virtuoso } from "react-virtuoso";
+import { cn } from "../lib/utils";
+import useAccountsFilter from "../hooks/useAccountsFilter";
 import useAppStore from "../store/useAppStore";
 import useDialogState from "../hooks/useDialogState";
 
-export default function AccountListDialog() {
-  const [search, setSearch] = useState("");
-  const [selectedTag, setSelectedTag] = useState(null);
-  const tags = useAppStore((state) => state.tags);
-  const accounts = useAppStore((state) => state.accounts);
-  const setAccounts = useAppStore((state) => state.setAccounts);
-  const launchAccount = useAppStore((state) => state.launchAccount);
-  const activeTag = selectedTag
-    ? tags.find((item) => item.id === selectedTag)
-    : null;
+const TRIGGER_BUTTON_CLASS = cn(
+  "shrink-0",
+  "bg-orange-100 text-orange-700",
+  "dark:bg-orange-200 dark:text-orange-500",
+  "flex items-center gap-2",
+  "p-2 px-3 rounded-xl text-left",
+  "font-bold",
+);
 
-  const list = useMemo(
-    () =>
-      search
-        ? accounts.filter((item) => matchesSearch(search, item))
-        : activeTag
-          ? accounts.filter((item) => item.tags?.includes(activeTag.id))
-          : accounts,
-    [search, activeTag, accounts],
-  );
+export default function AccountListDialog() {
+  const accounts = useAppStore((state) => state.accounts);
+  const launchAccount = useAppStore((state) => state.launchAccount);
+
+  const { tags, search, setSearch, activeTag, selectTag, list } =
+    useAccountsFilter(accounts);
 
   const {
     opened: openAddAccountDialog,
     setOpened: setOpenAddAccountDialog,
     closeDialog: closeAddAccountDialog,
   } = useDialogState();
+
+  const { opened: openReorderDialog, setOpened: setOpenReorderDialog } =
+    useDialogState();
 
   return (
     <Dialog.Portal>
@@ -53,7 +51,7 @@ export default function AccountListDialog() {
       >
         <div className="p-4 flex flex-col gap-2">
           <div className="flex items-center gap-2">
-            <div className="flex flex-col grow">
+            <div className="flex flex-col grow min-w-0">
               {/* Title */}
               <Dialog.Title
                 className={cn(
@@ -70,6 +68,21 @@ export default function AccountListDialog() {
               </Dialog.Description>
             </div>
 
+            {/* Reorder Accounts */}
+            <Dialog.Root
+              open={openReorderDialog}
+              onOpenChange={setOpenReorderDialog}
+            >
+              <Dialog.Trigger
+                title="Reorder Accounts"
+                className={TRIGGER_BUTTON_CLASS}
+              >
+                <LuArrowUpDown className="size-5 text-orange-500" />
+              </Dialog.Trigger>
+
+              <AccountsReorderDialog />
+            </Dialog.Root>
+
             {/* Add Account */}
             <Dialog.Root
               open={openAddAccountDialog}
@@ -77,14 +90,7 @@ export default function AccountListDialog() {
             >
               <Dialog.Trigger
                 title="Add Account"
-                className={cn(
-                  "shrink-0",
-                  "bg-orange-100 text-orange-700",
-                  "dark:bg-orange-200 dark:text-orange-500",
-                  "flex items-center gap-2",
-                  "p-2 px-3 rounded-xl text-left",
-                  "font-bold",
-                )}
+                className={TRIGGER_BUTTON_CLASS}
               >
                 <HiOutlinePlus className="size-5 text-orange-500" />
               </Dialog.Trigger>
@@ -107,31 +113,26 @@ export default function AccountListDialog() {
             accounts={accounts}
             tags={tags}
             activeTag={activeTag}
-            setSelectedTag={setSelectedTag}
+            selectTag={selectTag}
           />
         </div>
 
         {/* Account List */}
-        <div className="flex flex-col px-4 pb-4 gap-2 grow overflow-auto">
-          <Reorder.Group
-            values={accounts}
-            onReorder={(newOrder) => setAccounts(newOrder)}
-            className="flex flex-col gap-2"
-          >
-            {list.map((item) => (
-              <ReorderItem
-                key={item.partition}
-                value={item}
-                disabled={Boolean(search || activeTag)}
-              >
+        <div className="grow min-h-0 ">
+          <Virtuoso
+            style={{ height: "100%", width: "100%" }}
+            data={list}
+            computeItemKey={(_, item) => item.partition}
+            itemContent={(_, item) => (
+              <div className="pb-2 px-4 pb">
                 <AccountItem
                   account={item}
                   active={item.running}
                   onClick={() => launchAccount(item.partition)}
                 />
-              </ReorderItem>
-            ))}
-          </Reorder.Group>
+              </div>
+            )}
+          />
         </div>
       </Dialog.Content>
     </Dialog.Portal>
