@@ -12,6 +12,7 @@ export default create(
         showWebviewToolbar: true,
         restoreAccountsOnStartup: true,
         showAccountDetails: true,
+        accountsReorderMode: "virtual",
         allowProxies: false,
         theme: "system",
         columns: 4,
@@ -27,15 +28,17 @@ export default create(
         setAllowProxies: (allowProxies) => set({ allowProxies }),
         setShowAccountDetails: (showAccountDetails) =>
           set({ showAccountDetails }),
+        setAccountsReorderMode: (accountsReorderMode) =>
+          set({ accountsReorderMode }),
         setShowWebviewToolbar: (showWebviewToolbar) =>
           set({ showWebviewToolbar }),
         setRestoreAccountsOnStartup: (restoreAccountsOnStartup) =>
           set({ restoreAccountsOnStartup }),
-      })
+      }),
     ),
     {
       name: "settings-store", // unique name
       storage: createJSONStorage(() => storage),
-    }
-  )
+    },
+  ),
 );

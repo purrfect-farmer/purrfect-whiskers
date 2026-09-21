@@ -28,6 +28,27 @@ export default create(
           return set({ accounts: [...existing, ...filtered] });
         },
         setAccounts: (accounts) => set({ accounts }),
+
+        /** Moves an account to a new (final) index, clamped to the list */
+        moveAccount: (partition, toIndex) => {
+          const { accounts } = get();
+          const fromIndex = accounts.findIndex(
+            (item) => item.partition === partition,
+          );
+
+          if (fromIndex < 0) return;
+
+          const target = Math.max(0, Math.min(toIndex, accounts.length - 1));
+
+          if (target === fromIndex) return;
+
+          const next = [...accounts];
+          const [moved] = next.splice(fromIndex, 1);
+
+          next.splice(target, 0, moved);
+
+          return set({ accounts: next });
+        },
         updateAccount: (data) =>
           set({
             accounts: get().accounts.map((item) =>
