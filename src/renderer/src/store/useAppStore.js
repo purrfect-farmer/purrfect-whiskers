@@ -1,6 +1,7 @@
 import { combine, createJSONStorage, persist } from "zustand/middleware";
 
 import { create } from "zustand";
+import { getTelegramUser } from "../lib/utils";
 import { storage } from "./storage";
 import useSettingsStore from "./useSettingsStore";
 
@@ -121,6 +122,33 @@ export default create(
           const pageIndex = Math.floor(index / itemsPerPage);
 
           set({ accounts: newAccounts, page: pageIndex });
+        },
+
+        /** Launch an account by partition or telegram user id */
+        launchAccountByRequest: (request) => {
+          const { partition, telegramUserId } = request || {};
+          const { accounts } = get();
+
+          const userId = String(telegramUserId ?? "").trim();
+
+          if (!partition && !userId) {
+            return { success: false, error: "INVALID_REQUEST" };
+          }
+
+          const account = partition
+            ? accounts.find((item) => item.partition === partition)
+            : accounts.find((item) => {
+                const user = getTelegramUser(item);
+                return user ? String(user["id"]) === userId : false;
+              });
+
+          if (!account) {
+            return { success: false, error: "ACCOUNT_NOT_FOUND" };
+          }
+
+          get().launchAccount(account.partition);
+
+          return { success: true, partition: account.partition };
         },
 
         /** Tags */

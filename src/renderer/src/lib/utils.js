@@ -43,6 +43,18 @@ export function extractInitDataUnsafe(initData) {
     user: JSON.parse(parsedInitData.user),
   };
 }
+
+/** Get Account Telegram User */
+export function getTelegramUser(account) {
+  try {
+    return account?.telegramInitData
+      ? extractInitDataUnsafe(account.telegramInitData)["user"]
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Create Webview */
 export function createWebview(partition, extensionPath, proxyOptions) {
   /** Create the <webview> element */
@@ -72,9 +84,7 @@ export function createWebview(partition, extensionPath, proxyOptions) {
 }
 
 export function matchesSearch(search, item) {
-  const user = item.telegramInitData
-    ? extractInitDataUnsafe(item.telegramInitData)["user"]
-    : null;
+  const user = getTelegramUser(item);
 
   const fullName = user ? getTelegramUserFullName(user) : "";
   const username = user?.["username"] || "";

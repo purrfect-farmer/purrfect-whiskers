@@ -18,6 +18,9 @@ import useWebviewControls from "../hooks/useWebviewControls";
 
 export default memo(function ({ browser, account, pinned, togglePinned }) {
   const updateAccount = useAppStore((state) => state.updateAccount);
+  const launchAccountByRequest = useAppStore(
+    (state) => state.launchAccountByRequest,
+  );
   const theme = useSettingsStore((state) => state.theme);
   const allowProxies = useSettingsStore((state) => state.allowProxies);
   const extensionPath = useSettingsStore((state) => state.extensionPath);
@@ -81,6 +84,18 @@ export default memo(function ({ browser, account, pinned, togglePinned }) {
     [account, updateAccount],
   );
 
+  /** Launch Account */
+  const launchAccount = useRefCallback(
+    (data, reply) =>
+      reply({
+        action: "response-launch-account",
+        data: launchAccountByRequest(
+          data && typeof data === "object" ? data : null,
+        ),
+      }),
+    [launchAccountByRequest],
+  );
+
   /** Setup Webview */
   useEffect(() => {
     const webview = ref.current;
@@ -110,8 +125,9 @@ export default memo(function ({ browser, account, pinned, togglePinned }) {
       "get-whisker-data": () => sendWhiskerData(),
       "set-proxy": (data) => updateProxy(data),
       "set-telegram-init-data": (data) => updateTelegramInitData(data),
+      "launch-account": (data, reply) => launchAccount(data, reply),
     });
-  }, [updateProxy, updateTelegramInitData, sendWhiskerData]);
+  }, [updateProxy, updateTelegramInitData, sendWhiskerData, launchAccount]);
 
   /** Send Whisker Data */
   useEffect(() => {
