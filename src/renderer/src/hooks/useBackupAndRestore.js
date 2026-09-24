@@ -30,7 +30,7 @@ export default function useBackupAndRestore() {
 
         /** Configure Proxy */
         await configureProxy(partition, {
-          allowProxies,
+          allowProxies: false,
           proxyEnabled,
           proxyHost,
           proxyPort,
