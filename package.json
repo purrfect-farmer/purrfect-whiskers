@@ -43,6 +43,7 @@
     "motion": "^13.4.2",
     "normalize-url": "^9.0.0",
     "prop-types": "^15.8.1",
+    "qrcode.react": "^4.2.0",
     "radix-ui": "^1.4.3",
     "react-draggable": "^4.7.2",
     "react-dropzone": "^20.1.2",

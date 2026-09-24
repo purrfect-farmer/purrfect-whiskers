@@ -3,6 +3,9 @@ import { Dialog } from "radix-ui";
 import { MdOutlineBrowserUpdated } from "react-icons/md";
 
 import Alert from "./Alert";
+import AppConnect from "./AppConnect";
+import AppDonate from "./AppDonate";
+import AppLinks from "./AppLinks";
 import BaseDialogContent from "./BaseDialogContent";
 import Icon from "../assets/images/icon.png";
 import PrimaryButton from "./PrimaryButton";
@@ -51,6 +54,24 @@ export default function AppInfoDialog({ currentVersion, latestVersion }) {
           </PrimaryButton>
         </>
       ) : null}
+
+      {/* Links */}
+      <AppLinks />
+
+      {/* Connect */}
+      <AppConnect />
+
+      {/* Donate */}
+      <AppDonate />
+
+      {/* Copyright */}
+      <a
+        target="_blank"
+        href={import.meta.env.VITE_APP_WEBSITE_URL}
+        className="self-center text-xs text-orange-500"
+      >
+        &copy; Purrfect Farmer
+      </a>
     </BaseDialogContent>
   );
 }
