@@ -42,6 +42,8 @@ export default class WebshareClient {
           city: item["city_name"] || null,
           valid: item["valid"],
           lastVerification: item["last_verification"] || null,
+          createdAt: item["created_at"] || null,
+          id: item["id"],
         })),
       );
 

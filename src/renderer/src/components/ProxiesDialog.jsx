@@ -1,13 +1,12 @@
-import ProxyManager, { PROXY_PROVIDERS } from "../lib/proxy/ProxyManager";
-import { useState } from "react";
-
 import Alert from "./Alert";
 import AppDialogContent from "./AppDialogContent";
 import { Dialog } from "radix-ui";
-import Input from "./Input";
 import { LuGlobeLock } from "react-icons/lu";
 import PrimaryButton from "./PrimaryButton";
+import ProxyKeyInput from "./ProxyKeyInput";
 import ProxyList from "./ProxyList";
+import ProxyManager from "../lib/proxy/ProxyManager";
+import ProxyProviderPicker from "./ProxyProviderPicker";
 import { cn } from "../lib/utils";
 import toast from "react-hot-toast";
 import useAppStore from "../store/useAppStore";
@@ -20,12 +19,8 @@ export default function ProxiesDialog() {
   const proxyProvider = useAppStore((state) => state.proxyProvider);
   const proxyApiKey = useAppStore((state) => state.proxyApiKey);
   const setProxies = useAppStore((state) => state.setProxies);
-  const setProxyProvider = useAppStore((state) => state.setProxyProvider);
-  const setProxyApiKey = useAppStore((state) => state.setProxyApiKey);
   const applyProxies = useAppStore((state) => state.applyProxies);
   const allowProxies = useSettingsStore((state) => state.allowProxies);
-
-  const [tempApiKey, setTempApiKey] = useState(proxyApiKey || "");
 
   /** Fetch Proxies */
   const fetchMutation = useMutation({
@@ -44,19 +39,6 @@ export default function ProxiesDialog() {
     },
   });
 
-  /** Change Provider */
-  const changeProvider = (provider) => {
-    if (provider === proxyProvider) return;
-    setProxyProvider(provider);
-    setProxies([]);
-  };
-
-  /** Save API Key */
-  const saveApiKey = () => {
-    setProxyApiKey(tempApiKey.trim() || null);
-    toast.success("Proxy API Key saved!");
-  };
-
   /** Apply Proxies */
   const handleApplyProxies = () => {
     applyProxies(
@@ -73,45 +55,10 @@ export default function ProxiesDialog() {
       icon={LuGlobeLock}
     >
       {/* Provider */}
-      <label className="text-orange-500 mt-2">Provider</label>
-      <div className="grid grid-cols-2 gap-2">
-        {PROXY_PROVIDERS.map((item) => (
-          <button
-            key={item.value}
-            onClick={() => changeProvider(item.value)}
-            disabled={fetchMutation.isPending}
-            className={cn(
-              proxyProvider === item.value && "text-orange-500",
-              "bg-neutral-100 dark:bg-neutral-700",
-              "p-2 rounded-xl",
-              "flex gap-1 items-center justify-center",
-              "uppercase font-bold",
-              "disabled:opacity-50",
-            )}
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
+      <ProxyProviderPicker disabled={fetchMutation.isPending} />
 
       {/* API Key */}
-      <div className="flex gap-2">
-        <Input
-          value={tempApiKey}
-          onChange={(e) => setTempApiKey(e.target.value)}
-          placeholder="Enter your API Key"
-        />
-
-        <button
-          className={cn(
-            "px-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600",
-            "shrink-0 rounded-xl font-bold",
-          )}
-          onClick={saveApiKey}
-        >
-          Save
-        </button>
-      </div>
+      <ProxyKeyInput />
 
       {/* Fetch Proxies */}
       <PrimaryButton
