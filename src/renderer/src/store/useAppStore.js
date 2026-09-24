@@ -13,10 +13,45 @@ export default create(
         accounts: [],
         tags: [],
         spiderApiKey: null,
+        proxyProvider: "webshare",
+        proxyApiKey: null,
+        proxies: [],
       },
       (set, get) => ({
         setPage: (page) => set({ page }),
         setSpiderApiKey: (key) => set({ spiderApiKey: key }),
+
+        /** Proxies */
+        setProxyProvider: (proxyProvider) => set({ proxyProvider }),
+        setProxyApiKey: (proxyApiKey) => set({ proxyApiKey }),
+        setProxies: (proxies) => set({ proxies }),
+
+        /** Assigns proxies to accounts in order, reusing them when exhausted */
+        applyProxies: (partitions, proxies) => {
+          if (!proxies.length) return;
+
+          const indexes = new Map(
+            partitions.map((partition, index) => [partition, index]),
+          );
+
+          set({
+            accounts: get().accounts.map((item) => {
+              if (!indexes.has(item.partition)) return item;
+
+              const proxy =
+                proxies[indexes.get(item.partition) % proxies.length];
+
+              return {
+                ...item,
+                proxyEnabled: true,
+                proxyHost: proxy.host,
+                proxyPort: String(proxy.port),
+                proxyUsername: proxy.username || null,
+                proxyPassword: proxy.password || null,
+              };
+            }),
+          });
+        },
 
         addAccount: (data) => set({ accounts: [...get().accounts, data] }),
         importAccounts: (data) => {

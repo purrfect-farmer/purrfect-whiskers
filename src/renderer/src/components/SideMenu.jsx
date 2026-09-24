@@ -5,7 +5,12 @@ import {
   HiOutlineCog6Tooth,
   HiOutlinePuzzlePiece,
 } from "react-icons/hi2";
-import { LuArrowUpDown, LuDatabaseBackup, LuTags } from "react-icons/lu";
+import {
+  LuArrowUpDown,
+  LuDatabaseBackup,
+  LuGlobeLock,
+  LuTags,
+} from "react-icons/lu";
 import { useCallback, useEffect, useState } from "react";
 
 import AccountListDialog from "./AccountListDialog";
@@ -16,6 +21,7 @@ import { FaSpider } from "react-icons/fa";
 import Icon from "../assets/images/icon.png";
 import ImportAndExportAccountsDialog from "./ImportAndExportAccountsDialog";
 import LoaderDialog from "./LoaderDialog";
+import ProxiesDialog from "./ProxiesDialog";
 import { MdOutlineBrowserUpdated } from "react-icons/md";
 import SettingsDialog from "./SettingsDialog";
 import SpiderDialog from "./SpiderDialog";
@@ -110,6 +116,15 @@ export default function SideMenu() {
         <SpiderProvider>
           <SpiderDialog />
         </SpiderProvider>
+      </Dialog.Root>
+
+      {/* Proxies */}
+      <Dialog.Root>
+        <Dialog.Trigger title="Proxies" className="p-2">
+          <LuGlobeLock className="size-5 text-orange-500" />
+        </Dialog.Trigger>
+
+        <ProxiesDialog />
       </Dialog.Root>
 
       {/* Fullscreen Toggle */}
