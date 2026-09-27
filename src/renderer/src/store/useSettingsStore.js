@@ -12,6 +12,7 @@ export default create(
         showWebviewToolbar: true,
         restoreAccountsOnStartup: true,
         showAccountDetails: true,
+        showAccountTags: true,
         accountsReorderMode: "virtual",
         allowProxies: false,
         theme: "system",
@@ -28,6 +29,7 @@ export default create(
         setAllowProxies: (allowProxies) => set({ allowProxies }),
         setShowAccountDetails: (showAccountDetails) =>
           set({ showAccountDetails }),
+        setShowAccountTags: (showAccountTags) => set({ showAccountTags }),
         setAccountsReorderMode: (accountsReorderMode) =>
           set({ accountsReorderMode }),
         setShowWebviewToolbar: (showWebviewToolbar) =>
