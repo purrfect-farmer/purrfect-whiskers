@@ -15,11 +15,11 @@ import { useDropzone } from "react-dropzone";
 import { useProgress } from "../hooks/useProgress";
 import useSettingsStore from "../store/useSettingsStore";
 import useTabs from "../hooks/useTabs";
+import { MAX_CONCURRENT_BACKUPS } from "../lib/constants";
 
 export default function BackupAndRestoreDialog() {
   const accounts = useAppStore((state) => state.accounts);
   const theme = useSettingsStore((state) => state.theme);
-  const allowProxies = useSettingsStore((state) => state.allowProxies);
   const extensionPath = useSettingsStore((state) => state.extensionPath);
   const closeAllAccounts = useAppStore((state) => state.closeAllAccounts);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -53,7 +53,7 @@ export default function BackupAndRestoreDialog() {
     /** Create Backups Array */
     const backups = [];
 
-    for (const chunk of chunkArrayGenerator(accounts, 3)) {
+    for (const chunk of chunkArrayGenerator(accounts, MAX_CONCURRENT_BACKUPS)) {
       const chunkResults = await Promise.all(
         chunk.map(async (account) => {
           const result = await getOrRestoreAccountBackup(account);
@@ -122,7 +122,10 @@ export default function BackupAndRestoreDialog() {
       /** Destructure Data */
       const { app, settings, backups } = data;
 
-      for (const chunk of chunkArrayGenerator(backups, 3)) {
+      for (const chunk of chunkArrayGenerator(
+        backups,
+        MAX_CONCURRENT_BACKUPS,
+      )) {
         await Promise.all(
           chunk.map(async (item) => {
             const account = app.accounts.find(

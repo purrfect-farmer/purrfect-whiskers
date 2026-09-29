@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 import useAccountsSelector from "../hooks/useAccountsSelector";
 import useAppStore from "../store/useAppStore";
 import useBackupAndRestore from "../hooks/useBackupAndRestore";
+import { MAX_CONCURRENT_BACKUPS } from "../lib/constants";
 import { useDropzone } from "react-dropzone";
 import { useProgress } from "../hooks/useProgress";
 import useTabs from "../hooks/useTabs";
@@ -59,7 +60,10 @@ export default function ImportAndExportAccountsDialog() {
     /** Create Backups Array */
     const backups = [];
 
-    for (const chunk of chunkArrayGenerator(selector.selectedAccounts, 3)) {
+    for (const chunk of chunkArrayGenerator(
+      selector.selectedAccounts,
+      MAX_CONCURRENT_BACKUPS,
+    )) {
       const chunkResults = await Promise.all(
         chunk.map(async (account) => {
           const result = await getOrRestoreAccountBackup(account);
@@ -117,7 +121,7 @@ export default function ImportAndExportAccountsDialog() {
     /** Destructure Data */
     const { accounts } = data;
 
-    for (const chunk of chunkArrayGenerator(accounts, 3)) {
+    for (const chunk of chunkArrayGenerator(accounts, MAX_CONCURRENT_BACKUPS)) {
       await Promise.all(
         chunk.map(async (item) => {
           const { account, backup } = item;
