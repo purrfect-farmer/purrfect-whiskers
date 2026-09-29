@@ -11,7 +11,6 @@ import useSettingsStore from "../store/useSettingsStore";
 export default function useBackupAndRestore() {
   const containerRef = useRef();
   const theme = useSettingsStore((state) => state.theme);
-  const allowProxies = useSettingsStore((state) => state.allowProxies);
   const extensionPath = useSettingsStore((state) => state.extensionPath);
 
   /** Get or Restore Account Backup */
@@ -66,7 +65,7 @@ export default function useBackupAndRestore() {
                 data: getWhiskerData({
                   account,
                   settings: {
-                    allowProxies,
+                    allowProxies: false,
                     theme,
                     userAgent,
                   },
@@ -90,7 +89,7 @@ export default function useBackupAndRestore() {
               configureProxy(partition, {
                 ...data,
                 userAgent,
-                allowProxies,
+                allowProxies: false,
               });
             },
             "response-get-backup-data": handleResponse,
@@ -107,7 +106,7 @@ export default function useBackupAndRestore() {
         /** Initialize */
         initializeWebview();
       }),
-    [theme, allowProxies, extensionPath],
+    [theme, extensionPath],
   );
 
   return {
