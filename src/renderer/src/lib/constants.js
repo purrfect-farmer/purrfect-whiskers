@@ -10,8 +10,10 @@ export const BACKUP_ATTEMPT_INTERVAL = 30_000;
 /** Element holding the hidden webviews used for backups */
 export const WEBVIEWS_CONTAINER_ID = "webviews-container";
 
-/** How long an account flashes after being asked to open */
-export const FLASH_DURATION = 3000;
+/** An account's border blinks this many times after being asked to open */
+export const FLASH_BLINKS = 6;
+export const FLASH_BLINK_DURATION = 160;
+export const FLASH_DURATION = FLASH_BLINKS * FLASH_BLINK_DURATION;
 
 export const THEME = Object.freeze({
   SYSTEM: "system",

@@ -9,36 +9,6 @@
     "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-noto-sans: "Noto Sans";
   --font-turret-road: "Turret Road";
-
-  /* Pulses three times, then fades out */
-  --animate-account-flash: account-flash 3s ease-out forwards;
-  --animate-account-fade: account-fade 3s ease-out forwards;
-
-  @keyframes account-flash {
-    0%,
-    30%,
-    60% {
-      opacity: 1;
-    }
-    15%,
-    45%,
-    75% {
-      opacity: 0.35;
-    }
-    100% {
-      opacity: 0;
-    }
-  }
-
-  @keyframes account-fade {
-    0%,
-    75% {
-      opacity: 1;
-    }
-    100% {
-      opacity: 0;
-    }
-  }
 }
 
 @layer base {
@@ -73,4 +43,36 @@
 /* Override injected styles */
 body {
   @apply font-sans text-xs bg-white dark:bg-neutral-800 dark:text-white;
+}
+
+/* Account flash: blinks on and off; timing comes from the --flash-* variables */
+.account-flash {
+  animation: account-flash var(--flash-blink) step-end var(--flash-blinks)
+    forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-flash {
+    animation: account-fade var(--flash-duration) ease-out forwards;
+  }
+}
+
+@keyframes account-flash {
+  0% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes account-fade {
+  0%,
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
