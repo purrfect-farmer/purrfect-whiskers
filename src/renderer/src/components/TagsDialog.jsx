@@ -1,12 +1,13 @@
-import * as changeCase from "change-case";
 import * as yup from "yup";
 
 import { Controller, useForm } from "react-hook-form";
 import { HiOutlineTrash, HiTag } from "react-icons/hi2";
+import { createTag, isTagIdTaken } from "../lib/tags";
+import { memo, useState } from "react";
 
 import Alert from "./Alert";
 import AppDialogContent from "./AppDialogContent";
-import { Dialog } from "radix-ui";
+import DialogCloseButton from "./DialogCloseButton";
 import Input from "./Input";
 import { LuTags } from "react-icons/lu";
 import { MdAdd } from "react-icons/md";
@@ -15,7 +16,6 @@ import ReorderItem from "./ReorderItem";
 import { cn } from "../lib/utils";
 import toast from "react-hot-toast";
 import useAppStore from "../store/useAppStore";
-import { useState } from "react";
 import { yupResolver } from "@hookform/resolvers/yup";
 
 const schema = yup
@@ -24,35 +24,28 @@ const schema = yup
   })
   .required();
 
-function TagItem({ tag }) {
+const TagItem = memo(function TagItem({ tag }) {
   const [isEditing, setIsEditing] = useState(false);
-  const tags = useAppStore((state) => state.tags);
   const updateTag = useAppStore((state) => state.updateTag);
   const removeTag = useAppStore((state) => state.removeTag);
 
-  const handleUpdateTag = (e) => {
-    e.stopPropagation();
-    e.preventDefault();
+  /** Renames the tag unless the name is empty or already used */
+  const renameTag = (value) => {
+    setIsEditing(false);
 
-    const newName = e.target.value.trim();
-    if (newName === "") {
+    const { id, name } = createTag(value);
+
+    if (name === "") {
       toast.error("Tag name cannot be empty");
-      return;
-    }
-
-    const newId = changeCase.kebabCase(newName);
-    const exists = tags.some((item) => item.id === newId && item.id !== tag.id);
-
-    if (exists) {
+    } else if (isTagIdTaken(useAppStore.getState().tags, id, tag.id)) {
       toast.error("Tag with this name already exists");
-      return;
+    } else if (name !== tag.name) {
+      updateTag(tag.id, name);
     }
-
-    updateTag(tag.id, newName);
   };
 
   return (
-    <ReorderItem key={tag.id} value={tag} disabled={isEditing}>
+    <ReorderItem value={tag} disabled={isEditing}>
       <div className="flex gap-2">
         {isEditing ? (
           <Input
@@ -60,34 +53,32 @@ function TagItem({ tag }) {
             defaultValue={tag.name}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                handleUpdateTag(e);
-                setIsEditing(false);
+                e.preventDefault();
+                renameTag(e.target.value);
               } else if (e.key === "Escape") {
                 setIsEditing(false);
               }
             }}
-            onBlur={(e) => {
-              handleUpdateTag(e);
-              setIsEditing(false);
-            }}
+            onBlur={(e) => isEditing && renameTag(e.target.value)}
           />
         ) : (
-          // Display Tag Name
-          <div
-            onClick={() => setIsEditing((prev) => !prev)}
+          <button
+            type="button"
+            onClick={() => setIsEditing(true)}
             className={cn(
-              "flex items-center gap-2 cursor-pointer",
+              "flex items-center gap-2 text-left",
               "p-2 rounded-xl grow min-w-0",
               "bg-neutral-100 dark:bg-neutral-700",
             )}
           >
-            <HiTag className="size-4 text-orange-500" />
+            <HiTag className="size-4 shrink-0 text-orange-500" />
             <span className="grow min-w-0 truncate">{tag.name}</span>
-          </div>
+          </button>
         )}
 
         {/* Delete Button */}
         <button
+          title="Delete Tag"
           className={cn(
             "bg-neutral-100 dark:bg-neutral-700",
             "hover:bg-red-100 hover:text-red-700",
@@ -102,12 +93,11 @@ function TagItem({ tag }) {
       </div>
     </ReorderItem>
   );
-}
+});
 
 export default function TagsDialog() {
   const tags = useAppStore((state) => state.tags);
   const addTag = useAppStore((state) => state.addTag);
-  const removeTag = useAppStore((state) => state.removeTag);
   const setTags = useAppStore((state) => state.setTags);
 
   const form = useForm({
@@ -118,41 +108,14 @@ export default function TagsDialog() {
   });
 
   const handleAddTag = (data) => {
-    const name = data.name.trim();
-    if (name === "") {
-      toast.error("Tag name cannot be empty");
-      return;
-    }
+    const newTag = createTag(data.name);
 
-    /* Generate new tag object */
-    const newTag = {
-      id: changeCase.kebabCase(name),
-      name,
-    };
-
-    /** Check for duplicates */
-    const exists = tags.some((item) => item.id === newTag.id);
-
-    /** Debugging logs */
-    console.log(
-      "Adding tag:",
-      newTag,
-      "Exists:",
-      exists,
-      "Existing tags:",
-      tags,
-    );
-
-    /** Handle duplicates */
-    if (exists) {
+    if (isTagIdTaken(tags, newTag.id)) {
       toast.error("Tag with this name already exists");
       return;
     }
 
-    /* Add tag to store */
     addTag(newTag);
-
-    /* Reset form */
     form.reset();
   };
 
@@ -163,7 +126,10 @@ export default function TagsDialog() {
       icon={LuTags}
     >
       {/* Add Tag Form */}
-      <form onSubmit={form.handleSubmit(handleAddTag)} className="flex gap-2">
+      <form
+        onSubmit={form.handleSubmit(handleAddTag)}
+        className="flex gap-2 min-w-0"
+      >
         {/* Tag Name Input */}
         <Controller
           control={form.control}
@@ -204,7 +170,7 @@ export default function TagsDialog() {
           {/* Tags List */}
           <Reorder.Group
             values={tags}
-            onReorder={(newOrder) => setTags(newOrder)}
+            onReorder={setTags}
             className="flex flex-col gap-2"
           >
             {tags.map((item) => (
@@ -214,15 +180,7 @@ export default function TagsDialog() {
         </>
       )}
 
-      {/* Close Dialog */}
-      <Dialog.Close
-        className={cn(
-          "px-4 py-2.5 bg-orange-500 text-white rounded-xl",
-          "mt-2 font-bold",
-        )}
-      >
-        Close
-      </Dialog.Close>
+      <DialogCloseButton />
     </AppDialogContent>
   );
 }

@@ -1,18 +1,17 @@
+import ApiKeyInput from "./ApiKeyInput";
 import AppDialogContent from "./AppDialogContent";
-import { Dialog } from "radix-ui";
+import DialogCloseButton from "./DialogCloseButton";
 import { FaSpider } from "react-icons/fa";
 import SpiderAccountsForm from "./SpiderAccountsForm";
 import SpiderBalanceDisplay from "./SpiderBalanceDisplay";
 import SpiderCountries from "./SpiderCountries";
-import SpiderKeyInput from "./SpiderKeyInput";
-import { cn } from "../lib/utils";
+import useAppStore from "../store/useAppStore";
 import { useSpider } from "./SpiderProvider";
 
 export default function SpiderDialog() {
   const { core } = useSpider();
+  const setSpiderApiKey = useAppStore((state) => state.setSpiderApiKey);
   const {
-    enabled,
-    balance,
     balanceQuery,
     spiderApiKey,
     searchTerm,
@@ -20,12 +19,10 @@ export default function SpiderDialog() {
     sortKey,
     setSortKey,
     sortDir,
-    setSortDir,
+    toggleSortDir,
     selectedCountry,
     setSelectedCountry,
     countriesQuery,
-    allCountries,
-    availableCountries,
     filteredCountries,
     selectCountry,
   } = core;
@@ -36,7 +33,24 @@ export default function SpiderDialog() {
       description={"Purchase accounts in bulk from Spider."}
       icon={FaSpider}
     >
-      <SpiderKeyInput />
+      <ApiKeyInput
+        value={spiderApiKey}
+        onSave={setSpiderApiKey}
+        label="Spider API Key"
+      />
+
+      <p className="text-neutral-500 dark:text-neutral-400 text-center">
+        Get your Spider API Key from the{" "}
+        <a
+          href="https://t.me/S_PIDERRBot?start=1147265290"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-orange-500"
+        >
+          Spider Bot
+        </a>
+        .
+      </p>
 
       {spiderApiKey ? (
         <>
@@ -57,20 +71,17 @@ export default function SpiderDialog() {
                   sortKey={sortKey}
                   setSortKey={setSortKey}
                   sortDir={sortDir}
-                  setSortDir={setSortDir}
+                  toggleSortDir={toggleSortDir}
                 />
               ) : countriesQuery.isPending ? (
                 <p className="text-center">Loading countries...</p>
+              ) : countriesQuery.isError ? (
+                <p className="text-center text-red-500">
+                  Failed to load countries.
+                </p>
               ) : null}
-              {/* Close Dialog */}
-              <Dialog.Close
-                className={cn(
-                  "px-4 py-2.5 text-orange-500 border border-orange-500 rounded-xl",
-                  "font-bold",
-                )}
-              >
-                Close
-              </Dialog.Close>
+
+              <DialogCloseButton variant="outline" />
             </>
           )}
         </>

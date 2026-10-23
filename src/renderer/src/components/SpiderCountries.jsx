@@ -1,4 +1,5 @@
 import { FaSortAmountDown, FaSortAmountUp } from "react-icons/fa";
+import { SORT_DIR, SORT_KEY } from "../hooks/useSpiderCore";
 
 import { cn } from "../lib/utils";
 import IconButton from "./IconButton";
@@ -13,10 +14,9 @@ export default function SpiderCountries({
   sortKey,
   setSortKey,
   sortDir,
-  setSortDir,
+  toggleSortDir,
 }) {
-  const toggleSortDir = () =>
-    setSortDir((dir) => (dir === "asc" ? "desc" : "asc"));
+  const ascending = sortDir === SORT_DIR.ASC;
 
   return (
     <div className="flex flex-col gap-2">
@@ -28,39 +28,40 @@ export default function SpiderCountries({
         onChange={(e) => setSearchTerm(e.target.value)}
       />
       <div className="flex items-center gap-2">
-        <Select
-          value={sortKey}
-          onChange={(e) => setSortKey(e.target.value)}
-        >
-          <option value="name">Sort by Name</option>
-          <option value="price">Sort by Price</option>
+        <Select value={sortKey} onChange={(e) => setSortKey(e.target.value)}>
+          <option value={SORT_KEY.NAME}>Sort by Name</option>
+          <option value={SORT_KEY.PRICE}>Sort by Price</option>
         </Select>
         <IconButton
           onClick={toggleSortDir}
-          title={sortDir === "asc" ? "Ascending" : "Descending"}
+          title={ascending ? "Ascending" : "Descending"}
         >
-          {sortDir === "asc" ? <FaSortAmountUp /> : <FaSortAmountDown />}
+          {ascending ? <FaSortAmountUp /> : <FaSortAmountDown />}
         </IconButton>
       </div>
       <div className="max-h-96 overflow-auto -mx-2 p-2">
         <div className="flex flex-col gap-2">
-          {filteredCountries.map((item, index) => (
+          {filteredCountries.map((item) => (
             <button
-              key={index}
+              key={`${item.group}-${item.code}`}
               onClick={() => selectCountry(item)}
               className={cn(
                 "flex items-center gap-2",
                 "p-2.5 text-left rounded-xl",
                 "bg-neutral-100 dark:bg-neutral-700",
-                "hover:bg-neutral-200 dark:hover:bg-neutral-600"
+                "hover:bg-neutral-200 dark:hover:bg-neutral-600",
               )}
             >
-              <span>{item.emoji}</span>
-              <span className="flex-1 font-bold truncate">{item.name}</span>
-              <span className="text-xs text-neutral-500 dark:text-neutral-400">
+              <span className="shrink-0">{item.emoji}</span>
+              <span className="flex-1 min-w-0 font-bold truncate">
+                {item.name}
+              </span>
+              <span className="shrink-0 text-xs text-neutral-500 dark:text-neutral-400">
                 {item.quantity} left
               </span>
-              <span className="font-bold text-orange-500">${item.price}</span>
+              <span className="shrink-0 font-bold text-orange-500">
+                ${item.price}
+              </span>
             </button>
           ))}
         </div>

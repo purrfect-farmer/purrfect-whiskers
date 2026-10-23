@@ -1,8 +1,11 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, useMemo } from "react";
 
 const AppContext = createContext();
 
-export function AppProvider({ value, children }) {
+/** Shares the visible page with the webviews */
+export function AppProvider({ currentPage, children }) {
+  const value = useMemo(() => ({ currentPage }), [currentPage]);
+
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 

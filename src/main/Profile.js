@@ -1,12 +1,26 @@
+import { WEBVIEW_ACTION, WEBVIEW_CHANNEL } from "../shared/constants/ipc";
 import { app, session } from "electron";
+import {
+  clearSessionRules,
+  clearUserAgent,
+  registerWebRequest,
+  setUserAgent,
+} from "./libs/webRequest";
 import { join, resolve } from "path";
-import { registerWebRequest, setUserAgent } from "./libs/webRequest";
 
 import { buildChromeContextMenu } from "electron-chrome-context-menu";
+import { buildTelegramUserAgent } from "../shared/lib/ua";
 import isEqual from "fast-deep-equal";
 
 /** Path to Preload File */
 const PRELOAD_FILE = join(__dirname, "../preload/index.js");
+
+/** Window dispositions opened as a tab in the account's browser */
+const TAB_DISPOSITIONS = new Set([
+  "default",
+  "foreground-tab",
+  "background-tab",
+]);
 
 /** Profile Class */
 class Profile {
@@ -16,37 +30,30 @@ class Profile {
   /** @type {Electron.Session} */
   session = null;
 
-  /** @type {Promise<void>} */
-  readyPromise = null;
-
   /** @type {{proxyHost: string, proxyPort?: number, proxyUsername?: string, proxyPassword?: string}|null} */
   proxyOptions = null;
+
+  /**
+   * User-Agent used while the account has none, kept for the app's run
+   * @type {string|null}
+   */
+  fallbackUserAgent = null;
 
   /** @param {string} partition */
   constructor(partition) {
     this.partition = partition;
     this.session = session.fromPartition(this.partition);
-
-    this.handleLogin = this.handleLogin.bind(this);
-    this.handleWebContentsCreated = this.handleWebContentsCreated.bind(this);
   }
 
   /** Destroy Profile */
   async destroy() {
-    app.off("login", this.handleLogin);
-    app.off("web-contents-created", this.handleWebContentsCreated);
-
-    /** Unregister Preload Scripts */
-    this.session.getPreloadScripts().then((scripts) => {
-      scripts.forEach((script) => {
-        this.session.unregisterPreloadScript(script.id);
-      });
-    });
-
     /* Remove Extensions */
     this.session.extensions.getAllExtensions().forEach((extension) => {
       this.session.extensions.removeExtension(extension.id);
     });
+
+    clearSessionRules(this.session);
+    clearUserAgent(this.session);
 
     /** Clear Proxy */
     await this.session.setProxy({ proxyRules: "" });
@@ -55,35 +62,22 @@ class Profile {
     await this.session.closeAllConnections();
   }
 
-  /** Initialize Profile */
-  initialize() {
-    if (!this.readyPromise) {
-      this.readyPromise = this.configure();
+  /** Get the account's User-Agent, or the generated fallback */
+  resolveUserAgent(userAgent) {
+    if (userAgent) return userAgent;
+
+    if (!this.fallbackUserAgent) {
+      this.fallbackUserAgent = buildTelegramUserAgent(
+        app.userAgentFallback,
+        app.name,
+      );
     }
 
-    return this.readyPromise;
-  }
-
-  /** Setup Preload Script */
-  setupPreload() {
-    this.session.getPreloadScripts().then((scripts) => {
-      if (scripts.length === 0) {
-        this.registerPreload();
-      }
-    });
-  }
-
-  /** Register Preload Script */
-  registerPreload() {
-    this.session.registerPreloadScript({
-      filePath: PRELOAD_FILE,
-      type: "frame",
-      id: "preload-script",
-    });
+    return this.fallbackUserAgent;
   }
 
   /** Configure Proxy */
-  async configureProxy(options) {
+  async configureProxy(options = {}) {
     try {
       if (options.allowProxies && options.proxyEnabled && options.proxyHost) {
         if (!this.proxyOptions || !isEqual(this.proxyOptions, options)) {
@@ -115,26 +109,20 @@ class Profile {
     await this.session.closeAllConnections();
 
     /** Set User Agent */
-    setUserAgent(this.session, options.userAgent);
+    setUserAgent(this.session, this.resolveUserAgent(options.userAgent));
 
     /** Configure Web Request */
     registerWebRequest(this.session);
   }
 
   /**
-   * Handle Login
+   * Answers proxy authentication with the stored credentials
    * @param {Electron.Event} event
-   * @param {Electron.WebContents} webContents
-   * @param {Electron.AuthenticationResponseDetails} request
    * @param {Electron.AuthInfo} authInfo
    * @param {(username?: string, password?: string) => void} callback
    */
-  handleLogin(event, webContents, request, authInfo, callback) {
-    if (
-      webContents.session === this.session &&
-      authInfo.isProxy &&
-      this.proxyOptions !== null
-    ) {
+  handleLogin(event, authInfo, callback) {
+    if (authInfo.isProxy && this.proxyOptions !== null) {
       const { proxyUsername, proxyPassword } = this.proxyOptions;
 
       event.preventDefault();
@@ -143,18 +131,20 @@ class Profile {
   }
 
   /**
-   * Handle WebContents Created
-   * @param {object} _event
+   * Sets up the context menu and window handling of the profile's contents
    * @param {Electron.WebContents} contents
    */
-  handleWebContentsCreated(_event, contents) {
-    if (contents.session !== this.session) return;
-
-    /* Function to open link in new window */
+  handleWebContentsCreated(contents) {
+    /* Opens a link as a tab in the account's browser */
     const openLink = (data) => {
-      contents.hostWebContents.send("browser-message", {
+      if (!contents.hostWebContents) {
+        console.warn("No hostWebContents to open link in");
+        return;
+      }
+
+      contents.hostWebContents.send(WEBVIEW_CHANNEL.BROWSER_MESSAGE, {
         id: this.partition,
-        action: "open-window",
+        action: WEBVIEW_ACTION.OPEN_WINDOW,
         data,
       });
     };
@@ -172,38 +162,18 @@ class Profile {
 
     /* Override window handler */
     contents.setWindowOpenHandler((details) => {
-      if (
-        ["default", "foreground-tab", "background-tab"].includes(
-          details.disposition,
-        )
-      ) {
-        if (contents.hostWebContents) {
-          openLink(details);
-        } else {
-          console.warn("No hostWebContents to send browser-message");
-        }
+      if (TAB_DISPOSITIONS.has(details.disposition)) {
+        openLink(details);
         return { action: "deny" };
-      } else {
-        return {
-          action: "allow",
-          overrideBrowserWindowOptions: {
-            autoHideMenuBar: true,
-          },
-        };
       }
+
+      return {
+        action: "allow",
+        overrideBrowserWindowOptions: {
+          autoHideMenuBar: true,
+        },
+      };
     });
-  }
-
-  /** Setup event listeners */
-  setupEventListeners() {
-    app.on("login", this.handleLogin);
-    app.on("web-contents-created", this.handleWebContentsCreated);
-  }
-
-  /** Configure Profile */
-  async configure() {
-    /** Setup event listeners */
-    this.setupEventListeners();
   }
 
   /** Get Extension */

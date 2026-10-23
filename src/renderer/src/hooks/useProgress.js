@@ -11,7 +11,7 @@ const useProgress = () => {
 
   const incrementProgress = useCallback(
     () => setProgress((prev) => prev + 1),
-    []
+    [],
   );
 
   return {

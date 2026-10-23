@@ -22,53 +22,53 @@ export default function useWebviewControls() {
         callback(webview);
       }
     },
-    [isReady]
+    [isReady],
   );
 
   /** Go Back */
   const goBack = useCallback(
     () => callWebviewMethod((webview) => webview.goBack()),
-    [callWebviewMethod]
+    [callWebviewMethod],
   );
 
   /** Go Forward */
   const goForward = useCallback(
     () => callWebviewMethod((webview) => webview.goForward()),
-    [callWebviewMethod]
+    [callWebviewMethod],
   );
 
   /** Stop Webview */
   const stop = useCallback(
     () => callWebviewMethod((webview) => webview.stop()),
-    [callWebviewMethod]
+    [callWebviewMethod],
   );
 
   /** Reload Webview */
   const reload = useCallback(
     () => callWebviewMethod((webview) => webview.reload()),
-    [callWebviewMethod]
+    [callWebviewMethod],
   );
 
-  /** Setup Webview */
+  /** Track Ready and Loading State */
   useEffect(() => {
     const webview = ref.current;
-    if (webview) {
-      /** DOM Ready */
-      webview.addEventListener("dom-ready", () => {
-        setIsReady(true);
-      });
 
-      /** Start Loading */
-      webview.addEventListener("did-start-loading", (ev) => {
-        setIsLoading(true);
-      });
+    if (!webview) return;
 
-      /** Stop Loading */
-      webview.addEventListener("did-stop-loading", (ev) => {
-        setIsLoading(false);
-      });
-    }
-  }, [setIsReady, setIsLoading]);
+    const handleDomReady = () => setIsReady(true);
+    const handleStartLoading = () => setIsLoading(true);
+    const handleStopLoading = () => setIsLoading(false);
+
+    webview.addEventListener("dom-ready", handleDomReady);
+    webview.addEventListener("did-start-loading", handleStartLoading);
+    webview.addEventListener("did-stop-loading", handleStopLoading);
+
+    return () => {
+      webview.removeEventListener("dom-ready", handleDomReady);
+      webview.removeEventListener("did-start-loading", handleStartLoading);
+      webview.removeEventListener("did-stop-loading", handleStopLoading);
+    };
+  }, []);
 
   return {
     ref,

@@ -1,16 +1,28 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
+/** Selection over a list of accounts, starting with all of them selected */
 export default function useAccountsSelector(accounts) {
-  const [selectedAccounts, setSelectedAccounts] = useState(accounts);
+  const [selected, setSelected] = useState(
+    () => new Set(accounts.map((item) => item.partition)),
+  );
 
-  const toggleAccount = useCallback((account, checked) => {
-    if (checked) {
-      setSelectedAccounts((prev) => [...prev, account]);
-    } else {
-      setSelectedAccounts((prev) =>
-        prev.filter((item) => item.partition !== account.partition),
-      );
-    }
+  const selectedAccounts = useMemo(
+    () => accounts.filter((item) => selected.has(item.partition)),
+    [accounts, selected],
+  );
+
+  const toggleAccount = useCallback((partition, checked) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+
+      if (checked) {
+        next.add(partition);
+      } else {
+        next.delete(partition);
+      }
+
+      return next;
+    });
   }, []);
 
   /**
@@ -19,13 +31,18 @@ export default function useAccountsSelector(accounts) {
    */
   const toggleAllAccounts = useCallback(
     (checked, subset = accounts) => {
-      setSelectedAccounts((prev) => {
-        const affected = new Set(subset.map((item) => item.partition));
-        const selected = new Set(prev.map((item) => item.partition));
+      setSelected((prev) => {
+        const next = new Set(prev);
 
-        return accounts.filter((item) =>
-          affected.has(item.partition) ? checked : selected.has(item.partition),
-        );
+        for (const item of subset) {
+          if (checked) {
+            next.add(item.partition);
+          } else {
+            next.delete(item.partition);
+          }
+        }
+
+        return next;
       });
     },
     [accounts],
@@ -33,8 +50,8 @@ export default function useAccountsSelector(accounts) {
 
   return {
     accounts,
+    selected,
     selectedAccounts,
-    setSelectedAccounts,
     toggleAccount,
     toggleAllAccounts,
   };

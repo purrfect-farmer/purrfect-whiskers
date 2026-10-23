@@ -1,9 +1,36 @@
+import { LAUNCH_ERROR, PROXY_PROVIDER } from "../lib/constants";
 import { combine, createJSONStorage, persist } from "zustand/middleware";
 
 import { create } from "zustand";
 import { getTelegramUser } from "../lib/utils";
 import { storage } from "./storage";
+import useFlashStore from "./useFlashStore";
 import useSettingsStore from "./useSettingsStore";
+
+/** Number of webviews shown per page */
+const getItemsPerPage = () => {
+  const { columns, rows } = useSettingsStore.getState();
+  return columns * rows;
+};
+
+/**
+ * Sets `running` on the accounts in `partitions`, or on all with `null`.
+ * Returns the same array when nothing changes.
+ */
+const setRunning = (accounts, partitions, running) => {
+  let changed = false;
+
+  const next = accounts.map((item) => {
+    const matches = partitions === null || partitions.has(item.partition);
+
+    if (!matches || Boolean(item.running) === running) return item;
+
+    changed = true;
+    return { ...item, running };
+  });
+
+  return changed ? next : accounts;
+};
 
 export default create(
   persist(
@@ -13,7 +40,7 @@ export default create(
         accounts: [],
         tags: [],
         spiderApiKey: null,
-        proxyProvider: "webshare",
+        proxyProvider: PROXY_PROVIDER.WEBSHARE,
         proxyApiKey: null,
         proxies: [],
       },
@@ -56,12 +83,14 @@ export default create(
         addAccount: (data) => set({ accounts: [...get().accounts, data] }),
         importAccounts: (data) => {
           const existing = get().accounts;
-          const filtered = data.filter(
-            (item) =>
-              !existing.some((account) => account.partition === item.partition),
-          );
+          const partitions = new Set(existing.map((item) => item.partition));
 
-          return set({ accounts: [...existing, ...filtered] });
+          return set({
+            accounts: [
+              ...existing,
+              ...data.filter((item) => !partitions.has(item.partition)),
+            ],
+          });
         },
         setAccounts: (accounts) => set({ accounts }),
 
@@ -100,63 +129,46 @@ export default create(
 
         closeAccount: (partition) =>
           set({
-            accounts: get().accounts.map((item) =>
-              item.partition === partition ? { ...item, running: false } : item,
-            ),
+            accounts: setRunning(get().accounts, new Set([partition]), false),
           }),
 
         closeAllAccounts: () =>
-          set({
-            accounts: get().accounts.map((item) => ({
-              ...item,
-              running: false,
-            })),
-          }),
+          set({ accounts: setRunning(get().accounts, null, false) }),
 
         closePage: (pageIndex) => {
           const { accounts } = get();
-          const { columns, rows } = useSettingsStore.getState();
-          const itemsPerPage = columns * rows;
+          const itemsPerPage = getItemsPerPage();
 
-          const partitions = accounts
-            .filter((item) => item.running)
-            .filter(
-              (_, index) => pageIndex === Math.floor(index / itemsPerPage),
-            )
-            .map((item) => item.partition);
-
-          set({
-            accounts: accounts.map((item) =>
-              partitions.includes(item.partition)
-                ? { ...item, running: false }
-                : item,
-            ),
-          });
-        },
-
-        launchAccount: (partition) => {
-          const { accounts } = get();
-          const { columns, rows } = useSettingsStore.getState();
-          const itemsPerPage = columns * rows;
-
-          const isRunning = accounts.some(
-            (item) => item.partition === partition && item.running,
+          const partitions = new Set(
+            accounts
+              .filter((item) => item.running)
+              .slice(pageIndex * itemsPerPage, (pageIndex + 1) * itemsPerPage)
+              .map((item) => item.partition),
           );
 
-          const newAccounts = isRunning
-            ? accounts
-            : accounts.map((item) =>
-                item.partition === partition
-                  ? { ...item, running: true }
-                  : item,
-              );
+          set({ accounts: setRunning(accounts, partitions, false) });
+        },
 
-          const index = newAccounts
+        /** Opens an account, shows its page and flashes it */
+        launchAccount: (partition) => {
+          const accounts = setRunning(
+            get().accounts,
+            new Set([partition]),
+            true,
+          );
+
+          const index = accounts
             .filter((item) => item.running)
             .findIndex((item) => item.partition === partition);
-          const pageIndex = Math.floor(index / itemsPerPage);
 
-          set({ accounts: newAccounts, page: pageIndex });
+          if (index < 0) return;
+
+          set({
+            accounts,
+            page: Math.floor(index / getItemsPerPage()),
+          });
+
+          useFlashStore.getState().flash(partition);
         },
 
         /** Launch an account by partition or telegram user id */
@@ -167,7 +179,7 @@ export default create(
           const userId = String(telegramUserId ?? "").trim();
 
           if (!partition && !userId) {
-            return { success: false, error: "INVALID_REQUEST" };
+            return { success: false, error: LAUNCH_ERROR.INVALID_REQUEST };
           }
 
           const account = partition
@@ -178,7 +190,7 @@ export default create(
               });
 
           if (!account) {
-            return { success: false, error: "ACCOUNT_NOT_FOUND" };
+            return { success: false, error: LAUNCH_ERROR.ACCOUNT_NOT_FOUND };
           }
 
           get().launchAccount(account.partition);
@@ -191,10 +203,14 @@ export default create(
         removeTag: (id) =>
           set({
             tags: get().tags.filter((item) => item.id !== id),
-            accounts: get().accounts.map((account) => ({
-              ...account,
-              tags: account.tags?.filter?.((tagId) => tagId !== id),
-            })),
+            accounts: get().accounts.map((account) =>
+              account.tags?.includes(id)
+                ? {
+                    ...account,
+                    tags: account.tags.filter((tagId) => tagId !== id),
+                  }
+                : account,
+            ),
           }),
         updateTag: (id, name) =>
           set({

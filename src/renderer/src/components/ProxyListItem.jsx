@@ -5,17 +5,13 @@ import {
   HiOutlineGlobeAlt,
   HiOutlineSquare2Stack,
 } from "react-icons/hi2";
-import {
-  copyText,
-  formatDateTime,
-  getCountry,
-  getProxyUrl,
-} from "../lib/proxy/utils";
+import { cn, copyText } from "../lib/utils";
+import { formatDateTime, getProxyUrl } from "../lib/proxy/utils";
 import { memo, useState } from "react";
 
 import { Collapsible } from "radix-ui";
 import ProxyDetail from "./ProxyDetail";
-import { cn } from "../lib/utils";
+import { getCountry } from "../lib/countries";
 
 export default memo(function ProxyListItem({
   proxy,

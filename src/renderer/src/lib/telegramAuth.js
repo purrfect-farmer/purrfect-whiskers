@@ -1,0 +1,292 @@
+import { Api, TelegramClient } from "telegram";
+import { MemorySession, StringSession } from "telegram/sessions";
+
+import { NewMessage } from "telegram/events";
+import { SPIDER_LOGIN_METHOD } from "./constants";
+
+/** Telegram Web-K API credentials */
+const TELEGRAM_API_ID = 2496;
+const TELEGRAM_API_HASH = "8da85b0d5bfe62527e5b244c209159c3";
+const TELEGRAM_API_CREDENTIALS = {
+  apiId: TELEGRAM_API_ID,
+  apiHash: TELEGRAM_API_HASH,
+};
+
+/** Sender of Telegram's login code messages */
+const TELEGRAM_SERVICE_USER_ID = 777000;
+const LOGIN_CODE_REGEX = /(\d{5})/;
+const LOGIN_CODE_POLL_INTERVAL = 5000;
+const LOGIN_CODE_MAX_POLLS = 10;
+
+/** Create Telegram Client */
+function createTelegramClient(session) {
+  return new TelegramClient(session, TELEGRAM_API_ID, TELEGRAM_API_HASH, {
+    appVersion: "2.2 K",
+    systemLangCode: "en-US",
+    langCode: "en",
+    deviceModel:
+      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.7977.54 Safari/537.36",
+    systemVersion: "Linux x86_64",
+  });
+}
+
+/** Destroys a client, logging instead of throwing */
+export async function destroyClient(client) {
+  try {
+    await client.destroy();
+  } catch (error) {
+    console.error("Error destroying Telegram client:", error);
+  }
+}
+
+/**
+ * Runs the client's login flow and stops it at the first error,
+ * rethrowing that error.
+ */
+async function startClient(client, params) {
+  let authError = null;
+
+  try {
+    await client.start({
+      ...params,
+      onError: async (error) => {
+        authError = error;
+        return true;
+      },
+    });
+  } catch (error) {
+    throw authError ?? error;
+  }
+}
+
+/** Polls `readCode` until it returns a code, or rejects on timeout */
+function waitForLoginCode(readCode) {
+  return new Promise((resolve, reject) => {
+    let polls = 0;
+
+    const check = () => {
+      const code = readCode();
+
+      if (code) {
+        clearInterval(interval);
+        resolve(code);
+      } else if (polls >= LOGIN_CODE_MAX_POLLS) {
+        clearInterval(interval);
+        reject(new Error("Auth code timeout"));
+      }
+
+      polls += 1;
+    };
+
+    const interval = setInterval(check, LOGIN_CODE_POLL_INTERVAL);
+    check();
+  });
+}
+
+/**
+ * Logs in with the code Spider receives for the account.
+ * Resolves with the authorized client, which the caller destroys.
+ * @param {{account: object, twoFA: string, getCode: (hashCode: string) => Promise<object>}} params
+ */
+export async function loginWithSpider({ account, twoFA, getCode }) {
+  const client = createTelegramClient(new MemorySession());
+
+  let authResult = null;
+  let used2FA = false;
+
+  try {
+    await startClient(client, {
+      phoneNumber: async () => account["phone"],
+      phoneCode: async () => {
+        authResult = await getCode(account["hash_code"]);
+        return authResult["code"];
+      },
+      password: async () => {
+        used2FA = true;
+        return authResult["password"];
+      },
+    });
+
+    const authKey = client.session.authKey.getKey().toString("hex");
+    const dcId = client.session.dcId;
+    const user = await client.getMe();
+
+    console.log("Logged in as", user.username || user.firstName);
+
+    if (twoFA || used2FA) {
+      await client.updateTwoFaSettings({
+        currentPassword: used2FA ? authResult["password"] : undefined,
+        newPassword: twoFA || undefined,
+        email: "",
+        hint: "",
+      });
+    }
+
+    return { account, authResult, used2FA, user, client, authKey, dcId };
+  } catch (error) {
+    await destroyClient(client);
+    throw error;
+  }
+}
+
+/**
+ * Logs in a new local client with the login code Telegram sends to the
+ * already-authorized client.
+ */
+async function getLocalSessionViaLoginCode({ telegram, account, twoFA }) {
+  const client = createTelegramClient(new StringSession());
+  const codeFilter = new NewMessage({ fromUsers: [TELEGRAM_SERVICE_USER_ID] });
+
+  let loginCode = null;
+  let used2FA = false;
+
+  /** @param {import("telegram/events").NewMessageEvent} event */
+  const handleMessage = (event) => {
+    const match = (event.message?.message || "").match(LOGIN_CODE_REGEX);
+
+    if (match) loginCode = match[1];
+  };
+
+  telegram.client.addEventHandler(handleMessage, codeFilter);
+
+  try {
+    await startClient(client, {
+      phoneNumber: async () => account["phone"],
+      phoneCode: () => waitForLoginCode(() => loginCode),
+      password: async () => {
+        used2FA = true;
+        return twoFA;
+      },
+    });
+
+    return { account, used2FA, session: client.session.save() };
+  } finally {
+    telegram.client.removeEventHandler(handleMessage, codeFilter);
+    await destroyClient(client);
+  }
+}
+
+/** Export Login Token */
+function exportLoginToken(client) {
+  return client.invoke(
+    new Api.auth.ExportLoginToken({
+      ...TELEGRAM_API_CREDENTIALS,
+      exceptIds: [],
+    }),
+  );
+}
+
+/**
+ * Logs in a new local client by exported login token.
+ *
+ * This is the QR-login handshake: the new client exports a login token,
+ * the already-authorized client accepts it, and the new client re-exports
+ * to receive its own authorization. No second login code is requested.
+ */
+async function getLocalSessionViaLoginToken({ telegram, account, twoFA }) {
+  const client = createTelegramClient(new StringSession());
+  let used2FA = false;
+
+  try {
+    try {
+      /* Connect Without Authenticating */
+      await client.connect();
+
+      const exported = await exportLoginToken(client);
+
+      if (!(exported instanceof Api.auth.LoginToken)) {
+        throw new Error(
+          "Unexpected result while exporting login token: " +
+            exported.className,
+        );
+      }
+
+      /* Accept the Token on the Already-Authorized Client */
+      await telegram.client.invoke(
+        new Api.auth.AcceptLoginToken({ token: exported.token }),
+      );
+
+      /* Re-Export to Collect the Authorization */
+      let result = await exportLoginToken(client);
+
+      /* Follow the Token to Its Home DC */
+      if (result instanceof Api.auth.LoginTokenMigrateTo) {
+        await client._switchDC(result.dcId);
+        result = await client.invoke(
+          new Api.auth.ImportLoginToken({ token: result.token }),
+        );
+      }
+
+      if (!(result instanceof Api.auth.LoginTokenSuccess)) {
+        throw new Error(
+          "Unexpected result while importing login token: " + result.className,
+        );
+      }
+    } catch (error) {
+      if (error.errorMessage !== "SESSION_PASSWORD_NEEDED") throw error;
+
+      used2FA = true;
+
+      /**
+       * Prefer the password just rotated to in `loginWithSpider`,
+       * and fall back to the one Spider supplied.
+       */
+      const password = twoFA || telegram.authResult?.["password"];
+
+      await client.signInWithPassword(TELEGRAM_API_CREDENTIALS, {
+        password: async () => password,
+        onError: (err) => {
+          throw err;
+        },
+      });
+    }
+
+    return { account, used2FA, session: client.session.save() };
+  } finally {
+    await destroyClient(client);
+  }
+}
+
+/**
+ * Get Local Telegram Session
+ *
+ * `method` picks the login strategy:
+ * - TOKEN - exported login token only
+ * - CODE  - login code only
+ * - AUTO  - token first, falling back to the login code (default)
+ */
+export async function getLocalTelegramSession({
+  telegram,
+  account,
+  twoFA,
+  method = SPIDER_LOGIN_METHOD.AUTO,
+}) {
+  const params = { telegram, account, twoFA };
+
+  if (method === SPIDER_LOGIN_METHOD.CODE) {
+    return getLocalSessionViaLoginCode(params);
+  }
+
+  try {
+    return await getLocalSessionViaLoginToken(params);
+  } catch (error) {
+    if (method === SPIDER_LOGIN_METHOD.TOKEN) throw error;
+
+    console.warn("Login token failed, falling back to the login code:", error);
+
+    return getLocalSessionViaLoginCode(params);
+  }
+}
+
+/** Telegram Web-K local storage that signs the account in */
+export function buildTelegramWebLocalStorage({ dcId, authKey, user }) {
+  const account = {
+    ["dcId"]: dcId,
+    [`dc${dcId}_auth_key`]: authKey,
+    ["dc2_auth_key"]: authKey /* Patch for Web-K */,
+    ["userId"]: user.id.toString(),
+    ["auth_key_fingerprint"]: authKey.slice(0, 8),
+  };
+
+  return { ["account1"]: JSON.stringify(account) };
+}

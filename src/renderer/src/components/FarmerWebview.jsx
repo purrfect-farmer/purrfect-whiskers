@@ -4,19 +4,24 @@ import {
   HiOutlineArrowRight,
   HiOutlineXMark,
 } from "react-icons/hi2";
-import { getWhiskerData, registerWebviewMessage } from "../lib/partitions";
-import { memo, useEffect } from "react";
+import {
+  getWhiskerData,
+  loadAccountWebview,
+  registerWebviewMessage,
+  sendHostMessage,
+} from "../lib/partitions";
+import { memo, useEffect, useEffectEvent, useMemo } from "react";
 
 import { BsPinAngle } from "react-icons/bs";
 import { RiPushpin2Fill } from "react-icons/ri";
+import { WEBVIEW_ACTION } from "../../../shared/constants/ipc";
 import WebviewButton from "./WebviewButton";
 import { cn } from "../lib/utils";
 import useAppStore from "../store/useAppStore";
-import useRefCallback from "../hooks/useRefCallback";
 import useSettingsStore from "../store/useSettingsStore";
 import useWebviewControls from "../hooks/useWebviewControls";
 
-export default memo(function ({ browser, account, pinned, togglePinned }) {
+export default memo(function FarmerWebview({ account, pinned, togglePinned }) {
   const updateAccount = useAppStore((state) => state.updateAccount);
   const launchAccountByRequest = useAppStore(
     (state) => state.launchAccountByRequest,
@@ -28,111 +33,71 @@ export default memo(function ({ browser, account, pinned, togglePinned }) {
     (state) => state.showWebviewToolbar,
   );
   const { partition } = account;
-  const {
-    ref,
-    isReady,
-    isLoading,
-    goBack,
-    goForward,
-    reload,
-    stop,
-    callWebviewMethod,
-  } = useWebviewControls();
+  const { ref, isLoading, goBack, goForward, reload, stop, callWebviewMethod } =
+    useWebviewControls();
 
-  /** Get Current Whisker Data */
-  const getCurrentWhiskerData = useRefCallback(
-    () =>
-      getWhiskerData({
-        account,
-        settings: {
-          allowProxies,
-          theme,
-        },
-      }),
+  /** Current Whisker Data */
+  const whiskerData = useMemo(
+    () => getWhiskerData({ account, settings: { allowProxies, theme } }),
     [account, allowProxies, theme],
   );
 
   /** Send Whisker Data */
-  const sendWhiskerData = useRefCallback(() => {
+  const sendWhiskerData = useEffectEvent(() => {
     callWebviewMethod((webview) =>
-      webview.send("host-message", {
-        action: "set-whisker-data",
-        data: getCurrentWhiskerData(),
+      sendHostMessage(webview, {
+        action: WEBVIEW_ACTION.SET_WHISKER_DATA,
+        data: whiskerData,
       }),
     );
-  }, [getCurrentWhiskerData, callWebviewMethod]);
+  });
 
-  /** Update Proxy */
-  const updateProxy = useRefCallback(
-    (data) => {
-      updateAccount({
-        ...account,
-        ...data,
-      });
-    },
-    [account, updateAccount],
-  );
-
-  /** Update Telegram InitData */
-  const updateTelegramInitData = useRefCallback(
-    (data) => {
-      updateAccount({
-        ...account,
-        ...data,
-      });
-    },
-    [account, updateAccount],
-  );
+  /** Merges data sent by the webview into the account */
+  const mergeAccountData = useEffectEvent((data) => {
+    updateAccount({ ...data, partition });
+  });
 
   /** Launch Account */
-  const launchAccount = useRefCallback(
-    (data, reply) =>
-      reply({
-        action: "response-launch-account",
-        data: launchAccountByRequest(
-          data && typeof data === "object" ? data : null,
-        ),
-      }),
-    [launchAccountByRequest],
-  );
+  const launchAccount = useEffectEvent((data, reply) => {
+    reply({
+      action: WEBVIEW_ACTION.RESPONSE_LAUNCH_ACCOUNT,
+      data: launchAccountByRequest(
+        data && typeof data === "object" ? data : null,
+      ),
+    });
+  });
 
   /** Setup Webview */
   useEffect(() => {
-    const webview = ref.current;
+    const controller = new AbortController();
 
-    window.electron.ipcRenderer
-      .invoke("setup-session", {
-        partition,
-        extensionPath,
-      })
-      .then(({ extension, preload }) => {
-        webview.preload = preload;
-        webview.src = extension
-          ? extension.url + "index.html"
-          : import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
-      })
-      .catch(() => {
-        webview.src = import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
-      });
-  }, [partition, extensionPath]);
+    loadAccountWebview(
+      ref.current,
+      { partition, extensionPath },
+      controller.signal,
+    );
+
+    return () => controller.abort();
+  }, [ref, partition, extensionPath]);
 
   /** Register Core Events */
-  useEffect(() => {
-    const webview = ref.current;
-
-    /** IPC Message */
-    registerWebviewMessage(webview, {
-      "get-whisker-data": () => sendWhiskerData(),
-      "set-proxy": (data) => updateProxy(data),
-      "set-telegram-init-data": (data) => updateTelegramInitData(data),
-      "launch-account": (data, reply) => launchAccount(data, reply),
-    });
-  }, [updateProxy, updateTelegramInitData, sendWhiskerData, launchAccount]);
+  useEffect(
+    () =>
+      registerWebviewMessage(ref.current, {
+        [WEBVIEW_ACTION.GET_WHISKER_DATA]: () => sendWhiskerData(),
+        [WEBVIEW_ACTION.SET_PROXY]: (data) => mergeAccountData(data),
+        [WEBVIEW_ACTION.SET_TELEGRAM_INIT_DATA]: (data) =>
+          mergeAccountData(data),
+        [WEBVIEW_ACTION.LAUNCH_ACCOUNT]: (data, reply) =>
+          launchAccount(data, reply),
+      }),
+    [ref],
+  );
 
   /** Send Whisker Data */
   useEffect(() => {
     sendWhiskerData();
-  }, [account, allowProxies, theme]);
+  }, [whiskerData]);
 
   return (
     <div

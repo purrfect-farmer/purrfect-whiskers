@@ -16,9 +16,6 @@ import { useSpider } from "./SpiderProvider";
 export default function SpiderAccountsForm({ country, clearSelection }) {
   const { form } = useSpider();
   const {
-    /** Container ref */
-    containerRef,
-
     /** Count */
     count,
     setCount,
@@ -68,9 +65,6 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
 
   return (
     <>
-      {/* Webview Containers */}
-      <div ref={containerRef}></div>
-
       {/* Country Information */}
       <h2 className="text-lg flex justify-center items-center gap-2 text-orange-500 font-bold">
         <span>{country.emoji}</span>
@@ -122,6 +116,7 @@ export default function SpiderAccountsForm({ country, clearSelection }) {
           min={1}
           max={3}
           value={[batch]}
+          disabled={mutation.isPending}
           onValueChange={(value) => setBatch(value[0])}
         />
       </div>

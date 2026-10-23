@@ -1,4 +1,3 @@
-import semver from "semver";
 import { Dialog } from "radix-ui";
 import { MdOutlineBrowserUpdated } from "react-icons/md";
 
@@ -9,8 +8,11 @@ import AppLinks from "./AppLinks";
 import BaseDialogContent from "./BaseDialogContent";
 import Icon from "../assets/images/icon.png";
 import PrimaryButton from "./PrimaryButton";
+import useAppVersion from "../hooks/useAppVersion";
 
-export default function AppInfoDialog({ currentVersion, latestVersion }) {
+export default function AppInfoDialog() {
+  const { currentVersion, latestVersion, hasUpdate } = useAppVersion();
+
   return (
     <BaseDialogContent>
       {/* App Icon */}
@@ -34,7 +36,7 @@ export default function AppInfoDialog({ currentVersion, latestVersion }) {
       </div>
 
       {/* Latest Version */}
-      {latestVersion && semver.gt(latestVersion, currentVersion) ? (
+      {hasUpdate ? (
         <>
           {/* Update Alert */}
           <Alert variant={"danger"}>

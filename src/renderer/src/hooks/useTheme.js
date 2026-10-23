@@ -1,3 +1,5 @@
+import { IPC } from "../../../shared/constants/ipc";
+import { THEME } from "../lib/constants";
 import { useEffect } from "react";
 import { useMedia } from "react-use";
 
@@ -6,12 +8,13 @@ export default function useTheme(theme) {
 
   /** Configure Theme in Main Process */
   useEffect(() => {
-    window.electron.ipcRenderer.invoke("configure-theme", theme);
+    window.electron.ipcRenderer.invoke(IPC.CONFIGURE_THEME, theme);
   }, [theme]);
 
   /** Apply Theme */
   useEffect(() => {
-    const isDark = theme === "dark" || (theme === "system" && systemIsDark);
+    const isDark =
+      theme === THEME.DARK || (theme === THEME.SYSTEM && systemIsDark);
 
     document.documentElement.classList.toggle("dark", isDark);
     document

@@ -1,22 +1,12 @@
-import { cn, uuid } from "../lib/utils";
 import { memo, useCallback, useRef } from "react";
 
 import BrowserTab from "./BrowserTab";
 import { HiOutlinePlus } from "react-icons/hi2";
 import { TabButton } from "./TabButton";
 import WebviewButton from "./WebviewButton";
+import { cn } from "../lib/utils";
 
-const INITIAL_URL = import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
-
-/** Get new tab */
-const getNewTab = () => ({
-  id: uuid(),
-  active: true,
-  title: "New Tab",
-  url: import.meta.env.VITE_DEFAULT_WEBVIEW_URL,
-});
-
-export default memo(function Browser({ browser, account, isDesktop }) {
+export default memo(function Browser({ browser, partition }) {
   const tabButtonsContainerRef = useRef();
   const { tabs, addTab, closeTab, setActiveTab, updateTitle, updateIcon } =
     browser;
@@ -50,7 +40,7 @@ export default memo(function Browser({ browser, account, isDesktop }) {
       >
         {/* Main */}
         <div className="sticky left-0 py-1 px-2 bg-white z-1 dark:bg-neutral-800 shrink-0">
-          <WebviewButton onClick={addTab}>
+          <WebviewButton title="New Tab" onClick={() => addTab()}>
             <HiOutlinePlus className="size-4" />
           </WebviewButton>
         </div>
@@ -81,9 +71,7 @@ export default memo(function Browser({ browser, account, isDesktop }) {
             <BrowserTab
               id={item.id}
               url={item.url}
-              isDesktop={isDesktop}
-              partition={account.partition}
-              addTab={addTab}
+              partition={partition}
               closeTab={closeTab}
               updateTitle={updateTitle}
               updateIcon={updateIcon}

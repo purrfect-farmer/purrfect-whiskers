@@ -1,10 +1,11 @@
+import { MIRROR } from "../../shared/constants/ipc";
 import { Server } from "socket.io";
 import { createServer } from "http";
 import { networkInterfaces } from "os";
 
 export function createMirrorServer() {
   return new Promise((resolve, reject) => {
-    const PORT = 7777;
+    const PORT = MIRROR.PORT;
     const server = createServer();
     const io = new Server(server, {
       cors: {
@@ -14,10 +15,10 @@ export function createMirrorServer() {
 
     /** Add to Room */
     io.on("connection", (socket) => {
-      socket.join("receivers");
+      socket.join(MIRROR.ROOM_RECEIVERS);
 
-      socket.on("message", (arg) => {
-        socket.to("receivers").emit("command", arg);
+      socket.on(MIRROR.EVENT_MESSAGE, (arg) => {
+        socket.to(MIRROR.ROOM_RECEIVERS).emit(MIRROR.EVENT_COMMAND, arg);
       });
     });
 

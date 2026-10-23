@@ -1,157 +1,83 @@
-import { chunkArrayGenerator, cn } from "../lib/utils";
-import { useCallback, useState } from "react";
+import { readJsonFile, saveJsonFile } from "../lib/utils";
 
 import AccountsPicker from "./AccountsPicker";
 import Alert from "./Alert";
 import AppDialogContent from "./AppDialogContent";
+import Dropzone from "./Dropzone";
 import { LuUsers } from "react-icons/lu";
 import PrimaryButton from "./PrimaryButton";
 import { Progress } from "./Progress";
 import Tabs from "./Tabs";
-import { formatDate } from "date-fns";
+import { getOrRestoreAccountBackup } from "../lib/accountBackup";
 import toast from "react-hot-toast";
 import useAccountsSelector from "../hooks/useAccountsSelector";
 import useAppStore from "../store/useAppStore";
-import useBackupAndRestore from "../hooks/useBackupAndRestore";
-import { MAX_CONCURRENT_BACKUPS } from "../lib/constants";
-import { useDropzone } from "react-dropzone";
-import { useProgress } from "../hooks/useProgress";
+import useBatchRunner from "../hooks/useBatchRunner";
+import { useCallback } from "react";
 import useTabs from "../hooks/useTabs";
 
+const JSON_FILES = { "application/json": [".json"] };
+
 export default function ImportAndExportAccountsDialog() {
-  const [isProcessing, setIsProcessing] = useState(false);
-
   const accounts = useAppStore((state) => state.accounts);
-  const importAccounts = useAppStore((state) => state.importAccounts);
-  const closeAllAccounts = useAppStore((state) => state.closeAllAccounts);
-
-  const { target, progress, setTarget, resetProgress, incrementProgress } =
-    useProgress();
-
-  const { containerRef, getOrRestoreAccountBackup } = useBackupAndRestore();
+  const { isProcessing, target, progress, run } = useBatchRunner();
 
   /** Tabs */
   const tabs = useTabs(["export", "import"], "export");
 
   /** Selector */
   const selector = useAccountsSelector(accounts);
-
-  /** Save Backup File */
-  const saveBackupFile = useCallback(
-    (data) =>
-      window.electron.ipcRenderer.invoke(
-        "save-backup-file",
-        `purrfect-whiskers-accounts-export-${formatDate(new Date(), "yyyyMMdd-HHmmss")}.json`,
-        JSON.stringify(data, null, 2),
-      ),
-    [],
-  );
-
-  /** Get Export Data */
-  const getExportData = async () => {
-    /** Close opened accounts */
-    closeAllAccounts();
-
-    /** Reset State */
-    setIsProcessing(true);
-    resetProgress();
-    setTarget(selector.selectedAccounts.length);
-
-    /** Create Backups Array */
-    const backups = [];
-
-    for (const chunk of chunkArrayGenerator(
-      selector.selectedAccounts,
-      MAX_CONCURRENT_BACKUPS,
-    )) {
-      const chunkResults = await Promise.all(
-        chunk.map(async (account) => {
-          const result = await getOrRestoreAccountBackup(account);
-
-          /** Increment */
-          incrementProgress();
-
-          /** Add Backup */
-          return {
-            account,
-            backup: result,
-          };
-        }),
-      );
-
-      backups.push(...chunkResults);
-    }
-
-    /** Release Lock */
-    setIsProcessing(false);
-
-    return {
-      accounts: backups,
-    };
-  };
+  const { selectedAccounts } = selector;
 
   /** Export accounts */
-  const exportAccounts = useCallback(async () => {
+  const exportAccounts = useCallback(() => {
+    const exportData = async () => {
+      useAppStore.getState().closeAllAccounts();
+
+      const backups = await run(selectedAccounts, async (account) => ({
+        account,
+        backup: await getOrRestoreAccountBackup(account),
+      }));
+
+      await saveJsonFile("purrfect-whiskers-accounts-export", {
+        accounts: backups,
+      });
+    };
+
     toast
-      .promise(
-        getExportData().then((data) => {
-          saveBackupFile(data);
-        }),
-        {
-          loading: "Exporting Accounts...",
-          error: "Failed to Export Accounts!",
-          success: "Accounts were successfully exported!",
-        },
-      )
+      .promise(exportData(), {
+        loading: "Exporting Accounts...",
+        error: "Failed to Export Accounts!",
+        success: "Accounts were successfully exported!",
+      })
       .catch((e) => {
         console.error(e);
       });
-  }, [getExportData, saveBackupFile]);
+  }, [run, selectedAccounts]);
 
-  /** Import Accounts */
-  const importAccountsBackup = async (data) => {
-    /** Close opened accounts */
-    closeAllAccounts();
+  /** Restores each exported account's data, then adds the accounts */
+  const importAccountsBackup = useCallback(
+    async (data) => {
+      const { closeAllAccounts, importAccounts } = useAppStore.getState();
 
-    /** Reset State */
-    setIsProcessing(true);
-    resetProgress();
-    setTarget(data.accounts.length);
+      closeAllAccounts();
 
-    /** Destructure Data */
-    const { accounts } = data;
-
-    for (const chunk of chunkArrayGenerator(accounts, MAX_CONCURRENT_BACKUPS)) {
-      await Promise.all(
-        chunk.map(async (item) => {
-          const { account, backup } = item;
-          await getOrRestoreAccountBackup(account, backup);
-
-          /** Increment */
-          incrementProgress();
-        }),
+      await run(data.accounts, ({ account, backup }) =>
+        getOrRestoreAccountBackup(account, backup),
       );
-    }
 
-    /** Imported list */
-    const imported = accounts.map((item) => item.account);
-
-    /** Import accounts */
-    importAccounts(imported);
-
-    /** Release Lock */
-    setIsProcessing(false);
-  };
+      importAccounts(data.accounts.map((item) => item.account));
+    },
+    [run],
+  );
 
   /** On backup file drop */
   const onDrop = useCallback(
-    (acceptedFiles) => {
-      const file = acceptedFiles[0];
-      const reader = new FileReader();
+    ([file]) => {
+      if (!file) return;
 
-      reader.addEventListener("load", (e) => {
-        try {
-          const data = JSON.parse(e.target.result);
+      readJsonFile(file).then(
+        (data) =>
           toast
             .promise(importAccountsBackup(data), {
               loading: "Importing accounts...",
@@ -160,26 +86,12 @@ export default function ImportAndExportAccountsDialog() {
             })
             .catch((e) => {
               console.error(e);
-            });
-        } catch (err) {
-          toast.error("Invalid JSON file!");
-        }
-      });
-      reader.readAsText(file);
+            }),
+        () => toast.error("Invalid JSON file!"),
+      );
     },
-    [importAccounts],
+    [importAccountsBackup],
   );
-
-  /** Dropzone */
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "application/json": [".json"],
-    },
-    maxFiles: 1,
-    multiple: false,
-    disabled: isProcessing,
-  });
 
   return (
     <AppDialogContent
@@ -192,7 +104,10 @@ export default function ImportAndExportAccountsDialog() {
         <Tabs.Content value="export" className="flex flex-col gap-2">
           <AccountsPicker {...selector} disabled={isProcessing} />
 
-          <PrimaryButton disabled={isProcessing} onClick={exportAccounts}>
+          <PrimaryButton
+            disabled={isProcessing || selectedAccounts.length === 0}
+            onClick={exportAccounts}
+          >
             Export
           </PrimaryButton>
         </Tabs.Content>
@@ -203,32 +118,16 @@ export default function ImportAndExportAccountsDialog() {
             You are about to import new accounts into the application.
           </Alert>
 
-          {/* Drop Zone */}
-          <div
-            {...getRootProps()}
-            className={cn(
-              "border border-dashed border-orange-500",
-              "px-4 py-10 text-center rounded-xl",
-              "text-orange-500",
-            )}
-          >
-            <input {...getInputProps()} />
-            {isDragActive ? (
-              <p>Drop the backup file here ...</p>
-            ) : (
-              <p>
-                Drag 'n' drop the backup file here, or click to select backup
-                file
-              </p>
-            )}
-          </div>
+          <Dropzone
+            accept={JSON_FILES}
+            onDrop={onDrop}
+            disabled={isProcessing}
+            fileLabel="backup file"
+          />
         </Tabs.Content>
       </Tabs>
 
       {isProcessing ? <Progress current={progress} max={target} /> : null}
-
-      {/* Webview Containers */}
-      <div ref={containerRef}></div>
     </AppDialogContent>
   );
 }

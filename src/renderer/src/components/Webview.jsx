@@ -1,7 +1,8 @@
 import { HiOutlineGlobeAlt, HiOutlineXCircle } from "react-icons/hi2";
 import { MdOutlineEditNote, MdOutlineFullscreen } from "react-icons/md";
-import { memo, useCallback, useEffect, useId, useRef, useState } from "react";
+import { memo, useMemo, useRef } from "react";
 
+import AccountFlash from "./AccountFlash";
 import Browser from "./Browser";
 import { Dialog } from "radix-ui";
 import Draggable from "react-draggable";
@@ -9,41 +10,45 @@ import EditAccountDialogContent from "./EditAccountDialogContent";
 import FarmerWebview from "./FarmerWebview";
 import WebviewButton from "./WebviewButton";
 import { cn } from "../lib/utils";
-import { configureProxy } from "../lib/partitions";
+import useAccount from "../hooks/useAccount";
+import useAccountProxy from "../hooks/useAccountProxy";
 import { useAppContext } from "../providers/AppProvider";
 import useAppStore from "../store/useAppStore";
 import useBrowser from "../hooks/useBrowser";
 import useDialogState from "../hooks/useDialogState";
+import useElementFullscreen from "../hooks/useElementFullscreen";
+import usePinnable from "../hooks/usePinnable";
 import useSettingsStore from "../store/useSettingsStore";
 
-export default memo(function Webview({ account, pageIndex }) {
-  const dragHandleClass = "draggable-handle-" + useId();
-  const { currentPage, itemsPerPage } = useAppContext();
+export default memo(function Webview({ partition, pageIndex }) {
+  const account = useAccount(partition);
+
+  if (!account) return null;
+
+  return <AccountWindow account={account} pageIndex={pageIndex} />;
+});
+
+const AccountWindow = memo(function AccountWindow({ account, pageIndex }) {
+  const { title, partition } = account;
+  const containerRef = useRef(null);
+
+  const { currentPage } = useAppContext();
   const rows = useSettingsStore((state) => state.rows);
-
-  const {
-    title,
-    partition,
-    proxyEnabled,
-    proxyHost,
-    proxyPort,
-    proxyUsername,
-    proxyPassword,
-    userAgent,
-  } = account;
-
-  const [pinned, setPinned] = useState(false);
-  const [position, setPosition] = useState({
-    x: 0,
-    y: 0,
-  });
-  const browser = useBrowser(partition);
-  const containerRef = useRef();
-  const [isDesktop, setIsDesktop] = useState(false);
-  const allowProxies = useSettingsStore((state) => state.allowProxies);
   const closeAccount = useAppStore((state) => state.closeAccount);
 
-  const pinnedTranslation = (currentPage - pageIndex) * rows * 100;
+  const browser = useBrowser(partition);
+  const { pinned, position, togglePinned, handleDrag } = usePinnable();
+  const { isFullscreen, toggleFullscreen } = useElementFullscreen(containerRef);
+
+  /** Keeps a pinned window in view across pages */
+  const pinnedStyle = useMemo(
+    () => ({
+      "--pinned-translation": pinned
+        ? `${(currentPage - pageIndex) * rows * 100}%`
+        : 0,
+    }),
+    [pinned, currentPage, pageIndex, rows],
+  );
 
   /** Edit Account Dialog State */
   const {
@@ -52,63 +57,10 @@ export default memo(function Webview({ account, pageIndex }) {
     closeDialog: closeEditAccountDialog,
   } = useDialogState();
 
-  /** Toggle FullScreen */
-  const toggleFullScreen = useCallback(() => {
-    const container = containerRef.current;
-    if (!document.fullscreenElement) {
-      if (container) {
-        container.requestFullscreen();
-      }
-    } else if (document.fullscreenElement === container) {
-      document.exitFullscreen();
-    }
-  }, []);
-
-  const togglePinned = () => {
-    setPinned((prev) => !prev);
-    setPosition({
-      x: 0,
-      y: 0,
-    });
-  };
-
-  /** Configure Proxy */
-  useEffect(() => {
-    configureProxy(partition, {
-      allowProxies,
-      proxyEnabled,
-      proxyHost,
-      proxyPort,
-      proxyUsername,
-      proxyPassword,
-      userAgent,
-    });
-  }, [
-    partition,
-    allowProxies,
-    proxyEnabled,
-    proxyHost,
-    proxyPort,
-    proxyUsername,
-    proxyPassword,
-    userAgent,
-    configureProxy,
-  ]);
-
-  /** Watch Fullscreen */
-  useEffect(() => {
-    const handleFullscreenChange = () =>
-      setIsDesktop(document.fullscreenElement === containerRef.current);
-
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-
-    return () => {
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
-    };
-  }, [setIsDesktop]);
+  useAccountProxy(account);
 
   return (
-    <div className="grow flex flex-col relative">
+    <div className="grow flex flex-col relative min-w-0">
       {pinned && (
         <div className="grow flex flex-col gap-2 justify-center items-center p-4">
           <h1 className="text-xl text-orange-500 max-w-full truncate">
@@ -129,26 +81,19 @@ export default memo(function Webview({ account, pageIndex }) {
               ]
             : null,
         )}
-        style={{
-          "--pinned-translation": pinned ? `${pinnedTranslation}%` : 0,
-        }}
+        style={pinnedStyle}
       >
         <Draggable
-          handle={`.${dragHandleClass}`}
+          handle=".draggable-handle"
           disabled={!pinned}
           nodeRef={containerRef}
           position={position}
-          onDrag={(e, { x, y }) =>
-            setPosition({
-              x,
-              y,
-            })
-          }
+          onDrag={handleDrag}
         >
           <div
             ref={containerRef}
             className={cn(
-              "grow flex flex-col shrink-0",
+              "relative grow flex flex-col shrink-0",
               "divide-y dark:divide-neutral-700",
               "bg-white dark:bg-neutral-800 dark:text-white",
               pinned
@@ -156,8 +101,8 @@ export default memo(function Webview({ account, pageIndex }) {
                 : null,
             )}
           >
-            <div className="flex justify-between px-2">
-              <div className="flex gap-1 py-2">
+            <div className="flex justify-between px-2 min-w-0">
+              <div className="flex gap-1 py-2 shrink-0">
                 {/* Toggle Browser */}
                 <WebviewButton
                   title="Toggle Browser"
@@ -170,8 +115,8 @@ export default memo(function Webview({ account, pageIndex }) {
                 {/* Toggle Fullscreen */}
                 <WebviewButton
                   title="Toggle Fullscreen"
-                  onClick={toggleFullScreen}
-                  className={isDesktop && "text-orange-500"}
+                  onClick={toggleFullscreen}
+                  className={isFullscreen && "text-orange-500"}
                 >
                   <MdOutlineFullscreen className="size-4" />
                 </WebviewButton>
@@ -181,8 +126,8 @@ export default memo(function Webview({ account, pageIndex }) {
               <div
                 role="button"
                 className={cn(
+                  "draggable-handle",
                   "flex justify-center items-center grow min-w-0 px-2",
-                  dragHandleClass,
                 )}
               >
                 <h1
@@ -195,7 +140,7 @@ export default memo(function Webview({ account, pageIndex }) {
                 </h1>
               </div>
 
-              <div className="flex gap-1 py-2">
+              <div className="flex gap-1 py-2 shrink-0">
                 {/* Edit Dialog */}
                 <Dialog.Root
                   open={openEditAccountDialog}
@@ -203,7 +148,7 @@ export default memo(function Webview({ account, pageIndex }) {
                 >
                   {/* Edit Button */}
                   <Dialog.Trigger
-                    disabled={isDesktop}
+                    disabled={isFullscreen}
                     asChild
                     title="Edit Account"
                   >
@@ -245,20 +190,18 @@ export default memo(function Webview({ account, pageIndex }) {
                 <FarmerWebview
                   pinned={pinned}
                   togglePinned={togglePinned}
-                  browser={browser}
                   account={account}
                 />
 
                 {/* Browser */}
                 {browser.enabled ? (
-                  <Browser
-                    browser={browser}
-                    account={account}
-                    isDesktop={isDesktop}
-                  />
+                  <Browser browser={browser} partition={partition} />
                 ) : null}
               </div>
             </div>
+
+            {/* Flash when asked to open */}
+            <AccountFlash partition={partition} />
           </div>
         </Draggable>
       </div>

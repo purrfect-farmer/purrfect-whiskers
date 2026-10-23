@@ -1,61 +1,41 @@
-import toast from "react-hot-toast";
-import { useCallback } from "react";
-import { useDropzone } from "react-dropzone";
-
 import Alert from "./Alert";
 import AppDialogContent from "./AppDialogContent";
+import Dropzone from "./Dropzone";
+import { HiOutlinePuzzlePiece } from "react-icons/hi2";
+import { IPC } from "../../../shared/constants/ipc";
+import toast from "react-hot-toast";
 import useAppStore from "../store/useAppStore";
 import useSettingsStore from "../store/useSettingsStore";
-import { HiOutlinePuzzlePiece } from "react-icons/hi2";
-import { cn } from "../lib/utils";
+
+const ZIP_FILES = { "application/zip": [".zip"] };
+
+/** Installs a dropped extension zip, reopening the accounts afterwards */
+async function installExtension([file]) {
+  if (!file) return;
+
+  const { extensionPath, setAutoUpdateExtension } = useSettingsStore.getState();
+  const { accounts, closeAllAccounts, setAccounts } = useAppStore.getState();
+
+  setAutoUpdateExtension(false);
+  closeAllAccounts();
+
+  try {
+    await window.electron.ipcRenderer.invoke(
+      IPC.INSTALL_EXTENSION,
+      window.electron.webUtils.getPathForFile(file),
+      extensionPath,
+    );
+
+    toast.success("Successfully Installed Extension!");
+  } catch (error) {
+    console.error("Failed to install extension:", error);
+    toast.error("Failed to Install Extension!");
+  } finally {
+    setAccounts(accounts);
+  }
+}
 
 export default function LoaderDialog() {
-  const extensionPath = useSettingsStore((state) => state.extensionPath);
-  const setAccounts = useAppStore((state) => state.setAccounts);
-  const closeAllAccounts = useAppStore((state) => state.closeAllAccounts);
-  const setAutoUpdateExtension = useSettingsStore(
-    (state) => state.setAutoUpdateExtension
-  );
-
-  /** On backup file drop */
-  const onDrop = useCallback(
-    async (acceptedFiles) => {
-      /** Disable Auto-Update */
-      setAutoUpdateExtension(false);
-
-      /** Get Current Accounts */
-      const accounts = useAppStore.getState().accounts;
-
-      /** Close Accounts */
-      closeAllAccounts();
-
-      /** Install Extension */
-      const file = window.electron.webUtils.getPathForFile(acceptedFiles[0]);
-      await window.electron.ipcRenderer.invoke(
-        "install-extension",
-        file,
-        extensionPath
-      );
-
-      /** Toast */
-      toast.success("Successfully Installed Extension!");
-
-      /** Restore Accounts */
-      setAccounts(accounts);
-    },
-    [extensionPath, setAccounts, closeAllAccounts, setAutoUpdateExtension]
-  );
-
-  /** Dropzone */
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "application/zip": [".zip"],
-    },
-    maxFiles: 1,
-    multiple: false,
-  });
-
   return (
     <AppDialogContent
       title={"Load Extension"}
@@ -67,25 +47,11 @@ export default function LoaderDialog() {
         auto-updates and replace the currently installed version.
       </Alert>
 
-      {/* Drop Zone */}
-      <div
-        {...getRootProps()}
-        className={cn(
-          "border border-dashed border-orange-500",
-          "px-4 py-10 text-center rounded-xl",
-          "text-orange-500"
-        )}
-      >
-        <input {...getInputProps()} />
-        {isDragActive ? (
-          <p>Drop the extension file here ...</p>
-        ) : (
-          <p>
-            Drag 'n' drop the extension file here, or click to select extension
-            file
-          </p>
-        )}
-      </div>
+      <Dropzone
+        accept={ZIP_FILES}
+        onDrop={installExtension}
+        fileLabel="extension file"
+      />
     </AppDialogContent>
   );
 }

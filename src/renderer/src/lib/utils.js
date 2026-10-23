@@ -1,4 +1,7 @@
+import { IPC } from "../../../shared/constants/ipc";
 import { clsx } from "clsx";
+import { formatDate } from "date-fns";
+import toast from "react-hot-toast";
 import { twMerge } from "tailwind-merge";
 export { v4 as uuid } from "uuid";
 
@@ -12,6 +15,46 @@ export function* chunkArrayGenerator(arr, size) {
   for (let i = 0; i < arr.length; i += size) {
     yield arr.slice(i, i + size);
   }
+}
+
+/**
+ * Runs `task` on every item, `size` items at a time
+ * @template T, R
+ * @param {T[]} items
+ * @param {number} size
+ * @param {(item: T) => Promise<R>} task
+ * @returns {Promise<R[]>}
+ */
+export async function runInChunks(items, size, task) {
+  const results = [];
+
+  for (const chunk of chunkArrayGenerator(items, size)) {
+    results.push(...(await Promise.all(chunk.map(task))));
+  }
+
+  return results;
+}
+
+/** Saves data as a timestamped JSON file in the backup folder */
+export function saveJsonFile(prefix, data) {
+  const timestamp = formatDate(new Date(), "yyyyMMdd-HHmmss");
+
+  return window.electron.ipcRenderer.invoke(
+    IPC.SAVE_BACKUP_FILE,
+    `${prefix}-${timestamp}.json`,
+    JSON.stringify(data, null, 2),
+  );
+}
+
+/** Reads a dropped file as JSON */
+export async function readJsonFile(file) {
+  return JSON.parse(await file.text());
+}
+
+/** Copy a value to the clipboard */
+export async function copyText(value, label) {
+  await navigator.clipboard.writeText(String(value));
+  toast.success(`${label} copied!`);
 }
 
 /** Safe Field — normalizes null/undefined field values to "" for controlled inputs */
@@ -44,43 +87,27 @@ export function extractInitDataUnsafe(initData) {
   };
 }
 
-/** Get Account Telegram User */
-export function getTelegramUser(account) {
+/** Parse the Telegram user of an init data string, or null */
+export function parseTelegramUser(initData) {
   try {
-    return account?.telegramInitData
-      ? extractInitDataUnsafe(account.telegramInitData)["user"]
-      : null;
+    return initData ? extractInitDataUnsafe(initData)["user"] : null;
   } catch {
     return null;
   }
 }
 
-/** Create Webview */
-export function createWebview(partition, extensionPath, proxyOptions) {
-  /** Create the <webview> element */
-  const webview = document.createElement("webview");
+/** Parsed users per account object; an edited account is a new object */
+const telegramUsers = new WeakMap();
 
-  /* Set Attributes */
-  webview.setAttribute("partition", partition);
-  webview.setAttribute("allowpopups", "true");
+/** Get Account Telegram User */
+export function getTelegramUser(account) {
+  if (!account) return null;
 
-  /** Add Classes */
-  webview.setAttribute("class", "w-full h-full opacity-0 fixed");
+  if (!telegramUsers.has(account)) {
+    telegramUsers.set(account, parseTelegramUser(account.telegramInitData));
+  }
 
-  /** Load extension URL */
-  window.electron.ipcRenderer
-    .invoke("setup-session", { partition, extensionPath, proxyOptions })
-    .then(({ extension, preload }) => {
-      webview.preload = preload;
-      webview.src = extension
-        ? extension.url + "index.html"
-        : import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
-    })
-    .catch(() => {
-      webview.src = import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
-    });
-
-  return webview;
+  return telegramUsers.get(account);
 }
 
 export function matchesSearch(search, item) {

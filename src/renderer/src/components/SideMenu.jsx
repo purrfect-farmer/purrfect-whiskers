@@ -11,7 +11,6 @@ import {
   LuGlobeLock,
   LuTags,
 } from "react-icons/lu";
-import { useCallback, useEffect, useState } from "react";
 
 import AccountListDialog from "./AccountListDialog";
 import AppInfoDialog from "./AppInfoDialog";
@@ -21,111 +20,69 @@ import { FaSpider } from "react-icons/fa";
 import Icon from "../assets/images/icon.png";
 import ImportAndExportAccountsDialog from "./ImportAndExportAccountsDialog";
 import LoaderDialog from "./LoaderDialog";
-import ProxiesDialog from "./ProxiesDialog";
 import { MdOutlineBrowserUpdated } from "react-icons/md";
+import ProxiesDialog from "./ProxiesDialog";
 import SettingsDialog from "./SettingsDialog";
+import SideMenuDialog from "./SideMenuDialog";
 import SpiderDialog from "./SpiderDialog";
 import { SpiderProvider } from "./SpiderProvider";
 import TagsDialog from "./TagsDialog";
-import axios from "axios";
-import { getGithubHeaders } from "../../../shared/lib/github";
 import { cn } from "../lib/utils";
-import semver from "semver";
+import useAppVersion from "../hooks/useAppVersion";
+import useDialogState from "../hooks/useDialogState";
+
+/** Toggle FullScreen */
+const toggleFullScreen = () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else if (document.exitFullscreen) {
+    document.exitFullscreen();
+  }
+};
+
+/** Reload App */
+const reloadApp = () => window.location.reload();
 
 export default function SideMenu() {
-  const [currentVersion, setCurrentVersion] = useState(null);
-  const [latestVersion, setLatestVersion] = useState(null);
-
-  /** Toggle FullScreen */
-  const toggleFullScreen = useCallback(function () {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
-    } else if (document.exitFullscreen) {
-      document.exitFullscreen();
-    }
-  }, []);
-
-  /** Get App Version */
-  useEffect(() => {
-    window.electron.ipcRenderer
-      .invoke("get-app-version")
-      .then((version) => setCurrentVersion("v" + version));
-  }, [setCurrentVersion]);
-
-  /** Get Latest Release */
-  useEffect(() => {
-    axios
-      .get(import.meta.env.VITE_APP_RELEASE_API_URL, {
-        headers: getGithubHeaders(),
-      })
-      .then((res) => setLatestVersion(res.data["tag_name"]));
-  }, [setLatestVersion]);
+  const { hasUpdate } = useAppVersion();
+  const spiderDialog = useDialogState();
 
   return (
-    <div className="shrink-0 w-14 p-2 h-full flex flex-col gap-2 items-center">
-      {/* Account List */}
-      <Dialog.Root>
-        <Dialog.Trigger title="Accounts" className="p-2">
-          <HiOutlineBars3 className="size-5 text-orange-500" />
-        </Dialog.Trigger>
-
+    <div className="shrink-0 w-14 p-2 h-full flex flex-col gap-2 items-center overflow-y-auto">
+      <SideMenuDialog title="Accounts" icon={HiOutlineBars3}>
         <AccountListDialog />
-      </Dialog.Root>
+      </SideMenuDialog>
 
-      {/* Tags */}
-      <Dialog.Root>
-        <Dialog.Trigger title="Tags" className="p-2">
-          <LuTags className="size-5 text-orange-500" />
-        </Dialog.Trigger>
-
+      <SideMenuDialog title="Tags" icon={LuTags}>
         <TagsDialog />
-      </Dialog.Root>
+      </SideMenuDialog>
 
-      {/* Settings */}
-      <Dialog.Root>
-        <Dialog.Trigger title="Settings" className="p-2">
-          <HiOutlineCog6Tooth className="size-5 text-orange-500" />
-        </Dialog.Trigger>
-
+      <SideMenuDialog title="Settings" icon={HiOutlineCog6Tooth}>
         <SettingsDialog />
-      </Dialog.Root>
+      </SideMenuDialog>
 
-      {/* Backup and Restore */}
-      <Dialog.Root>
-        <Dialog.Trigger title="Backup and Restore" className="p-2">
-          <LuDatabaseBackup className="size-5 text-orange-500" />
-        </Dialog.Trigger>
-
+      <SideMenuDialog title="Backup and Restore" icon={LuDatabaseBackup}>
         <BackupAndRestoreDialog />
-      </Dialog.Root>
+      </SideMenuDialog>
 
-      {/* Import and Export Accounts */}
-      <Dialog.Root>
-        <Dialog.Trigger title="Import and Export accounts" className="p-2">
-          <LuArrowUpDown className="size-5 text-orange-500" />
-        </Dialog.Trigger>
-
+      <SideMenuDialog title="Import and Export accounts" icon={LuArrowUpDown}>
         <ImportAndExportAccountsDialog />
-      </Dialog.Root>
+      </SideMenuDialog>
 
-      {/* Spider */}
-      <Dialog.Root>
-        <Dialog.Trigger title="Spider" className="p-2">
-          <FaSpider className="size-5 text-orange-500" />
-        </Dialog.Trigger>
-        <SpiderProvider>
+      <SideMenuDialog
+        title="Spider"
+        icon={FaSpider}
+        open={spiderDialog.opened}
+        onOpenChange={spiderDialog.setOpened}
+      >
+        <SpiderProvider active={spiderDialog.opened}>
           <SpiderDialog />
         </SpiderProvider>
-      </Dialog.Root>
+      </SideMenuDialog>
 
-      {/* Proxies */}
-      <Dialog.Root>
-        <Dialog.Trigger title="Proxies" className="p-2">
-          <LuGlobeLock className="size-5 text-orange-500" />
-        </Dialog.Trigger>
-
+      <SideMenuDialog title="Proxies" icon={LuGlobeLock}>
         <ProxiesDialog />
-      </Dialog.Root>
+      </SideMenuDialog>
 
       {/* Fullscreen Toggle */}
       <button
@@ -138,11 +95,11 @@ export default function SideMenu() {
 
       {/* App Icon */}
       <Dialog.Root>
-        <Dialog.Trigger className="mt-auto size-10 relative flex">
-          <img src={Icon} alt="Purrfect Whiskers" className="size-full " />
+        <Dialog.Trigger className="mt-auto size-10 shrink-0 relative flex">
+          <img src={Icon} alt="Purrfect Whiskers" className="size-full" />
 
           {/* Latest Version Alert */}
-          {latestVersion && semver.gt(latestVersion, currentVersion) ? (
+          {hasUpdate ? (
             <span
               className={cn(
                 "absolute rounded-full size-5 bg-red-500 text-white",
@@ -154,27 +111,15 @@ export default function SideMenu() {
             </span>
           ) : null}
         </Dialog.Trigger>
-        <AppInfoDialog
-          currentVersion={currentVersion}
-          latestVersion={latestVersion}
-        />
+        <AppInfoDialog />
       </Dialog.Root>
 
-      {/* Loader */}
-      <Dialog.Root>
-        <Dialog.Trigger title="Loader" className="p-2">
-          <HiOutlinePuzzlePiece className="size-5 text-orange-500" />
-        </Dialog.Trigger>
-
+      <SideMenuDialog title="Loader" icon={HiOutlinePuzzlePiece}>
         <LoaderDialog />
-      </Dialog.Root>
+      </SideMenuDialog>
 
       {/* Reload */}
-      <button
-        title="Reload App"
-        className="p-2"
-        onClick={() => window.location.reload()}
-      >
+      <button title="Reload App" className="p-2" onClick={reloadApp}>
         <HiOutlineArrowPath className="size-5 text-orange-500" />
       </button>
     </div>

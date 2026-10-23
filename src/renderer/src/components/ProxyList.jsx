@@ -9,6 +9,8 @@ import useProxiesFilter from "../hooks/useProxiesFilter";
 /** Same as Tailwind's h-80 */
 const MAX_LIST_HEIGHT = 320;
 
+const computeItemKey = (_, item) => item.index;
+
 export default function ProxyList({ proxies }) {
   const [listHeight, setListHeight] = useState(0);
   const [expanded, setExpanded] = useState(() => new Set());
@@ -45,6 +47,20 @@ export default function ProxyList({ proxies }) {
     list,
     validCount,
   } = useProxiesFilter(proxies);
+
+  const itemContent = useCallback(
+    (_, item) => (
+      <div className="pb-2 px-2">
+        <ProxyListItem
+          proxy={item.proxy}
+          index={item.index}
+          expanded={expanded.has(item.index)}
+          onToggle={toggleExpanded}
+        />
+      </div>
+    ),
+    [expanded, toggleExpanded],
+  );
 
   return (
     <div className="flex flex-col gap-2">
@@ -88,17 +104,8 @@ export default function ProxyList({ proxies }) {
                 style={{ height: "100%" }}
                 data={list}
                 totalListHeightChanged={setListHeight}
-                computeItemKey={(_, item) => item.index}
-                itemContent={(_, item) => (
-                  <div className="pb-2 px-2">
-                    <ProxyListItem
-                      proxy={item.proxy}
-                      index={item.index}
-                      expanded={expanded.has(item.index)}
-                      onToggle={toggleExpanded}
-                    />
-                  </div>
-                )}
+                computeItemKey={computeItemKey}
+                itemContent={itemContent}
               />
             </div>
           ) : (

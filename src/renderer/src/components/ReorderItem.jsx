@@ -36,7 +36,7 @@ const ReorderItem = memo(function ReorderItem({
 
 ReorderItem.propTypes = {
   children: propTypes.node,
-  hideHandle: propTypes.bool,
+  disabled: propTypes.bool,
 };
 
 export default ReorderItem;

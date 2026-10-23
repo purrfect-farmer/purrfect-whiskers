@@ -1,102 +1,50 @@
-import { chunkArrayGenerator, cn } from "../lib/utils";
-import { useCallback, useState } from "react";
+import { readJsonFile, saveJsonFile } from "../lib/utils";
 
 import Alert from "./Alert";
 import AppDialogContent from "./AppDialogContent";
+import Dropzone from "./Dropzone";
 import { LuDatabaseBackup } from "react-icons/lu";
 import PrimaryButton from "./PrimaryButton";
 import { Progress } from "./Progress";
 import Tabs from "./Tabs";
-import { formatDate } from "date-fns";
+import { getOrRestoreAccountBackup } from "../lib/accountBackup";
 import toast from "react-hot-toast";
 import useAppStore from "../store/useAppStore";
-import useBackupAndRestore from "../hooks/useBackupAndRestore";
-import { useDropzone } from "react-dropzone";
-import { useProgress } from "../hooks/useProgress";
+import useBatchRunner from "../hooks/useBatchRunner";
+import { useCallback } from "react";
 import useSettingsStore from "../store/useSettingsStore";
 import useTabs from "../hooks/useTabs";
-import { MAX_CONCURRENT_BACKUPS } from "../lib/constants";
+
+const JSON_FILES = { "application/json": [".json"] };
 
 export default function BackupAndRestoreDialog() {
-  const accounts = useAppStore((state) => state.accounts);
-  const theme = useSettingsStore((state) => state.theme);
-  const extensionPath = useSettingsStore((state) => state.extensionPath);
-  const closeAllAccounts = useAppStore((state) => state.closeAllAccounts);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const { isProcessing, target, progress, run } = useBatchRunner();
 
-  const { target, progress, setTarget, resetProgress, incrementProgress } =
-    useProgress();
-
-  const { containerRef, getOrRestoreAccountBackup } = useBackupAndRestore();
-
-  /** Save Backup File */
-  const saveBackupFile = useCallback(
-    (data) =>
-      window.electron.ipcRenderer.invoke(
-        "save-backup-file",
-        `purrfect-whiskers-backup-${formatDate(new Date(), "yyyyMMdd-HHmmss")}.json`,
-        JSON.stringify(data, null, 2),
-      ),
-    [],
-  );
-
-  /** Get Backup Data */
+  /** Collects every account's backup with the app and settings state */
   const getBackupData = useCallback(async () => {
-    /** Close opened accounts */
+    const { accounts, closeAllAccounts } = useAppStore.getState();
+
     closeAllAccounts();
 
-    /** Reset State */
-    setIsProcessing(true);
-    resetProgress();
-    setTarget(accounts.length);
-
-    /** Create Backups Array */
-    const backups = [];
-
-    for (const chunk of chunkArrayGenerator(accounts, MAX_CONCURRENT_BACKUPS)) {
-      const chunkResults = await Promise.all(
-        chunk.map(async (account) => {
-          const result = await getOrRestoreAccountBackup(account);
-
-          /** Increment */
-          incrementProgress();
-
-          /** Add Backup */
-          return {
-            partition: account.partition,
-            backup: result,
-          };
-        }),
-      );
-
-      backups.push(...chunkResults);
-    }
-
-    /** Release Lock */
-    setIsProcessing(false);
+    const backups = await run(accounts, async (account) => ({
+      partition: account.partition,
+      backup: await getOrRestoreAccountBackup(account),
+    }));
 
     return {
       app: useAppStore.getState(),
       settings: useSettingsStore.getState(),
       backups,
     };
-  }, [
-    accounts,
-    closeAllAccounts,
-    getOrRestoreAccountBackup,
-    setIsProcessing,
-    incrementProgress,
-    resetProgress,
-    setTarget,
-  ]);
+  }, [run]);
 
   /** Backup All Data */
-  const backupData = useCallback(async () => {
+  const backupData = useCallback(() => {
     toast
       .promise(
-        getBackupData().then((data) => {
-          saveBackupFile(data);
-        }),
+        getBackupData().then((data) =>
+          saveJsonFile("purrfect-whiskers-backup", data),
+        ),
         {
           loading: "Creating Backup...",
           error: "Failed to Create Backup!",
@@ -106,66 +54,39 @@ export default function BackupAndRestoreDialog() {
       .catch((e) => {
         console.error(e);
       });
-  }, [getBackupData, saveBackupFile]);
+  }, [getBackupData]);
 
-  /** Restore Backup */
+  /** Restores every account's data, then the app and settings state */
   const restoreBackup = useCallback(
-    async (data) => {
-      /** Close opened accounts */
-      closeAllAccounts();
+    async ({ app, settings, backups }) => {
+      useAppStore.getState().closeAllAccounts();
 
-      /** Reset State */
-      setIsProcessing(true);
-      resetProgress();
-      setTarget(data.backups.length);
+      const accounts = new Map(
+        app.accounts.map((account) => [account.partition, account]),
+      );
 
-      /** Destructure Data */
-      const { app, settings, backups } = data;
+      const restorable = backups.filter((item) => accounts.has(item.partition));
 
-      for (const chunk of chunkArrayGenerator(
-        backups,
-        MAX_CONCURRENT_BACKUPS,
-      )) {
-        await Promise.all(
-          chunk.map(async (item) => {
-            const account = app.accounts.find(
-              (account) => account.partition === item.partition,
-            );
-            await getOrRestoreAccountBackup(account, item.backup);
+      await run(restorable, (item) =>
+        getOrRestoreAccountBackup(accounts.get(item.partition), item.backup),
+      );
 
-            /** Increment */
-            incrementProgress();
-          }),
-        );
-      }
+      /** Keep this device's extension path */
+      const { extensionPath } = useSettingsStore.getState();
 
-      /** Restore States */
       useAppStore.setState(app);
       useSettingsStore.setState({ ...settings, extensionPath });
-
-      /** Release Lock */
-      setIsProcessing(false);
     },
-    [
-      extensionPath,
-      closeAllAccounts,
-      setIsProcessing,
-      getOrRestoreAccountBackup,
-      incrementProgress,
-      resetProgress,
-      setTarget,
-    ],
+    [run],
   );
 
   /** On backup file drop */
   const onDrop = useCallback(
-    (acceptedFiles) => {
-      const file = acceptedFiles[0];
-      const reader = new FileReader();
+    ([file]) => {
+      if (!file) return;
 
-      reader.addEventListener("load", (e) => {
-        try {
-          const data = JSON.parse(e.target.result);
+      readJsonFile(file).then(
+        (data) =>
           toast
             .promise(restoreBackup(data), {
               loading: "Restoring Backup...",
@@ -174,26 +95,12 @@ export default function BackupAndRestoreDialog() {
             })
             .catch((e) => {
               console.error(e);
-            });
-        } catch (err) {
-          toast.error("Invalid JSON file!");
-        }
-      });
-      reader.readAsText(file);
+            }),
+        () => toast.error("Invalid JSON file!"),
+      );
     },
     [restoreBackup],
   );
-
-  /** Dropzone */
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "application/json": [".json"],
-    },
-    maxFiles: 1,
-    multiple: false,
-    disabled: isProcessing,
-  });
 
   /** Tabs */
   const tabs = useTabs(["backup", "restore"], "backup");
@@ -224,32 +131,16 @@ export default function BackupAndRestoreDialog() {
             accounts and their Telegram Web data.
           </Alert>
 
-          {/* Drop Zone */}
-          <div
-            {...getRootProps()}
-            className={cn(
-              "border border-dashed border-orange-500",
-              "px-4 py-10 text-center rounded-xl",
-              "text-orange-500",
-            )}
-          >
-            <input {...getInputProps()} />
-            {isDragActive ? (
-              <p>Drop the backup file here ...</p>
-            ) : (
-              <p>
-                Drag 'n' drop the backup file here, or click to select backup
-                file
-              </p>
-            )}
-          </div>
+          <Dropzone
+            accept={JSON_FILES}
+            onDrop={onDrop}
+            disabled={isProcessing}
+            fileLabel="backup file"
+          />
         </Tabs.Content>
       </Tabs>
 
       {isProcessing ? <Progress current={progress} max={target} /> : null}
-
-      {/* Webview Containers */}
-      <div ref={containerRef}></div>
     </AppDialogContent>
   );
 }

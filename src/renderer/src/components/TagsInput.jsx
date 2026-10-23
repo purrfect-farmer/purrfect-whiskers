@@ -1,5 +1,3 @@
-import * as changeCase from "change-case";
-
 import {
   Combobox,
   ComboboxButton,
@@ -8,12 +6,15 @@ import {
   ComboboxOptions,
 } from "@headlessui/react";
 import { HiChevronDown, HiTag, HiXMark } from "react-icons/hi2";
-import { memo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 
 import { MdLightbulb } from "react-icons/md";
 import { cn } from "../lib/utils";
+import { createTag } from "../lib/tags";
 import toast from "react-hot-toast";
 import useAppStore from "../store/useAppStore";
+
+const NO_TAGS = [];
 
 const TagOption = (props) => (
   <ComboboxOption
@@ -35,38 +36,41 @@ const TagOption = (props) => (
 );
 
 export default memo(function TagsInput({ value, onChange, disabled = false }) {
-  const selectedTags = value || [];
+  const selectedTags = value || NO_TAGS;
 
   const tags = useAppStore((state) => state.tags);
   const addTag = useAppStore((state) => state.addTag);
 
   const [query, setQuery] = useState("");
-  const filteredTags = tags.filter(
-    (tag) =>
-      !selectedTags.includes(tag.id) &&
-      tag.name.toLowerCase().includes(query.toLowerCase()),
+
+  /** Tag names by id */
+  const tagNames = useMemo(
+    () => new Map(tags.map((tag) => [tag.id, tag.name])),
+    [tags],
   );
+
+  /** Unselected tags matching the query */
+  const filteredTags = useMemo(() => {
+    const selected = new Set(selectedTags);
+    const term = query.toLowerCase();
+
+    return tags.filter(
+      (tag) => !selected.has(tag.id) && tag.name.toLowerCase().includes(term),
+    );
+  }, [tags, selectedTags, query]);
 
   const handleTagAdd = (tag) => {
     if (!tag) return;
-    const name = tag.name.trim();
-    if (name.length === 0) return;
 
-    /* Create new tag object */
-    const newTag = {
-      id: changeCase.kebabCase(name),
-      name,
-    };
+    const newTag = createTag(tag.name);
 
-    /* Check if tag already exists */
-    const existingTag = tags.find((item) => item.id === newTag.id);
+    if (newTag.name.length === 0) return;
 
-    /* If tag doesn't exist, add it to the store */
-    if (!existingTag) {
+    /* Add new tags to the store */
+    if (!tagNames.has(newTag.id)) {
       addTag(newTag);
     }
 
-    /* Check if tag is already selected */
     if (selectedTags.includes(newTag.id)) {
       toast.error("Tag already added");
     } else {
@@ -74,30 +78,31 @@ export default memo(function TagsInput({ value, onChange, disabled = false }) {
     }
   };
 
-  /** Remove the tag at the given position */
-  const handleTagRemove = (index) => {
-    onChange(selectedTags.filter((_, item) => item !== index));
+  /** Remove a selected tag */
+  const handleTagRemove = (tagId) => {
+    onChange(selectedTags.filter((item) => item !== tagId));
   };
 
   return (
-    <div className="flex flex-wrap gap-2">
-      {selectedTags.map((tagId, index) => (
+    <div className="flex flex-wrap gap-2 min-w-0">
+      {selectedTags.map((tagId) => (
         <div
-          key={index}
+          key={tagId}
           className={cn(
-            "flex items-center gap-1",
+            "flex items-center gap-1 min-w-0 max-w-full",
             "p-2",
             "bg-neutral-100 dark:bg-neutral-700",
             "rounded-xl",
           )}
         >
-          <HiTag className={cn("size-4", "text-orange-500")} />
-          {tags.find((item) => item.id === tagId)?.name || tagId}
+          <HiTag className="size-4 shrink-0 text-orange-500" />
+          <span className="truncate">{tagNames.get(tagId) || tagId}</span>
           <button
             type="button"
+            title="Remove Tag"
             disabled={disabled}
-            onClick={() => handleTagRemove(index)}
-            className="text-red-500 hover:text-red-700"
+            onClick={() => handleTagRemove(tagId)}
+            className="shrink-0 text-red-500 hover:text-red-700"
           >
             <HiXMark className="size-4" />
           </button>
@@ -106,7 +111,7 @@ export default memo(function TagsInput({ value, onChange, disabled = false }) {
       <Combobox
         immediate
         as={"div"}
-        className="relative"
+        className="relative min-w-0 max-w-full"
         disabled={disabled}
         onClose={() => {
           setQuery("");
@@ -117,14 +122,14 @@ export default memo(function TagsInput({ value, onChange, disabled = false }) {
           <ComboboxInput
             aria-label="Tag"
             displayValue={(tag) => tag?.name}
-            className={cn("p-1 outline-0")}
+            className={cn("p-1 outline-0 min-w-0")}
             placeholder="Add Tag"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
 
           {/* Dropdown Button */}
-          <ComboboxButton className="group p-1">
+          <ComboboxButton className="group p-1 shrink-0">
             <HiChevronDown className="size-4 group-data-open:rotate-180 transition duration-500" />
           </ComboboxButton>
         </div>
@@ -134,7 +139,7 @@ export default memo(function TagsInput({ value, onChange, disabled = false }) {
           anchor="top"
           style={{ pointerEvents: "all" }}
           className={cn(
-            "empty:invisible w-72",
+            "empty:invisible w-72 max-w-[calc(100vw-2rem)]",
             "bg-white dark:bg-neutral-900",
             "flex flex-col gap-2 max-h-56 z-100",
             "rounded-xl p-2",
@@ -153,7 +158,7 @@ export default memo(function TagsInput({ value, onChange, disabled = false }) {
           <div className="flex flex-col gap-1">
             {query.length > 0 && (
               <TagOption value={{ id: null, name: query }}>
-                Create <span className="font-bold">"{query}"</span>
+                Create <span className="font-bold">&quot;{query}&quot;</span>
               </TagOption>
             )}
             {filteredTags.map((tag) => (

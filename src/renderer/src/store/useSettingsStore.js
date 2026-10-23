@@ -1,4 +1,6 @@
+import { REORDER_MODE, THEME } from "../lib/constants";
 import { combine, createJSONStorage, persist } from "zustand/middleware";
+
 import { create } from "zustand";
 
 import { storage } from "./storage";
@@ -13,9 +15,9 @@ export default create(
         restoreAccountsOnStartup: true,
         showAccountDetails: true,
         showAccountTags: true,
-        accountsReorderMode: "virtual",
+        accountsReorderMode: REORDER_MODE.VIRTUAL,
         allowProxies: false,
-        theme: "system",
+        theme: THEME.SYSTEM,
         columns: 4,
         rows: 1,
       },

@@ -3,7 +3,7 @@ import {
   HiOutlineArrowUp,
   HiOutlineXMark,
 } from "react-icons/hi2";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useRef, useState } from "react";
 
 import AccountsReorderItem from "./AccountsReorderItem";
 import Alert from "./Alert";
@@ -25,7 +25,7 @@ const CONTROL_BUTTON_CLASS = cn(
   "disabled:opacity-50",
 );
 
-function AccountRow({
+const AccountRow = memo(function AccountRow({
   account,
   index,
   total,
@@ -102,7 +102,33 @@ function AccountRow({
       )}
     </div>
   );
+});
+
+/** Trailing "Place at end" target, shown while an account is being moved */
+function PlaceAtEndFooter({ context }) {
+  if (!context.moving) return null;
+
+  return (
+    <div className="px-2">
+      <button
+        className={cn(
+          "w-full px-4 py-2.5 rounded-xl font-bold",
+          "bg-neutral-100 dark:bg-neutral-700",
+          "hover:bg-orange-100 hover:text-orange-700",
+          "dark:hover:bg-orange-200 dark:hover:text-orange-500",
+        )}
+        onClick={context.onPlaceAtEnd}
+      >
+        Place at end
+      </button>
+    </div>
+  );
 }
+
+/** Stable, so virtuoso keeps the footer mounted */
+const LIST_COMPONENTS = { Footer: PlaceAtEndFooter };
+
+const computeItemKey = (_, item) => item.partition;
 
 /**
  * Virtualized reordering, driven by explicit controls instead of dragging -
@@ -162,25 +188,23 @@ export default function AccountsVirtualReorderList({ accounts }) {
     setMoving(null);
   }, [accounts.length, moving, handleMove]);
 
-  /** Trailing "Place at end" target, stable so virtuoso keeps it mounted */
-  const components = useMemo(
-    () => ({
-      Footer: () =>
-        moving ? (
-          <button
-            className={cn(
-              "w-full px-4 py-2.5 rounded-xl font-bold",
-              "bg-neutral-100 dark:bg-neutral-700",
-              "hover:bg-orange-100 hover:text-orange-700",
-              "dark:hover:bg-orange-200 dark:hover:text-orange-500",
-            )}
-            onClick={handlePlaceAtEnd}
-          >
-            Place at end
-          </button>
-        ) : null,
-    }),
-    [moving, handlePlaceAtEnd],
+  /** Rows read the moving state through context */
+  const itemContent = useCallback(
+    (index, item, context) => (
+      <div className="pb-2 px-2">
+        <AccountRow
+          account={item}
+          index={index}
+          total={context.total}
+          moving={context.moving}
+          highlighted={context.highlighted === item.partition}
+          onMove={handleMove}
+          onPlaceBefore={handlePlaceBefore}
+          onStartMoving={setMoving}
+        />
+      </div>
+    ),
+    [handleMove, handlePlaceBefore],
   );
 
   /**
@@ -246,22 +270,15 @@ export default function AccountsVirtualReorderList({ accounts }) {
           ref={virtuoso}
           style={{ height: "100%" }}
           data={accounts}
-          computeItemKey={(_, item) => item.partition}
-          itemContent={(index, item) => (
-            <div className="pb-2 px-2">
-              <AccountRow
-                account={item}
-                index={index}
-                total={accounts.length}
-                moving={moving}
-                highlighted={highlighted === item.partition}
-                onMove={handleMove}
-                onPlaceBefore={handlePlaceBefore}
-                onStartMoving={setMoving}
-              />
-            </div>
-          )}
-          components={components}
+          computeItemKey={computeItemKey}
+          itemContent={itemContent}
+          components={LIST_COMPONENTS}
+          context={{
+            total: accounts.length,
+            moving,
+            highlighted,
+            onPlaceAtEnd: handlePlaceAtEnd,
+          }}
         />
       </div>
     </>

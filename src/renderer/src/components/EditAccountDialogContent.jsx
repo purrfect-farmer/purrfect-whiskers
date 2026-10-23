@@ -1,25 +1,19 @@
-import { HiOutlineTrash } from "react-icons/hi2";
-import { LuUserRoundPen } from "react-icons/lu";
-import { useCallback, useMemo } from "react";
+import { cn, getTelegramUser } from "../lib/utils";
 
 import AccountForm from "./AccountForm";
 import AppDialogContent from "./AppDialogContent";
+import { HiOutlineTrash } from "react-icons/hi2";
+import { IPC } from "../../../shared/constants/ipc";
+import { LuUserRoundPen } from "react-icons/lu";
 import TelegramUserCard from "./TelegramUserCard";
+import { useCallback } from "react";
 import useAppStore from "../store/useAppStore";
-import { cn, extractInitDataUnsafe } from "../lib/utils";
 
 export default function EditAccountDialogContent({ account, close }) {
   const updateAccount = useAppStore((state) => state.updateAccount);
   const removeAccount = useAppStore((state) => state.removeAccount);
-  const closeAccount = useAppStore((state) => state.closeAccount);
 
-  /** Telegram User */
-  const user = useMemo(() => {
-    if (account.telegramInitData) {
-      return extractInitDataUnsafe(account.telegramInitData)["user"];
-    }
-    return null;
-  }, [account.telegramInitData]);
+  const user = getTelegramUser(account);
 
   /** Save Account Data */
   const saveAccountData = useCallback(
@@ -27,18 +21,17 @@ export default function EditAccountDialogContent({ account, close }) {
       updateAccount(data);
       close();
     },
-    [updateAccount, close]
+    [updateAccount, close],
   );
 
   /** Delete Account */
   const deleteAccount = useCallback(async () => {
-    closeAccount(account.partition);
     removeAccount(account.partition);
     await window.electron.ipcRenderer.invoke(
-      "remove-session",
-      account.partition
+      IPC.REMOVE_SESSION,
+      account.partition,
     );
-  }, [account, removeAccount, closeAccount]);
+  }, [account.partition, removeAccount]);
 
   return (
     <AppDialogContent
@@ -56,7 +49,7 @@ export default function EditAccountDialogContent({ account, close }) {
         onClick={deleteAccount}
         className={cn(
           "px-4 py-2.5 border border-red-500 text-red-500 rounded-xl",
-          "flex items-center justify-center gap-2"
+          "flex items-center justify-center gap-2",
         )}
       >
         <HiOutlineTrash className="size-4" />

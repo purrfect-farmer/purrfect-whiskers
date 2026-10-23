@@ -1,22 +1,42 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 import useAppStore from "../store/useAppStore";
 import useSettingsStore from "../store/useSettingsStore";
 
+let restored = false;
+
+/**
+ * Closes the accounts left open by the last run, unless the user chose to
+ * restore them. Runs once, after both stores have loaded from storage.
+ */
+function restoreAccounts() {
+  if (
+    restored ||
+    !useAppStore.persist.hasHydrated() ||
+    !useSettingsStore.persist.hasHydrated()
+  ) {
+    return;
+  }
+
+  restored = true;
+
+  if (!useSettingsStore.getState().restoreAccountsOnStartup) {
+    useAppStore.getState().closeAllAccounts();
+  }
+}
+
 export default function useAccountsRestoration() {
-  const startupRef = useRef(false);
-  const closeAllAccounts = useAppStore((state) => state.closeAllAccounts);
-  const restoreAccountsOnStartup = useSettingsStore(
-    (state) => state.restoreAccountsOnStartup
-  );
-
   useEffect(() => {
-    if (startupRef.current) return;
-    else if (!restoreAccountsOnStartup) {
-      closeAllAccounts();
-    }
+    const unsubscribeApp =
+      useAppStore.persist.onFinishHydration(restoreAccounts);
+    const unsubscribeSettings =
+      useSettingsStore.persist.onFinishHydration(restoreAccounts);
 
-    /** Mark as Restored */
-    startupRef.current = true;
-  }, [restoreAccountsOnStartup, closeAllAccounts]);
+    restoreAccounts();
+
+    return () => {
+      unsubscribeApp();
+      unsubscribeSettings();
+    };
+  }, []);
 }

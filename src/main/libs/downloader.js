@@ -5,6 +5,7 @@ import os from "os";
 import { createWriteStream } from "fs";
 import { deleteAsync } from "del";
 import { join } from "path";
+import { pipeline } from "stream/promises";
 
 /** Clean Directory */
 export async function cleanDirectory(dir) {
@@ -19,8 +20,6 @@ export async function cleanDirectory(dir) {
 
 /** Download Zip */
 export async function downloadZip(url, outputPath, headers = {}) {
-  const writer = createWriteStream(outputPath);
-
   const response = await axios({
     url,
     method: "GET",
@@ -28,12 +27,7 @@ export async function downloadZip(url, outputPath, headers = {}) {
     headers,
   });
 
-  response.data.pipe(writer);
-
-  return new Promise((resolve, reject) => {
-    writer.on("finish", resolve);
-    writer.on("error", reject);
-  });
+  await pipeline(response.data, createWriteStream(outputPath));
 }
 
 /** Extract Zip */

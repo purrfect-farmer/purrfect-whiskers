@@ -1,22 +1,20 @@
 import { useCallback, useMemo, useState } from "react";
 
-import useValuesMemo from "./useValuesMemo";
-
+/** State of a tab group; `list` is read once, on mount */
 export default function useTabs(defaultList = [], defaultValue) {
-  /** List */
-  const list = useMemo(() => defaultList, defaultList);
-
-  /** Tab Value */
+  const [list] = useState(defaultList);
   const [value, setValue] = useState(defaultValue || list[0]);
 
   /** Reset Tab */
-  const reset = useCallback(() => setValue(list[0]), [list, setValue]);
+  const reset = useCallback(() => setValue(list[0]), [list]);
 
-  return useValuesMemo({
-    value,
-    list,
-    reset,
-    setValue,
-    rootProps: useValuesMemo({ value, onValueChange: setValue }),
-  });
+  const rootProps = useMemo(
+    () => ({ value, onValueChange: setValue }),
+    [value],
+  );
+
+  return useMemo(
+    () => ({ value, list, reset, setValue, rootProps }),
+    [value, list, reset, rootProps],
+  );
 }

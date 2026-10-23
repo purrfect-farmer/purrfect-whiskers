@@ -2,42 +2,45 @@ import {
   BrowserWindow,
   app,
   ipcMain,
-  screen,
-  shell,
-  Notification,
-  dialog,
-  session,
   nativeTheme,
+  screen,
+  session,
+  shell,
 } from "electron";
-import { Conf } from "electron-conf/main";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
-import { join } from "path";
-
-import icon from "../../resources/icon.png?asset";
+import {
+  getDefaultExtensionPath,
+  getExtensionVersion,
+  installExtension,
+  pickExtensionPath,
+  updateExtension,
+} from "./services/extension";
+import { registerWebRequest, setSessionRules } from "./libs/webRequest";
 import { startMirrorServer, stopMirrorServer } from "./server";
 
-import axios from "axios";
-import fs from "fs/promises";
-import semver from "semver";
-
+import { Conf } from "electron-conf/main";
+import { IPC } from "../shared/constants/ipc";
+import ProfileRegistry from "./ProfileRegistry";
 import { buildChromeContextMenu } from "electron-chrome-context-menu";
-import { downloadAndExtract, extractZip } from "./libs/downloader";
-import { getGithubHeaders, hasGithubToken } from "../shared/lib/github";
-import Profile from "./Profile";
-import { registerWebRequest } from "./libs/webRequest";
+import { buildTelegramUserAgent } from "../shared/lib/ua";
+import fs from "fs/promises";
+import icon from "../../resources/icon.png?asset";
+import { join } from "path";
 
-/**
- * Profile Map
- * @type {Map<string, Profile>}
- */
-const profileMap = new Map();
+/** Wraps a handler that does not need the IPC event */
+const withoutEvent =
+  (handler) =>
+  (_event, ...args) =>
+    handler(...args);
 
 class App {
+  profiles = new ProfileRegistry();
+
   constructor() {
     this.initialize();
   }
 
-  async createWindow() {
+  createWindow() {
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
     // Create the browser window.
     this.window = new BrowserWindow({
@@ -68,7 +71,7 @@ class App {
     });
 
     /* Maximize when ready to show */
-    this.window.on("ready-to-show", async () => {
+    this.window.on("ready-to-show", () => {
       this.window.maximize();
     });
 
@@ -89,49 +92,55 @@ class App {
 
   /** Register IPC Handlers */
   registerIpcHandlers() {
-    ipcMain.handle("get-app-version", this.getAppVersion.bind(this));
-    ipcMain.handle("get-session-cookie", this.getSessionCookie.bind(this));
-    ipcMain.handle("set-session-cookie", this.setSessionCookie.bind(this));
-    ipcMain.handle(
-      "update-declarative-net-rules",
-      this.updateDeclarativeNetRules.bind(this),
-    );
-    ipcMain.handle("save-backup-file", this.saveBackupFile.bind(this));
-    ipcMain.handle("open-path", this.openPath.bind(this));
-    ipcMain.handle("install-extension", this.installExtension.bind(this));
-    ipcMain.handle("update-extension", this.updateExtension.bind(this));
-    ipcMain.handle(
-      "get-extension-version",
-      this.getExtensionVersion.bind(this),
-    );
-    ipcMain.handle(
-      "get-default-extension-path",
-      this.getDefaultExtensionPath.bind(this),
-    );
-    ipcMain.handle("pick-extension-path", this.pickExtensionPath.bind(this));
-    ipcMain.handle("configure-proxy", this.configureProxy.bind(this));
-    ipcMain.handle("setup-session", this.setupSession.bind(this));
-    ipcMain.handle("remove-session", this.removeSession.bind(this));
-    ipcMain.handle("configure-theme", this.configureTheme.bind(this));
+    const handlers = {
+      [IPC.GET_APP_VERSION]: () => app.getVersion(),
+      [IPC.GET_SESSION_COOKIE]: (event, options) =>
+        event.sender.session.cookies.get(options),
+      [IPC.SET_SESSION_COOKIE]: (event, options) =>
+        event.sender.session.cookies.set(options),
+      [IPC.UPDATE_DECLARATIVE_NET_RULES]: (event, rules) =>
+        this.updateDeclarativeNetRules(event.sender.session, rules),
+      [IPC.SAVE_BACKUP_FILE]: withoutEvent(this.saveBackupFile),
+      [IPC.OPEN_PATH]: withoutEvent((path) => shell.openPath(path)),
+      [IPC.INSTALL_EXTENSION]: withoutEvent(installExtension),
+      [IPC.UPDATE_EXTENSION]: withoutEvent(updateExtension),
+      [IPC.GET_EXTENSION_VERSION]: withoutEvent(getExtensionVersion),
+      [IPC.GET_DEFAULT_EXTENSION_PATH]: withoutEvent(getDefaultExtensionPath),
+      [IPC.PICK_EXTENSION_PATH]: withoutEvent(pickExtensionPath),
+      [IPC.CONFIGURE_PROXY]: withoutEvent((partition, options) =>
+        this.profiles.get(partition).configureProxy(options),
+      ),
+      [IPC.SETUP_SESSION]: withoutEvent((data) => this.setupSession(data)),
+      [IPC.REMOVE_SESSION]: withoutEvent((partition) =>
+        this.removeSession(partition),
+      ),
+      [IPC.CONFIGURE_THEME]: withoutEvent((theme) => {
+        nativeTheme.themeSource = theme;
+      }),
+      [IPC.GENERATE_USER_AGENT]: () =>
+        buildTelegramUserAgent(app.userAgentFallback, app.name),
+    };
+
+    for (const [channel, handler] of Object.entries(handlers)) {
+      ipcMain.handle(channel, handler);
+    }
   }
 
-  /** Get App Version */
-  getAppVersion() {
-    return app.getVersion();
-  }
+  /** Route global events to the profile owning the session */
+  registerProfileListeners() {
+    app.on("login", (event, webContents, _request, authInfo, callback) => {
+      this.profiles
+        .find(webContents?.session)
+        ?.handleLogin(event, authInfo, callback);
+    });
 
-  /** Get Session Cookie */
-  getSessionCookie(event, options) {
-    return event.sender.session.cookies.get(options);
-  }
-
-  /** Set Session Cookie */
-  setSessionCookie(event, options) {
-    return event.sender.session.cookies.set(options);
+    app.on("web-contents-created", (_event, contents) => {
+      this.profiles.find(contents.session)?.handleWebContentsCreated(contents);
+    });
   }
 
   /** Save Backup File */
-  async saveBackupFile(_event, filename, content) {
+  async saveBackupFile(filename, content) {
     /** Backup Directory */
     const backupDir = join(
       app.getPath("documents"),
@@ -151,145 +160,9 @@ class App {
     shell.showItemInFolder(backupFile);
   }
 
-  /** Open Path */
-  async openPath(_event, path) {
-    shell.openPath(path);
-  }
-
-  /** Install Extension */
-  async installExtension(_event, file, path) {
-    await extractZip(file, path);
-  }
-
-  /** Get Default Extension Path */
-  async getDefaultExtensionPath(_event) {
-    return join(app.getPath("userData"), "Extension");
-  }
-
-  /** Pick Extension Path */
-  async pickExtensionPath(_event, defaultPath) {
-    return await dialog.showOpenDialog({
-      defaultPath,
-      properties: ["openDirectory"],
-    });
-  }
-
-  /** Get Extension Version */
-  async getExtensionVersion(_event, path) {
-    const manifestPath = join(path, "manifest.json");
-
-    try {
-      /** Check if manifest.json exists by trying to access it */
-      await fs.access(manifestPath);
-
-      /** Read and parse manifest.json */
-      const manifestContent = await fs.readFile(manifestPath, "utf8");
-      const manifest = JSON.parse(manifestContent);
-
-      return "v" + manifest.version;
-    } catch (error) {
-      console.error("Error reading manifest.json:", error.message);
-      return null;
-    }
-  }
-
-  /** Update Extension */
-  async updateExtension(_event, path) {
-    try {
-      /* Get Current Extension Version */
-      const currentExtensionVersion = await this.getExtensionVersion(
-        _event,
-        path,
-      );
-
-      /* Fetch Latest Release Info */
-      const latestRelease = await axios
-        .get(import.meta.env.VITE_EXTENSION_RELEASE_API_URL, {
-          headers: getGithubHeaders(),
-        })
-        .then((res) => res.data);
-
-      /* Get Latest Tag */
-      const latestTag = latestRelease["tag_name"];
-
-      /* Compare Versions and Update if Needed */
-      if (
-        currentExtensionVersion === null ||
-        semver.gt(latestTag, currentExtensionVersion)
-      ) {
-        /* Find Release File */
-        const filePattern = new RegExp(
-          import.meta.env.VITE_EXTENSION_RELEASE_FILE_PATTERN.replaceAll(
-            "*",
-            "\\d+",
-          ).replaceAll(".", "\\."),
-        );
-
-        /* Get Release File */
-        const releaseFile = latestRelease.assets.find((item) =>
-          filePattern.test(item.name),
-        );
-
-        if (releaseFile) {
-          /** Use API Asset */
-          const useApiAsset = hasGithubToken();
-
-          /* Download and Extract */
-          await downloadAndExtract(
-            useApiAsset
-              ? releaseFile["url"]
-              : releaseFile["browser_download_url"],
-            path,
-            useApiAsset ? getGithubHeaders("application/octet-stream") : {},
-          );
-
-          /* Show Notification */
-          new Notification({
-            title: "Extension Updated",
-            body: `A new version of the extension has been installed - ${latestTag}.`,
-          }).show();
-
-          return {
-            status: true,
-            version: latestTag,
-          };
-        }
-      }
-    } catch (e) {
-      console.error("Failed to check for extension update:", e.message);
-    }
-
-    return {
-      status: false,
-    };
-  }
-
-  /** Install Extension */
-  async installExtension(_event, file, path) {
-    await extractZip(file, path);
-  }
-
-  /** Get session */
-  getSession(partition) {
-    return session.fromPartition(partition);
-  }
-
-  /** Get Profile */
-  getProfile(partition) {
-    if (!profileMap.has(partition)) {
-      const profile = new Profile(partition);
-      profileMap.set(partition, profile);
-    }
-
-    return profileMap.get(partition);
-  }
-
   /** Setup Session */
-  async setupSession(_event, data) {
-    const profile = this.getProfile(data.partition);
-
-    /** Initialize Profile */
-    await profile.initialize();
+  async setupSession(data) {
+    const profile = this.profiles.get(data.partition);
 
     /** Configure Proxy */
     if (data.proxyOptions) {
@@ -300,53 +173,39 @@ class App {
     return profile.getExtension(data.extensionPath);
   }
 
-  /** Configure Proxy */
-  async configureProxy(_event, partition, options) {
-    const profile = this.getProfile(partition);
-
-    /** Initialize Profile */
-    await profile.initialize();
-
-    /** Configure Proxy */
-    return profile.configureProxy(options);
-  }
-
-  /** Update Declarative Net Rules
-   * @param {Electron.IpcMainInvokeEvent} event
+  /**
+   * Stores the extension's rules and makes sure they are applied
+   * @param {Electron.Session} ses
    * @param {Array} rules
    */
-  updateDeclarativeNetRules(event, rules) {
-    registerWebRequest(event.sender.session, rules);
-  }
-
-  /** Configure Theme
-   * @param {Electron.IpcMainInvokeEvent} event
-   * @param {string} theme
-   */
-  configureTheme(_event, theme) {
-    nativeTheme.themeSource = theme;
+  updateDeclarativeNetRules(ses, rules) {
+    setSessionRules(ses, rules);
+    registerWebRequest(ses);
   }
 
   /** Remove Session */
-  async removeSession(_event, partition) {
-    /* Destroy Profile */
-    if (profileMap.has(partition)) {
-      await profileMap.get(partition).destroy();
-      profileMap.delete(partition);
-    }
-
+  async removeSession(partition) {
     /* Get Session */
-    const ses = this.getSession(partition);
+    const ses = session.fromPartition(partition);
+
+    /* Destroy Profile */
+    await this.profiles.remove(partition);
 
     /* Clear all session data before removing */
     await ses.clearCache();
     await ses.clearStorageData();
 
-    /* Get Storage Path */
-    const storagePath = ses.getStoragePath();
-
     /** Remove Partition */
-    await fs.rm(storagePath, { recursive: true, force: true });
+    await fs.rm(ses.getStoragePath(), { recursive: true, force: true });
+  }
+
+  /** Start the mirror server, continuing without it on failure */
+  async startMirrorServer() {
+    try {
+      await startMirrorServer();
+    } catch (error) {
+      console.error("Mirror server unavailable:", error);
+    }
   }
 
   initialize() {
@@ -368,10 +227,11 @@ class App {
       await this.startMirrorServer();
 
       // Register conf listener
-      this.setupConfig();
+      new Conf().registerRendererListener();
 
       // Handles
       this.registerIpcHandlers();
+      this.registerProfileListeners();
 
       // Create Window
       this.createWindow();
@@ -392,17 +252,6 @@ class App {
         app.quit();
       }
     });
-
-    // In this file you can include the rest of your app's specific main process
-    // code. You can also put them in separate files and require them here.
-  }
-
-  async startMirrorServer() {
-    await startMirrorServer();
-  }
-
-  setupConfig() {
-    new Conf().registerRendererListener();
   }
 }
 

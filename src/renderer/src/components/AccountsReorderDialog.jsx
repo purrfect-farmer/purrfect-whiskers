@@ -4,9 +4,10 @@ import AccountsDragReorderList from "./AccountsDragReorderList";
 import AccountsVirtualReorderList from "./AccountsVirtualReorderList";
 import Alert from "./Alert";
 import AppDialogContent from "./AppDialogContent";
-import { Dialog } from "radix-ui";
+import DialogCloseButton from "./DialogCloseButton";
 import { LuArrowUpDown } from "react-icons/lu";
-import { cn } from "../lib/utils";
+import { REORDER_MODE } from "../lib/constants";
+import SegmentedControl from "./SegmentedControl";
 import useAppStore from "../store/useAppStore";
 import useSettingsStore from "../store/useSettingsStore";
 
@@ -16,14 +17,14 @@ import useSettingsStore from "../store/useSettingsStore";
  */
 const REORDER_MODES = [
   {
-    id: "virtual",
-    name: "Controls",
+    value: REORDER_MODE.VIRTUAL,
+    label: "Controls",
     icon: HiOutlineBars3,
     component: AccountsVirtualReorderList,
   },
   {
-    id: "drag",
-    name: "Drag",
+    value: REORDER_MODE.DRAG,
+    label: "Drag",
     icon: HiOutlineSquares2X2,
     component: AccountsDragReorderList,
   },
@@ -40,7 +41,7 @@ export default function AccountsReorderDialog() {
   );
 
   const mode =
-    REORDER_MODES.find((item) => item.id === accountsReorderMode) ||
+    REORDER_MODES.find((item) => item.value === accountsReorderMode) ||
     REORDER_MODES[0];
 
   const ReorderList = mode.component;
@@ -57,49 +58,17 @@ export default function AccountsReorderDialog() {
         </Alert>
       ) : (
         <>
-          {/* Mode Toggle */}
-          <div className="grid grid-cols-2 gap-2">
-            {REORDER_MODES.map((item) => (
-              <button
-                key={item.id}
-                title={item.name}
-                onClick={() => setAccountsReorderMode(item.id)}
-                className={cn(
-                  "flex items-center justify-center gap-2",
-                  "p-2 rounded-xl font-bold",
-                  item.id === mode.id
-                    ? "bg-orange-500 text-white"
-                    : [
-                        "bg-neutral-100 dark:bg-neutral-700",
-                        "hover:bg-orange-100 hover:text-orange-700",
-                        "dark:hover:bg-orange-200 dark:hover:text-orange-500",
-                      ],
-                )}
-              >
-                <item.icon
-                  className={cn(
-                    "size-4",
-                    item.id === mode.id ? "text-white" : "text-orange-500",
-                  )}
-                />
-                {item.name}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            options={REORDER_MODES}
+            value={mode.value}
+            onChange={setAccountsReorderMode}
+          />
 
           <ReorderList accounts={accounts} />
         </>
       )}
 
-      {/* Close Dialog */}
-      <Dialog.Close
-        className={cn(
-          "px-4 py-2.5 bg-orange-500 text-white rounded-xl",
-          "mt-2 font-bold",
-        )}
-      >
-        Close
-      </Dialog.Close>
+      <DialogCloseButton />
     </AppDialogContent>
   );
 }

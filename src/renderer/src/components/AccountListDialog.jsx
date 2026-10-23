@@ -9,6 +9,7 @@ import { LuArrowUpDown } from "react-icons/lu";
 import TagsList from "./TagsList";
 import { Virtuoso } from "react-virtuoso";
 import { cn } from "../lib/utils";
+import { useCallback } from "react";
 import useAccountsFilter from "../hooks/useAccountsFilter";
 import useAppStore from "../store/useAppStore";
 import useDialogState from "../hooks/useDialogState";
@@ -22,6 +23,8 @@ const TRIGGER_BUTTON_CLASS = cn(
   "p-2 px-3 rounded-xl text-left",
   "font-bold",
 );
+
+const computeItemKey = (_, item) => item.partition;
 
 export default function AccountListDialog() {
   const accounts = useAppStore((state) => state.accounts);
@@ -42,6 +45,15 @@ export default function AccountListDialog() {
 
   const { opened: openReorderDialog, setOpened: setOpenReorderDialog } =
     useDialogState();
+
+  const itemContent = useCallback(
+    (_, item) => (
+      <div className="pb-2 px-4">
+        <AccountItem account={item} onLaunch={launchAccount} />
+      </div>
+    ),
+    [launchAccount],
+  );
 
   return (
     <Dialog.Portal>
@@ -149,20 +161,12 @@ export default function AccountListDialog() {
         </div>
 
         {/* Account List */}
-        <div className="grow min-h-0 ">
+        <div className="grow min-h-0">
           <Virtuoso
             style={{ height: "100%", width: "100%" }}
             data={list}
-            computeItemKey={(_, item) => item.partition}
-            itemContent={(_, item) => (
-              <div className="pb-2 px-4 pb">
-                <AccountItem
-                  account={item}
-                  active={item.running}
-                  onClick={() => launchAccount(item.partition)}
-                />
-              </div>
-            )}
+            computeItemKey={computeItemKey}
+            itemContent={itemContent}
           />
         </div>
       </Dialog.Content>

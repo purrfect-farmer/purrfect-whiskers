@@ -1,25 +1,35 @@
 import Alert from "./Alert";
+import ApiKeyInput from "./ApiKeyInput";
 import AppDialogContent from "./AppDialogContent";
-import { Dialog } from "radix-ui";
+import DialogCloseButton from "./DialogCloseButton";
 import { LuGlobeLock } from "react-icons/lu";
 import PrimaryButton from "./PrimaryButton";
-import ProxyKeyInput from "./ProxyKeyInput";
 import ProxyList from "./ProxyList";
 import ProxyManager from "../lib/proxy/ProxyManager";
 import ProxyProviderPicker from "./ProxyProviderPicker";
-import { cn } from "../lib/utils";
 import toast from "react-hot-toast";
 import useAppStore from "../store/useAppStore";
 import { useMutation } from "@tanstack/react-query";
 import useSettingsStore from "../store/useSettingsStore";
 
+/** Assigns the fetched proxies to every account, in order */
+function applyProxiesToAccounts() {
+  const { accounts, proxies, applyProxies } = useAppStore.getState();
+
+  applyProxies(
+    accounts.map((item) => item.partition),
+    proxies,
+  );
+  toast.success(`Applied proxies to ${accounts.length} account(s)!`);
+}
+
 export default function ProxiesDialog() {
-  const accounts = useAppStore((state) => state.accounts);
+  const hasAccounts = useAppStore((state) => state.accounts.length > 0);
   const proxies = useAppStore((state) => state.proxies);
   const proxyProvider = useAppStore((state) => state.proxyProvider);
   const proxyApiKey = useAppStore((state) => state.proxyApiKey);
   const setProxies = useAppStore((state) => state.setProxies);
-  const applyProxies = useAppStore((state) => state.applyProxies);
+  const setProxyApiKey = useAppStore((state) => state.setProxyApiKey);
   const allowProxies = useSettingsStore((state) => state.allowProxies);
 
   /** Fetch Proxies */
@@ -39,15 +49,6 @@ export default function ProxiesDialog() {
     },
   });
 
-  /** Apply Proxies */
-  const handleApplyProxies = () => {
-    applyProxies(
-      accounts.map((item) => item.partition),
-      proxies,
-    );
-    toast.success(`Applied proxies to ${accounts.length} account(s)!`);
-  };
-
   return (
     <AppDialogContent
       title={"Proxies"}
@@ -58,7 +59,11 @@ export default function ProxiesDialog() {
       <ProxyProviderPicker disabled={fetchMutation.isPending} />
 
       {/* API Key */}
-      <ProxyKeyInput />
+      <ApiKeyInput
+        value={proxyApiKey}
+        onSave={setProxyApiKey}
+        label="Proxy API Key"
+      />
 
       {/* Fetch Proxies */}
       <PrimaryButton
@@ -81,21 +86,13 @@ export default function ProxiesDialog() {
 
       {/* Apply Proxies */}
       <PrimaryButton
-        onClick={handleApplyProxies}
-        disabled={proxies.length === 0 || accounts.length === 0}
+        onClick={applyProxiesToAccounts}
+        disabled={proxies.length === 0 || !hasAccounts}
       >
         Apply Proxies
       </PrimaryButton>
 
-      {/* Close Dialog */}
-      <Dialog.Close
-        className={cn(
-          "px-4 py-2.5 text-orange-500 border border-orange-500 rounded-xl",
-          "font-bold",
-        )}
-      >
-        Close
-      </Dialog.Close>
+      <DialogCloseButton variant="outline" />
     </AppDialogContent>
   );
 }

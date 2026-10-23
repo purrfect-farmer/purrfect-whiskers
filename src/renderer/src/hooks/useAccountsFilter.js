@@ -8,9 +8,10 @@ export default function useAccountsFilter(accounts) {
   const [selectedTag, setSelectedTag] = useState(null);
   const tags = useAppStore((state) => state.tags);
 
-  const activeTag = selectedTag
-    ? tags.find((item) => item.id === selectedTag)
-    : null;
+  const activeTag = useMemo(
+    () => (selectedTag ? tags.find((item) => item.id === selectedTag) : null),
+    [tags, selectedTag],
+  );
 
   /** Clicking a tag clears the search, since search takes precedence below */
   const selectTag = useCallback((id) => {

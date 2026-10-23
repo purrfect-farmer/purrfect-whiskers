@@ -1,17 +1,21 @@
+import { useCallback, useMemo, useState } from "react";
+
 import AccountsPickerItem from "./AccountsPickerItem";
 import Input from "./Input";
 import LabelToggle from "./LabelToggle";
 import TagsList from "./TagsList";
 import { Virtuoso } from "react-virtuoso";
 import useAccountsFilter from "../hooks/useAccountsFilter";
-import { useMemo, useState } from "react";
 
 /** Same as Tailwind's h-96 - the previous max height of the list */
 const MAX_LIST_HEIGHT = 384;
 
+const computeItemKey = (_, account) => account.partition;
+
 export default function AccountsPicker({
   accounts,
   disabled,
+  selected,
   selectedAccounts,
   toggleAccount,
   toggleAllAccounts,
@@ -24,10 +28,22 @@ export default function AccountsPicker({
   const allSelected = useMemo(
     () =>
       list.length > 0 &&
-      list.every((account) =>
-        selectedAccounts.some((item) => item.partition === account.partition),
-      ),
-    [list, selectedAccounts],
+      list.every((account) => selected.has(account.partition)),
+    [list, selected],
+  );
+
+  const itemContent = useCallback(
+    (_, account) => (
+      <div className="pb-2 px-2">
+        <AccountsPickerItem
+          account={account}
+          checked={selected.has(account.partition)}
+          onToggle={toggleAccount}
+          disabled={disabled}
+        />
+      </div>
+    ),
+    [selected, toggleAccount, disabled],
   );
 
   return (
@@ -72,19 +88,8 @@ export default function AccountsPicker({
           style={{ height: "100%" }}
           data={list}
           totalListHeightChanged={setListHeight}
-          computeItemKey={(_, account) => account.partition}
-          itemContent={(_, account) => (
-            <div className="pb-2 px-2">
-              <AccountsPickerItem
-                account={account}
-                checked={selectedAccounts.some(
-                  (item) => item.partition === account.partition,
-                )}
-                onChange={(ev) => toggleAccount(account, ev.target.checked)}
-                disabled={disabled}
-              />
-            </div>
-          )}
+          computeItemKey={computeItemKey}
+          itemContent={itemContent}
         />
       </div>
     </div>

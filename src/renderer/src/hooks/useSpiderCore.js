@@ -1,29 +1,61 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import Spider from "../lib/Spider";
-import { getCountryData } from "countries-list";
-import { getEmojiFlag } from "countries-list";
+import { getCountry } from "../lib/countries";
 import toast from "react-hot-toast";
 import useAppStore from "../store/useAppStore";
 import { useQuery } from "@tanstack/react-query";
 
-const useSpiderCore = () => {
+/** Refresh interval of balance and stock while the dialog is open */
+const REFRESH_INTERVAL = 60_000;
+
+/** Spider group whose countries can be purchased */
+const PURCHASABLE_GROUP = "1";
+
+const SORT_KEY = Object.freeze({ NAME: "name", PRICE: "price" });
+const SORT_DIR = Object.freeze({ ASC: "asc", DESC: "desc" });
+
+/** Flattens Spider's grouped country prices into a list */
+function parseCountries(data) {
+  if (!data?.countries) return [];
+
+  /* Quantities are returned under the misspelled "cuantity" key */
+  const quantities = data.cuantity || data.quantity || {};
+
+  return Object.entries(data.countries).flatMap(([group, list]) =>
+    Object.entries(list).map(([code, price]) => {
+      const country = getCountry(code);
+
+      return {
+        code,
+        price: parseFloat(price),
+        quantity: quantities?.[group]?.[code] ?? 0,
+        emoji: country.emoji,
+        name: country.name,
+        group,
+      };
+    }),
+  );
+}
+
+/**
+ * Spider balance, countries and country selection.
+ * Requests only run while `active`, so a closed dialog does not poll.
+ */
+const useSpiderCore = ({ active }) => {
   const spiderApiKey = useAppStore((state) => state.spiderApiKey);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortKey, setSortKey] = useState("name");
-  const [sortDir, setSortDir] = useState("asc");
+  const [sortKey, setSortKey] = useState(SORT_KEY.NAME);
+  const [sortDir, setSortDir] = useState(SORT_DIR.ASC);
   const [selectedCountry, setSelectedCountry] = useState(null);
 
-  /** Enabled */
-  const enabled = Boolean(spiderApiKey);
+  const enabled = Boolean(spiderApiKey) && active;
 
   /* Balance Query */
   const balanceQuery = useQuery({
     queryKey: ["spider-balance", spiderApiKey],
-    queryFn: async () => {
-      return new Spider(spiderApiKey).getBalance();
-    },
-    refetchInterval: 60_000,
+    queryFn: () => new Spider(spiderApiKey).getBalance(),
+    refetchInterval: REFRESH_INTERVAL,
     enabled,
   });
 
@@ -33,41 +65,16 @@ const useSpiderCore = () => {
   /* Countries Query */
   const countriesQuery = useQuery({
     queryKey: ["spider-countries", spiderApiKey],
-    queryFn: async () => {
-      return new Spider(spiderApiKey).getCountries();
-    },
-    refetchInterval: 60_000,
+    queryFn: () => new Spider(spiderApiKey).getCountries(),
+    refetchInterval: REFRESH_INTERVAL,
     enabled,
   });
 
-  /* All Countries */
-  const allCountries = useMemo(() => {
+  /* Purchasable Countries */
+  const availableCountries = useMemo(() => {
     try {
-      if (!countriesQuery.data) return [];
-
-      /* Quantities are returned under the misspelled "cuantity" key */
-      const quantities =
-        countriesQuery.data.cuantity || countriesQuery.data.quantity || {};
-
-      return Object.entries(countriesQuery.data.countries).reduce(
-        (result, [group, list]) =>
-          result.concat(
-            Object.entries(list).map(([code, price]) => {
-              const country = getCountryData(code);
-              const emoji = getEmojiFlag(code);
-              const name = country?.name || code;
-              const quantity = quantities?.[group]?.[code] ?? 0;
-              return {
-                code,
-                price: parseFloat(price),
-                quantity,
-                emoji,
-                name,
-                group,
-              };
-            }),
-          ),
-        [],
+      return parseCountries(countriesQuery.data).filter(
+        (item) => item.group === PURCHASABLE_GROUP,
       );
     } catch (e) {
       console.error("Error processing countries:", e);
@@ -75,21 +82,16 @@ const useSpiderCore = () => {
     }
   }, [countriesQuery.data]);
 
-  /* Available Countries (Group 1) */
-  const availableCountries = useMemo(() => {
-    return allCountries.filter((item) => item.group === "1");
-  }, [allCountries]);
-
   /* Filtered & Sorted Countries */
   const filteredCountries = useMemo(() => {
     const term = searchTerm.toLowerCase();
-    const direction = sortDir === "desc" ? -1 : 1;
+    const direction = sortDir === SORT_DIR.DESC ? -1 : 1;
 
     return availableCountries
       .filter((item) => item.name.toLowerCase().includes(term))
       .sort((a, b) => {
         const comparison =
-          sortKey === "price"
+          sortKey === SORT_KEY.PRICE
             ? a.price - b.price
             : a.name.localeCompare(b.name);
         return comparison * direction;
@@ -97,39 +99,59 @@ const useSpiderCore = () => {
   }, [availableCountries, searchTerm, sortKey, sortDir]);
 
   /** Select Country */
-  const selectCountry = (item) => {
-    if (item.quantity <= 0) {
-      toast.error("This country is out of stock.");
-      return;
-    }
-    if (item.price > balance) {
-      toast.error("Insufficient balance for this country.");
-      return;
-    }
-    setSelectedCountry(item);
-  };
+  const selectCountry = useCallback(
+    (item) => {
+      if (item.quantity <= 0) {
+        toast.error("This country is out of stock.");
+        return;
+      }
+      if (item.price > balance) {
+        toast.error("Insufficient balance for this country.");
+        return;
+      }
+      setSelectedCountry(item);
+    },
+    [balance],
+  );
 
-  return {
-    spiderApiKey,
-    searchTerm,
-    setSearchTerm,
-    sortKey,
-    setSortKey,
-    sortDir,
-    setSortDir,
+  /** Toggle Sort Direction */
+  const toggleSortDir = useCallback(
+    () =>
+      setSortDir((dir) =>
+        dir === SORT_DIR.ASC ? SORT_DIR.DESC : SORT_DIR.ASC,
+      ),
+    [],
+  );
 
-    selectedCountry,
-    setSelectedCountry,
-
-    enabled,
-    balance,
-    balanceQuery,
-    countriesQuery,
-    allCountries,
-    availableCountries,
-    filteredCountries,
-    selectCountry,
-  };
+  return useMemo(
+    () => ({
+      spiderApiKey,
+      searchTerm,
+      setSearchTerm,
+      sortKey,
+      setSortKey,
+      sortDir,
+      toggleSortDir,
+      selectedCountry,
+      setSelectedCountry,
+      balanceQuery,
+      countriesQuery,
+      filteredCountries,
+      selectCountry,
+    }),
+    [
+      spiderApiKey,
+      searchTerm,
+      sortKey,
+      sortDir,
+      toggleSortDir,
+      selectedCountry,
+      balanceQuery,
+      countriesQuery,
+      filteredCountries,
+      selectCountry,
+    ],
+  );
 };
 
-export { useSpiderCore };
+export { SORT_DIR, SORT_KEY, useSpiderCore };

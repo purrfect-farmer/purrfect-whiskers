@@ -16,7 +16,6 @@ import useWebviewControls from "../hooks/useWebviewControls";
 export default memo(function BrowserTab({
   id,
   url,
-  addTab,
   closeTab,
   partition,
   updateTitle,
@@ -57,23 +56,26 @@ export default memo(function BrowserTab({
   /** Address Bar Update */
   useEffect(() => {
     const webview = ref.current;
-    /** Did Navigate */
-    webview.addEventListener("did-navigate", (ev) => {
-      addressBarRef.current.value = ev.url;
-    });
 
-    /** Navigate in Page */
-    webview.addEventListener("did-navigate-in-page", (ev) => {
+    const handleNavigate = (ev) => {
       addressBarRef.current.value = ev.url;
-    });
-  }, []);
+    };
+
+    webview.addEventListener("did-navigate", handleNavigate);
+    webview.addEventListener("did-navigate-in-page", handleNavigate);
+
+    return () => {
+      webview.removeEventListener("did-navigate", handleNavigate);
+      webview.removeEventListener("did-navigate-in-page", handleNavigate);
+    };
+  }, [ref]);
 
   /** Handle Window Close */
   useEffect(() => {
     const webview = ref.current;
 
     /** Listen for Window Close */
-    const listener = (ev) => {
+    const listener = () => {
       closeTab(id);
     };
 
@@ -81,7 +83,7 @@ export default memo(function BrowserTab({
     webview.addEventListener("close", listener);
 
     return () => webview.removeEventListener("close", listener);
-  }, [id, closeTab]);
+  }, [ref, id, closeTab]);
 
   /** Favicon and Title */
   useEffect(() => {
@@ -110,7 +112,7 @@ export default memo(function BrowserTab({
       /** Remove Handler for Update Icon */
       webview.removeEventListener("page-favicon-updated", handleFavicons);
     };
-  }, [id, updateTitle, updateIcon]);
+  }, [ref, id, updateTitle, updateIcon]);
 
   return (
     <div

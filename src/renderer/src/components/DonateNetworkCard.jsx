@@ -2,8 +2,7 @@ import { HiOutlineClipboard } from "react-icons/hi2";
 import { QRCodeSVG } from "qrcode.react";
 
 import Icon from "../assets/images/icon.png";
-import { cn } from "../lib/utils";
-import { copyText } from "../lib/proxy/utils";
+import { cn, copyText } from "../lib/utils";
 
 export default function DonateNetworkCard({ network }) {
   return (

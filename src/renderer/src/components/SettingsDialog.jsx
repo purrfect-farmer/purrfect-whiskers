@@ -1,66 +1,71 @@
 import { AiOutlineFolder, AiOutlineSelect } from "react-icons/ai";
-import { Dialog } from "radix-ui";
-import { HiOutlineCog6Tooth } from "react-icons/hi2";
-import { useCallback } from "react";
 
 import AppDialogContent from "./AppDialogContent";
+import DialogCloseButton from "./DialogCloseButton";
+import { HiOutlineCog6Tooth } from "react-icons/hi2";
+import { IPC } from "../../../shared/constants/ipc";
+import IconButton from "./IconButton";
 import Input from "./Input";
 import LabelToggle from "./LabelToggle";
-import useSettingsStore from "../store/useSettingsStore";
-import { cn } from "../lib/utils";
 import { NumberInput } from "./NumberInput";
+import SectionLabel from "./SectionLabel";
+import SegmentedControl from "./SegmentedControl";
+import { THEME } from "../lib/constants";
+import { useCallback } from "react";
+import useSettingsStore from "../store/useSettingsStore";
+import { useShallow } from "zustand/react/shallow";
+
+const THEME_OPTIONS = [
+  { value: THEME.SYSTEM, label: "System" },
+  { value: THEME.LIGHT, label: "Light" },
+  { value: THEME.DARK, label: "Dark" },
+];
 
 export default function SettingsDialog() {
-  const theme = useSettingsStore((state) => state.theme);
-  const rows = useSettingsStore((state) => state.rows);
-  const columns = useSettingsStore((state) => state.columns);
-  const allowProxies = useSettingsStore((state) => state.allowProxies);
-  const autoUpdateExtension = useSettingsStore(
-    (state) => state.autoUpdateExtension
-  );
-  const extensionPath = useSettingsStore((state) => state.extensionPath);
-  const showAccountDetails = useSettingsStore(
-    (state) => state.showAccountDetails
-  );
-  const restoreAccountsOnStartup = useSettingsStore(
-    (state) => state.restoreAccountsOnStartup
-  );
-  const showWebviewToolbar = useSettingsStore(
-    (state) => state.showWebviewToolbar
-  );
-  const setColumns = useSettingsStore((state) => state.setColumns);
-  const setRows = useSettingsStore((state) => state.setRows);
-  const setTheme = useSettingsStore((state) => state.setTheme);
-  const setExtensionPath = useSettingsStore((state) => state.setExtensionPath);
-  const setAllowProxies = useSettingsStore((state) => state.setAllowProxies);
-  const setAutoUpdateExtension = useSettingsStore(
-    (state) => state.setAutoUpdateExtension
-  );
-  const setShowAccountDetails = useSettingsStore(
-    (state) => state.setShowAccountDetails
-  );
-  const setShowWebviewToolbar = useSettingsStore(
-    (state) => state.setShowWebviewToolbar
-  );
-  const setRestoreAccountsOnStartup = useSettingsStore(
-    (state) => state.setRestoreAccountsOnStartup
+  const settings = useSettingsStore(
+    useShallow((state) => ({
+      theme: state.theme,
+      rows: state.rows,
+      columns: state.columns,
+      allowProxies: state.allowProxies,
+      autoUpdateExtension: state.autoUpdateExtension,
+      extensionPath: state.extensionPath,
+      showAccountDetails: state.showAccountDetails,
+      restoreAccountsOnStartup: state.restoreAccountsOnStartup,
+      showWebviewToolbar: state.showWebviewToolbar,
+    })),
   );
 
+  /** Setters are stable, so they are read once */
+  const {
+    setColumns,
+    setRows,
+    setTheme,
+    setExtensionPath,
+    setAllowProxies,
+    setAutoUpdateExtension,
+    setShowAccountDetails,
+    setShowWebviewToolbar,
+    setRestoreAccountsOnStartup,
+  } = useSettingsStore.getState();
+
+  const { extensionPath } = settings;
+
   /** Open Extension Path */
-  const openExtensionPath = useCallback(async () => {
-    await window.electron.ipcRenderer.invoke("open-path", extensionPath);
-  }, [extensionPath]);
+  const openExtensionPath = useCallback(
+    () => window.electron.ipcRenderer.invoke(IPC.OPEN_PATH, extensionPath),
+    [extensionPath],
+  );
 
   /** Pick Extension Path */
   const pickExtensionPath = useCallback(async () => {
     const result = await window.electron.ipcRenderer.invoke(
-      "pick-extension-path",
-      extensionPath
+      IPC.PICK_EXTENSION_PATH,
+      extensionPath,
     );
 
     if (!result.canceled) {
-      const path = result.filePaths[0];
-      setExtensionPath(path);
+      setExtensionPath(result.filePaths[0]);
     }
   }, [extensionPath, setExtensionPath]);
 
@@ -70,128 +75,85 @@ export default function SettingsDialog() {
       description={"Configure Settings"}
       icon={HiOutlineCog6Tooth}
     >
-      {/* Preferred Theme */}
-      <label className="text-orange-500 mt-2">Preferred Theme</label>
-      <div className="grid grid-cols-3 gap-2">
-        {["system", "light", "dark"].map((value) => (
-          <button
-            onClick={() => setTheme(value)}
-            key={value}
-            className={cn(
-              theme === value && "text-orange-500",
-              "bg-neutral-100 dark:bg-neutral-700",
-              "p-2 rounded-xl",
-              "flex gap-1 items-center justify-center",
-              "uppercase font-bold"
-            )}
-          >
-            {value}
-          </button>
-        ))}
-      </div>
+      <SectionLabel>Preferred Theme</SectionLabel>
+      <SegmentedControl
+        options={THEME_OPTIONS}
+        value={settings.theme}
+        onChange={setTheme}
+      />
 
-      {/* Webview Options */}
-      <label className="text-orange-500 mt-2">Webview Options</label>
+      <SectionLabel>Webview Options</SectionLabel>
       <LabelToggle
         onChange={(ev) => setShowWebviewToolbar(ev.target.checked)}
-        checked={showWebviewToolbar}
+        checked={settings.showWebviewToolbar}
       >
         Show Webview Toolbar
       </LabelToggle>
 
-      {/* Proxy */}
       <LabelToggle
         onChange={(ev) => setAllowProxies(ev.target.checked)}
-        checked={allowProxies}
+        checked={settings.allowProxies}
       >
         Allow Proxies
       </LabelToggle>
 
       <p className="text-neutral-500 dark:text-neutral-400">
         Proxies may be enabled for accounts, but without this option being
-        enabled they won't be used.
+        enabled they won&apos;t be used.
       </p>
 
-      <label className="text-orange-500 mt-2">Accounts</label>
+      <SectionLabel>Accounts</SectionLabel>
 
       <LabelToggle
         onChange={(ev) => setShowAccountDetails(ev.target.checked)}
-        checked={showAccountDetails}
+        checked={settings.showAccountDetails}
       >
         Show Account Details
       </LabelToggle>
 
       <LabelToggle
         onChange={(ev) => setRestoreAccountsOnStartup(ev.target.checked)}
-        checked={restoreAccountsOnStartup}
+        checked={settings.restoreAccountsOnStartup}
       >
         Restore Accounts on Startup
       </LabelToggle>
 
       {/* Columns and Rows */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-2">
         <NumberInput
           label={"Columns"}
-          value={columns}
+          value={settings.columns}
           onChange={(newValue) => setColumns(newValue || 1)}
         />
 
         <NumberInput
           label={"Rows"}
-          value={rows}
+          value={settings.rows}
           onChange={(newValue) => setRows(newValue || 1)}
         />
       </div>
 
-      {/* Extension Path */}
-      <label className="text-orange-500 mt-2">Extension Path</label>
-      <div className="flex gap-2">
+      <SectionLabel>Extension Path</SectionLabel>
+      <div className="flex gap-2 min-w-0">
         <Input readOnly value={extensionPath} />
 
-        <button
-          onClick={openExtensionPath}
-          className={cn(
-            "bg-neutral-100 dark:bg-neutral-700",
-            "hover:bg-orange-100 hover:text-orange-700",
-            "dark:hover:bg-orange-200 dark:hover:text-orange-500",
-            "flex items-center justify-center",
-            "p-1 px-3 rounded-lg"
-          )}
-        >
+        <IconButton title="Open Extension Folder" onClick={openExtensionPath}>
           <AiOutlineFolder className="size-4" />
-        </button>
+        </IconButton>
 
-        <button
-          onClick={pickExtensionPath}
-          className={cn(
-            "bg-neutral-100 dark:bg-neutral-700",
-            "hover:bg-orange-100 hover:text-orange-700",
-            "dark:hover:bg-orange-200 dark:hover:text-orange-500",
-            "flex items-center justify-center",
-            "p-1 px-3 rounded-lg"
-          )}
-        >
+        <IconButton title="Pick Extension Folder" onClick={pickExtensionPath}>
           <AiOutlineSelect className="size-4" />
-        </button>
+        </IconButton>
       </div>
 
-      {/* Auto-Update Extension */}
       <LabelToggle
         onChange={(ev) => setAutoUpdateExtension(ev.target.checked)}
-        checked={autoUpdateExtension}
+        checked={settings.autoUpdateExtension}
       >
         Auto-Update Extension
       </LabelToggle>
 
-      {/* Close Dialog */}
-      <Dialog.Close
-        className={cn(
-          "px-4 py-2.5 bg-orange-500 text-white rounded-xl",
-          "mt-2 font-bold"
-        )}
-      >
-        Close
-      </Dialog.Close>
+      <DialogCloseButton />
     </AppDialogContent>
   );
 }
