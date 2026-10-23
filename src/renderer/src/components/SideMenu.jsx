@@ -48,7 +48,7 @@ export default function SideMenu() {
   const spiderDialog = useDialogState();
 
   return (
-    <div className="shrink-0 w-14 p-2 h-full flex flex-col gap-2 items-center overflow-y-auto">
+    <div className="shrink-0 w-14 px-1.5 py-2 h-full flex flex-col gap-2 items-center overflow-y-auto">
       <SideMenuDialog title="Accounts" icon={HiOutlineBars3}>
         <AccountListDialog />
       </SideMenuDialog>

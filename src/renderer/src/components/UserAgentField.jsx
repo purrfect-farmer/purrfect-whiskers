@@ -1,9 +1,9 @@
 import { memo, useCallback, useState } from "react";
 
 import FormInputField from "./FormInputField";
-import { HiOutlineSparkles } from "react-icons/hi2";
 import { IPC } from "../../../shared/constants/ipc";
 import IconButton from "./IconButton";
+import { LuShuffle } from "react-icons/lu";
 import { cn } from "../lib/utils";
 import toast from "react-hot-toast";
 import { useFormContext } from "react-hook-form";
@@ -45,9 +45,7 @@ export default memo(function UserAgentField() {
         onClick={generateUserAgent}
         disabled={isGenerating}
       >
-        <HiOutlineSparkles
-          className={cn("size-4", isGenerating && "animate-pulse")}
-        />
+        <LuShuffle className={cn("size-4", isGenerating && "animate-pulse")} />
       </IconButton>
     </FormInputField>
   );
