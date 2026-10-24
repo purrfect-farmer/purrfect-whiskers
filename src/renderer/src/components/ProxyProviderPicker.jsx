@@ -1,7 +1,10 @@
+import { useMemo } from "react";
 import { PROXY_PROVIDERS } from "../lib/proxy/ProxyManager";
-import SectionLabel from "./SectionLabel";
-import SegmentedControl from "./SegmentedControl";
+import Tabs from "./Tabs";
 import useAppStore from "../store/useAppStore";
+
+/** The provider values, in the order the tabs show them */
+const PROVIDER_VALUES = PROXY_PROVIDERS.map((provider) => provider.value);
 
 /** Switching provider clears the proxies fetched from the previous one */
 function changeProvider(provider) {
@@ -17,15 +20,13 @@ function changeProvider(provider) {
 export default function ProxyProviderPicker({ disabled }) {
   const proxyProvider = useAppStore((state) => state.proxyProvider);
 
-  return (
-    <>
-      <SectionLabel>Provider</SectionLabel>
-      <SegmentedControl
-        options={PROXY_PROVIDERS}
-        value={proxyProvider}
-        onChange={changeProvider}
-        disabled={disabled}
-      />
-    </>
+  const tabs = useMemo(
+    () => ({
+      list: PROVIDER_VALUES,
+      rootProps: { value: proxyProvider, onValueChange: changeProvider },
+    }),
+    [proxyProvider],
   );
+
+  return <Tabs tabs={tabs} disabled={disabled} />;
 }

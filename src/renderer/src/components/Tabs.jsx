@@ -17,6 +17,7 @@ const Tabs = ({
   listClassName,
   renderList = defaultRenderList,
   triggerClassName,
+  disabled,
   tabs,
 }) => {
   return (
@@ -32,8 +33,9 @@ const Tabs = ({
             <TabsPrimitive.Trigger
               key={index}
               value={value}
+              disabled={disabled}
               className={cn(
-                "p-2",
+                "p-2 disabled:opacity-50",
                 "border-b-4 border-transparent",
                 "data-[state=active]:border-orange-500",
                 triggerClassName
