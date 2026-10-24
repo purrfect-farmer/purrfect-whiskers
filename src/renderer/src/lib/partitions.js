@@ -72,6 +72,7 @@ export function getWhiskerData({ account, settings }) {
     proxyPort,
     proxyUsername,
     proxyPassword,
+    userAgent,
   } = account;
 
   const { theme, allowProxies } = settings;
@@ -80,6 +81,7 @@ export function getWhiskerData({ account, settings }) {
     account: {
       title,
       partition,
+      userAgent,
     },
     sharedSettings: {
       theme,
