@@ -17,7 +17,11 @@ import {
   pickExtensionPath,
 } from "./services/extension";
 import { generateUserAgent, syncUserAgents } from "./services/userAgents";
-import { registerWebRequest, setSessionRules } from "./libs/webRequest";
+import {
+  registerWebRequest,
+  setSessionRules,
+  applyBrowserUserAgentFallback,
+} from "./libs/webRequest";
 import { startMirrorServer, stopMirrorServer } from "./server";
 
 import { Conf } from "electron-conf/main";
@@ -231,6 +235,8 @@ class App {
   }
 
   initialize() {
+    applyBrowserUserAgentFallback();
+
     // This method will be called when Electron has finished
     // initialization and is ready to create browser windows.
     // Some APIs can only be used after this event occurs.

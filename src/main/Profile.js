@@ -56,7 +56,7 @@ class Profile {
     await this.session.closeAllConnections();
   }
 
-  /** Use the account's User-Agent, or Electron's default when it has none */
+  /** Use the account's User-Agent, or the plain Chrome one when it has none */
   configureUserAgent(userAgent) {
     if (userAgent) {
       setUserAgent(this.session, userAgent);

@@ -1,3 +1,4 @@
+import { app } from "electron";
 import { withChromeVersion } from "../../../shared/lib/userAgent";
 
 /**
@@ -5,6 +6,21 @@ import { withChromeVersion } from "../../../shared/lib/userAgent";
  * @type {WeakMap<Electron.Session, string>}
  */
 const userAgents = new WeakMap();
+
+/**
+ * The User-Agent without the app's and Electron's own tokens, as Chrome sends it
+ * @param {string} userAgent
+ */
+export function toBrowserUserAgent(userAgent) {
+  return userAgent
+    .replace(/(\(KHTML, like Gecko\))\s.*?(?=\sChrome\/)/, "$1")
+    .replace(/\sElectron\/\S+/g, "");
+}
+
+/** Make sessions without an account User-Agent send a plain Chrome one */
+export function applyBrowserUserAgentFallback() {
+  app.userAgentFallback = toBrowserUserAgent(app.userAgentFallback);
+}
 
 /**
  * The User-Agent naming the running Electron's Chrome version
@@ -34,9 +50,13 @@ export function getUserAgent(session) {
   return userAgents.get(session);
 }
 
-/** @param {Electron.Session} session */
+/**
+ * Puts a session back on the plain Chrome User-Agent
+ * @param {Electron.Session} session
+ */
 export function clearUserAgent(session) {
   userAgents.delete(session);
+  session.setUserAgent(app.userAgentFallback);
 }
 
 /**

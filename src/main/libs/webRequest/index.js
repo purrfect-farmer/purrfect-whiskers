@@ -9,6 +9,7 @@ export { clearSessionRules, setSessionRules } from "./rules";
 export {
   clearUserAgent,
   setUserAgent,
+  applyBrowserUserAgentFallback,
   withEngineChromeVersion,
 } from "./userAgent";
 
