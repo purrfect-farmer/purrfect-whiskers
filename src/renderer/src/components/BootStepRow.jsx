@@ -37,7 +37,7 @@ export default memo(function BootStepRow({ label, status }) {
     <li
       className={cn(
         "flex items-center gap-3 px-4 py-2 rounded-xl",
-        "bg-neutral-100 dark:bg-neutral-800",
+        "bg-neutral-100 dark:bg-neutral-700",
       )}
     >
       <Icon

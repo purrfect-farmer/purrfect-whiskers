@@ -14,7 +14,7 @@ const STEP_LABELS = {
 export default memo(function BootScreen({ statuses, hasFailed, retry, skip }) {
   return (
     <div className="min-h-dvh max-w-sm mx-auto p-4 flex flex-col gap-4 justify-center">
-      <img src={Icon} className="size-24 max-w-full mx-auto" />
+      <img src={Icon} className="size-32 max-w-full mx-auto" />
       <h1 className="text-3xl font-turret-road text-orange-500 text-center break-words">
         Purrfect Whiskers
       </h1>
