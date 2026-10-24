@@ -5,6 +5,7 @@ import { getExtensionVersion } from "./extension";
 import { getGithubHeaders } from "../../shared/lib/github";
 import { join } from "path";
 import { randomItem } from "../../shared/lib/utils";
+import { withEngineChromeVersion } from "../libs/webRequest";
 
 /** Catalog request timeout */
 const CATALOG_REQUEST_TIMEOUT = 30_000;
@@ -77,9 +78,11 @@ export async function syncUserAgents(extensionPath) {
   }
 }
 
-/** A random User-Agent from the catalog, or null when there is none */
+/** A random User-Agent from the catalog naming Electron's Chrome version, or null when there is none */
 export async function generateUserAgent() {
   const userAgents = (await readCatalog())?.userAgents;
 
-  return userAgents?.length ? randomItem(userAgents) : null;
+  return userAgents?.length
+    ? withEngineChromeVersion(randomItem(userAgents))
+    : null;
 }

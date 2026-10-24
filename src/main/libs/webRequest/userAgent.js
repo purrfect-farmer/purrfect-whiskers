@@ -1,21 +1,17 @@
+import { withChromeVersion } from "../../../shared/lib/userAgent";
+
 /**
  * User-Agent per session
  * @type {WeakMap<Electron.Session, string>}
  */
 const userAgents = new WeakMap();
 
-/** Full Chrome version of the running Electron */
-const ELECTRON_CHROME_FULL_VERSION = process.versions.chrome;
-
 /**
  * The User-Agent naming the running Electron's Chrome version
  * @param {string} userAgent
  */
 export function withEngineChromeVersion(userAgent) {
-  return userAgent.replace(
-    /Chrome\/[\d.]+/,
-    `Chrome/${ELECTRON_CHROME_FULL_VERSION}`,
-  );
+  return withChromeVersion(userAgent, process.versions.chrome);
 }
 
 /**

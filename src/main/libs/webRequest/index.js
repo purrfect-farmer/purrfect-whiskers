@@ -6,7 +6,11 @@ import { createHeaders } from "./headers";
 import { getSecChUa } from "./clientHints";
 
 export { clearSessionRules, setSessionRules } from "./rules";
-export { clearUserAgent, setUserAgent } from "./userAgent";
+export {
+  clearUserAgent,
+  setUserAgent,
+  withEngineChromeVersion,
+} from "./userAgent";
 
 const URL_FILTER = { urls: ["*://*/*", "ws://*/*", "wss://*/*"] };
 const WEB_URL_REGEX = /^(http|https|ws|wss):\/\//;

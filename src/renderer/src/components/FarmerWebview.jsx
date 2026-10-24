@@ -18,6 +18,7 @@ import { WEBVIEW_ACTION } from "../../../shared/constants/ipc";
 import WebviewButton from "./WebviewButton";
 import { cn } from "../lib/utils";
 import useAppStore from "../store/useAppStore";
+import { withWhiskerChromeVersion } from "../lib/userAgent";
 import useSettingsStore from "../store/useSettingsStore";
 import useWebviewControls from "../hooks/useWebviewControls";
 
@@ -86,7 +87,10 @@ export default memo(function FarmerWebview({ account, pinned, togglePinned }) {
       registerWebviewMessage(ref.current, {
         [WEBVIEW_ACTION.GET_WHISKER_DATA]: () => sendWhiskerData(),
         [WEBVIEW_ACTION.SET_PROXY]: (data) => mergeAccountData(data),
-        [WEBVIEW_ACTION.SET_USER_AGENT]: (data) => mergeAccountData(data),
+        [WEBVIEW_ACTION.SET_USER_AGENT]: (data) =>
+          mergeAccountData({
+            userAgent: withWhiskerChromeVersion(data?.userAgent),
+          }),
         [WEBVIEW_ACTION.SET_TELEGRAM_INIT_DATA]: (data) =>
           mergeAccountData(data),
         [WEBVIEW_ACTION.LAUNCH_ACCOUNT]: (data, reply) =>

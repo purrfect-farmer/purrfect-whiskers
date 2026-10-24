@@ -6,12 +6,20 @@ import { getTelegramUser } from "../lib/utils";
 import { storage } from "./storage";
 import useFlashStore from "./useFlashStore";
 import useSettingsStore from "./useSettingsStore";
+import { withWhiskerChromeVersion } from "../lib/userAgent";
 
 /** Number of webviews shown per page */
 const getItemsPerPage = () => {
   const { columns, rows } = useSettingsStore.getState();
   return columns * rows;
 };
+
+/** The accounts with their User-Agents naming Whisker's Chrome version */
+const withWhiskerUserAgents = (accounts) =>
+  accounts.map((item) => ({
+    ...item,
+    userAgent: withWhiskerChromeVersion(item.userAgent),
+  }));
 
 /**
  * Sets `running` on the accounts in `partitions`, or on all with `null`.
@@ -227,6 +235,13 @@ export default create(
     {
       name: "app-store", // unique name
       storage: createJSONStorage(() => storage),
+      merge: (persistedState, currentState) => ({
+        ...currentState,
+        ...persistedState,
+        accounts: withWhiskerUserAgents(
+          persistedState?.accounts ?? currentState.accounts,
+        ),
+      }),
     },
   ),
 );

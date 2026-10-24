@@ -10,6 +10,7 @@ import SubmitButton from "./SubmitButton";
 import TagsInput from "./TagsInput";
 import UserAgentField from "./UserAgentField";
 import useAppStore from "../store/useAppStore";
+import { withWhiskerChromeVersion } from "../lib/userAgent";
 import { yupResolver } from "@hookform/resolvers/yup";
 
 /** Optional text, trimmed, with empty stored as null */
@@ -25,7 +26,9 @@ const schema = yup
     partition: yup.string().nullable(),
     telegramInitData: yup.string().nullable(),
     title: yup.string().trim().required().label("Title"),
-    userAgent: optionalText().label("User-Agent"),
+    userAgent: optionalText()
+      .transform(withWhiskerChromeVersion)
+      .label("User-Agent"),
     proxyEnabled: yup.bool().required(),
     proxyHost: optionalText(),
     proxyPort: optionalText(),
