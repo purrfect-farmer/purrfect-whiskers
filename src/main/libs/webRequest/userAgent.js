@@ -4,13 +4,30 @@
  */
 const userAgents = new WeakMap();
 
+/** Full Chrome version of the running Electron */
+const ELECTRON_CHROME_FULL_VERSION = process.versions.chrome;
+
 /**
- * Sets the User-Agent of a session
+ * The User-Agent naming the running Electron's Chrome version
+ * @param {string} userAgent
+ */
+export function withEngineChromeVersion(userAgent) {
+  return userAgent.replace(
+    /Chrome\/[\d.]+/,
+    `Chrome/${ELECTRON_CHROME_FULL_VERSION}`,
+  );
+}
+
+/**
+ * Sets the User-Agent of a session, naming the running Electron's Chrome version
  * @param {Electron.Session} session
  * @param {string} userAgent
  */
 export function setUserAgent(session, userAgent) {
-  userAgents.set(session, userAgent);
+  const engineUserAgent = withEngineChromeVersion(userAgent);
+
+  userAgents.set(session, engineUserAgent);
+  session.setUserAgent(engineUserAgent);
 }
 
 /**
