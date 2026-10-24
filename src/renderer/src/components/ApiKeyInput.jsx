@@ -21,7 +21,11 @@ export default memo(function ApiKeyInput({ value, onSave, label }) {
         placeholder={`Enter your ${label}`}
       />
 
-      <PrimaryButton onClick={handleSave} className="w-auto shrink-0">
+      <PrimaryButton
+        variant="neutral"
+        onClick={handleSave}
+        className="w-auto shrink-0"
+      >
         Save
       </PrimaryButton>
     </div>

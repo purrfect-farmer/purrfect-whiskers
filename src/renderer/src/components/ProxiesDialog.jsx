@@ -67,6 +67,7 @@ export default function ProxiesDialog() {
 
       {/* Fetch Proxies */}
       <PrimaryButton
+        variant="neutral"
         onClick={() => fetchMutation.mutate()}
         disabled={!proxyApiKey || fetchMutation.isPending}
       >
