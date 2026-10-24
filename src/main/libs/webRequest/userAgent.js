@@ -11,7 +11,6 @@ const userAgents = new WeakMap();
  */
 export function setUserAgent(session, userAgent) {
   userAgents.set(session, userAgent);
-  session.setUserAgent(userAgent);
 }
 
 /**

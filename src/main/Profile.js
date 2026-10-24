@@ -1,5 +1,5 @@
 import { WEBVIEW_ACTION, WEBVIEW_CHANNEL } from "../shared/constants/ipc";
-import { app, session } from "electron";
+import { session } from "electron";
 import {
   clearSessionRules,
   clearUserAgent,
@@ -62,7 +62,6 @@ class Profile {
       setUserAgent(this.session, userAgent);
     } else {
       clearUserAgent(this.session);
-      this.session.setUserAgent(app.userAgentFallback);
     }
   }
 
