@@ -171,7 +171,10 @@ export default function TagsDialog() {
           <Reorder.Group
             values={tags}
             onReorder={setTags}
-            className="flex flex-col gap-2"
+            className={cn(
+              "flex flex-col gap-2",
+              "max-h-96 overflow-auto -mx-2 px-2",
+            )}
           >
             {tags.map((item) => (
               <TagItem key={item.id} tag={item} />
