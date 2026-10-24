@@ -53,3 +53,25 @@ export const PROXY_OPTION_KEYS = Object.freeze([
   "proxyPassword",
   "userAgent",
 ]);
+
+/** Downloads the app checks for before it opens */
+export const BOOT_STEP = Object.freeze({
+  EXTENSION: "extension",
+  USER_AGENTS: "user-agents",
+});
+
+export const BOOT_STATUS = Object.freeze({
+  PENDING: "pending",
+  RUNNING: "running",
+  DONE: "done",
+  FAILED: "failed",
+});
+
+export const EXTENSION_UPDATE_STATUS = Object.freeze({
+  IDLE: "idle",
+  CHECKING: "checking",
+  DOWNLOADING: "downloading",
+  UP_TO_DATE: "up-to-date",
+  UPDATED: "updated",
+  FAILED: "failed",
+});

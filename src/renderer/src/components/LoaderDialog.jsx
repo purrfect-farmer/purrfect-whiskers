@@ -4,7 +4,9 @@ import Dropzone from "./Dropzone";
 import { HiOutlinePuzzlePiece } from "react-icons/hi2";
 import { IPC } from "../../../shared/constants/ipc";
 import toast from "react-hot-toast";
+import { EXTENSION_UPDATE_STATUS } from "../lib/constants";
 import useAppStore from "../store/useAppStore";
+import useExtensionStore from "../store/useExtensionStore";
 import useSettingsStore from "../store/useSettingsStore";
 
 const ZIP_FILES = { "application/zip": [".zip"] };
@@ -25,6 +27,12 @@ async function installExtension([file]) {
       window.electron.webUtils.getPathForFile(file),
       extensionPath,
     );
+
+    /** Let the settings read the installed version again */
+    useExtensionStore.getState().setUpdateState({
+      status: EXTENSION_UPDATE_STATUS.IDLE,
+      currentVersion: null,
+    });
 
     toast.success("Successfully Installed Extension!");
   } catch (error) {

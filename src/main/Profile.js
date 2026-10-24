@@ -9,7 +9,7 @@ import {
 import { join, resolve } from "path";
 
 import { buildChromeContextMenu } from "electron-chrome-context-menu";
-import { buildTelegramUserAgent } from "../shared/lib/ua";
+import { getExtensionVersion } from "./services/extension";
 import isEqual from "fast-deep-equal";
 
 /** Path to Preload File */
@@ -32,12 +32,6 @@ class Profile {
 
   /** @type {{proxyHost: string, proxyPort?: number, proxyUsername?: string, proxyPassword?: string}|null} */
   proxyOptions = null;
-
-  /**
-   * User-Agent used while the account has none, kept for the app's run
-   * @type {string|null}
-   */
-  fallbackUserAgent = null;
 
   /** @param {string} partition */
   constructor(partition) {
@@ -62,18 +56,14 @@ class Profile {
     await this.session.closeAllConnections();
   }
 
-  /** Get the account's User-Agent, or the generated fallback */
-  resolveUserAgent(userAgent) {
-    if (userAgent) return userAgent;
-
-    if (!this.fallbackUserAgent) {
-      this.fallbackUserAgent = buildTelegramUserAgent(
-        app.userAgentFallback,
-        app.name,
-      );
+  /** Use the account's User-Agent, or Electron's default when it has none */
+  configureUserAgent(userAgent) {
+    if (userAgent) {
+      setUserAgent(this.session, userAgent);
+    } else {
+      clearUserAgent(this.session);
+      this.session.setUserAgent(app.userAgentFallback);
     }
-
-    return this.fallbackUserAgent;
   }
 
   /** Configure Proxy */
@@ -109,7 +99,7 @@ class Profile {
     await this.session.closeAllConnections();
 
     /** Set User Agent */
-    setUserAgent(this.session, this.resolveUserAgent(options.userAgent));
+    this.configureUserAgent(options.userAgent);
 
     /** Configure Web Request */
     registerWebRequest(this.session);
@@ -186,6 +176,14 @@ class Profile {
         extension = this.session.extensions
           .getAllExtensions()
           .find((item) => resolve(item.path) === resolve(extensionPath));
+
+        /** Unload it when a different version was installed since */
+        const installedVersion = await getExtensionVersion(extensionPath);
+
+        if (extension && `v${extension.version}` !== installedVersion) {
+          this.session.extensions.removeExtension(extension.id);
+          extension = null;
+        }
 
         /** Load Extension */
         if (!extension) {

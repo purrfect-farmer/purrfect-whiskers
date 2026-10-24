@@ -1,4 +1,4 @@
-import { Notification, app, dialog } from "electron";
+import { app, dialog } from "electron";
 import { downloadAndExtract, extractZip } from "../libs/downloader";
 import { getGithubHeaders, hasGithubToken } from "../../shared/lib/github";
 
@@ -75,33 +75,29 @@ function installReleaseAsset(asset, path) {
   );
 }
 
-/** Installs the latest release when it is newer than the installed one */
-export async function updateExtension(path) {
-  try {
-    const currentVersion = await getExtensionVersion(path);
-    const latestRelease = await getLatestRelease();
-    const latestTag = latestRelease["tag_name"];
+/** The installed and latest extension versions, and whether an update exists */
+export async function checkExtensionUpdate(path) {
+  const currentVersion = await getExtensionVersion(path);
+  const latestVersion = (await getLatestRelease())["tag_name"];
 
-    const isOutdated =
-      currentVersion === null || semver.gt(latestTag, currentVersion);
+  const isOutdated =
+    currentVersion === null || semver.gt(latestVersion, currentVersion);
 
-    const asset = isOutdated
-      ? latestRelease.assets.find((item) => RELEASE_FILE_REGEX.test(item.name))
-      : null;
+  return { currentVersion, latestVersion, isOutdated };
+}
 
-    if (asset) {
-      await installReleaseAsset(asset, path);
+/** Installs the latest release, whatever version is installed */
+export async function installLatestExtension(path) {
+  const latestRelease = await getLatestRelease();
+  const asset = latestRelease.assets.find((item) =>
+    RELEASE_FILE_REGEX.test(item.name),
+  );
 
-      new Notification({
-        title: "Extension Updated",
-        body: `A new version of the extension has been installed - ${latestTag}.`,
-      }).show();
-
-      return { status: true, version: latestTag };
-    }
-  } catch (e) {
-    console.error("Failed to check for extension update:", e.message);
+  if (!asset) {
+    throw new Error("The latest release has no extension file");
   }
 
-  return { status: false };
+  await installReleaseAsset(asset, path);
+
+  return { version: latestRelease["tag_name"] };
 }

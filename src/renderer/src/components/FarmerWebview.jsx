@@ -86,6 +86,7 @@ export default memo(function FarmerWebview({ account, pinned, togglePinned }) {
       registerWebviewMessage(ref.current, {
         [WEBVIEW_ACTION.GET_WHISKER_DATA]: () => sendWhiskerData(),
         [WEBVIEW_ACTION.SET_PROXY]: (data) => mergeAccountData(data),
+        [WEBVIEW_ACTION.SET_USER_AGENT]: (data) => mergeAccountData(data),
         [WEBVIEW_ACTION.SET_TELEGRAM_INIT_DATA]: (data) =>
           mergeAccountData(data),
         [WEBVIEW_ACTION.LAUNCH_ACCOUNT]: (data, reply) =>

@@ -2,6 +2,7 @@ import { AiOutlineFolder, AiOutlineSelect } from "react-icons/ai";
 
 import AppDialogContent from "./AppDialogContent";
 import DialogCloseButton from "./DialogCloseButton";
+import ExtensionUpdateSection from "./ExtensionUpdateSection";
 import { HiOutlineCog6Tooth } from "react-icons/hi2";
 import { IPC } from "../../../shared/constants/ipc";
 import IconButton from "./IconButton";
@@ -152,6 +153,8 @@ export default function SettingsDialog() {
       >
         Auto-Update Extension
       </LabelToggle>
+
+      <ExtensionUpdateSection extensionPath={extensionPath} />
 
       <DialogCloseButton />
     </AppDialogContent>

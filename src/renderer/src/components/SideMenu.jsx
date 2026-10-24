@@ -29,6 +29,9 @@ import { SpiderProvider } from "./SpiderProvider";
 import TagsDialog from "./TagsDialog";
 import { cn } from "../lib/utils";
 import useAppVersion from "../hooks/useAppVersion";
+import useExtensionStore, {
+  selectIsUpdating,
+} from "../store/useExtensionStore";
 import useDialogState from "../hooks/useDialogState";
 
 /** Toggle FullScreen */
@@ -40,11 +43,25 @@ const toggleFullScreen = () => {
   }
 };
 
+/** Spinner on the Settings button while the extension updates */
+const EXTENSION_UPDATING_BADGE = (
+  <span
+    title="Updating extension"
+    className={cn(
+      "absolute -right-0.5 -top-0.5 rounded-full",
+      "bg-white dark:bg-neutral-900 flex",
+    )}
+  >
+    <HiOutlineArrowPath className="size-3.5 text-orange-500 animate-spin" />
+  </span>
+);
+
 /** Reload App */
 const reloadApp = () => window.location.reload();
 
 export default function SideMenu() {
   const { hasUpdate } = useAppVersion();
+  const isUpdatingExtension = useExtensionStore(selectIsUpdating);
   const spiderDialog = useDialogState();
 
   return (
@@ -57,7 +74,11 @@ export default function SideMenu() {
         <TagsDialog />
       </SideMenuDialog>
 
-      <SideMenuDialog title="Settings" icon={HiOutlineCog6Tooth}>
+      <SideMenuDialog
+        title="Settings"
+        icon={HiOutlineCog6Tooth}
+        badge={isUpdatingExtension ? EXTENSION_UPDATING_BADGE : null}
+      >
         <SettingsDialog />
       </SideMenuDialog>
 

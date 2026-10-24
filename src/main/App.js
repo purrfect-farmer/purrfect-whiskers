@@ -9,12 +9,14 @@ import {
 } from "electron";
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
 import {
+  checkExtensionUpdate,
   getDefaultExtensionPath,
   getExtensionVersion,
   installExtension,
+  installLatestExtension,
   pickExtensionPath,
-  updateExtension,
 } from "./services/extension";
+import { generateUserAgent, syncUserAgents } from "./services/userAgents";
 import { registerWebRequest, setSessionRules } from "./libs/webRequest";
 import { startMirrorServer, stopMirrorServer } from "./server";
 
@@ -22,7 +24,6 @@ import { Conf } from "electron-conf/main";
 import { IPC } from "../shared/constants/ipc";
 import ProfileRegistry from "./ProfileRegistry";
 import { buildChromeContextMenu } from "electron-chrome-context-menu";
-import { buildTelegramUserAgent } from "../shared/lib/ua";
 import fs from "fs/promises";
 import icon from "../../resources/icon.png?asset";
 import { join } from "path";
@@ -102,8 +103,13 @@ class App {
         this.updateDeclarativeNetRules(event.sender.session, rules),
       [IPC.SAVE_BACKUP_FILE]: withoutEvent(this.saveBackupFile),
       [IPC.OPEN_PATH]: withoutEvent((path) => shell.openPath(path)),
-      [IPC.INSTALL_EXTENSION]: withoutEvent(installExtension),
-      [IPC.UPDATE_EXTENSION]: withoutEvent(updateExtension),
+      [IPC.INSTALL_EXTENSION]: withoutEvent((file, path) =>
+        this.installExtension(file, path),
+      ),
+      [IPC.CHECK_EXTENSION_UPDATE]: withoutEvent(checkExtensionUpdate),
+      [IPC.INSTALL_LATEST_EXTENSION]: withoutEvent((path) =>
+        this.installLatestExtension(path),
+      ),
       [IPC.GET_EXTENSION_VERSION]: withoutEvent(getExtensionVersion),
       [IPC.GET_DEFAULT_EXTENSION_PATH]: withoutEvent(getDefaultExtensionPath),
       [IPC.PICK_EXTENSION_PATH]: withoutEvent(pickExtensionPath),
@@ -117,8 +123,8 @@ class App {
       [IPC.CONFIGURE_THEME]: withoutEvent((theme) => {
         nativeTheme.themeSource = theme;
       }),
-      [IPC.GENERATE_USER_AGENT]: () =>
-        buildTelegramUserAgent(app.userAgentFallback, app.name),
+      [IPC.GENERATE_USER_AGENT]: withoutEvent(generateUserAgent),
+      [IPC.SYNC_USER_AGENTS]: withoutEvent(syncUserAgents),
     };
 
     for (const [channel, handler] of Object.entries(handlers)) {
@@ -158,6 +164,22 @@ class App {
 
     /** Show Backup File */
     shell.showItemInFolder(backupFile);
+  }
+
+  /** Install an extension, then sync the User-Agent catalog to its version */
+  async installExtension(file, path) {
+    const result = await installExtension(file, path);
+    await syncUserAgents(path);
+
+    return result;
+  }
+
+  /** Install the latest extension, then sync the User-Agent catalog to its version */
+  async installLatestExtension(path) {
+    const result = await installLatestExtension(path);
+    await syncUserAgents(path);
+
+    return result;
   }
 
   /** Setup Session */

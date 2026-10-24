@@ -8,7 +8,7 @@ import { cn } from "../lib/utils";
 import toast from "react-hot-toast";
 import { useFormContext } from "react-hook-form";
 
-/** User-Agent input with a button that fills a random Telegram-Android one */
+/** User-Agent input with a button that fills a random one from the catalog */
 export default memo(function UserAgentField() {
   const { setValue } = useFormContext();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -20,6 +20,11 @@ export default memo(function UserAgentField() {
       const userAgent = await window.electron.ipcRenderer.invoke(
         IPC.GENERATE_USER_AGENT,
       );
+
+      if (!userAgent) {
+        toast.error("No User-Agent catalog yet");
+        return;
+      }
 
       setValue("userAgent", userAgent, {
         shouldDirty: true,
@@ -37,7 +42,7 @@ export default memo(function UserAgentField() {
     <FormInputField
       name="userAgent"
       label="User-Agent"
-      placeholder="User-Agent (leave empty for default)"
+      placeholder="User-Agent (leave empty to use the farmer's)"
     >
       <IconButton
         title="Generate User-Agent"

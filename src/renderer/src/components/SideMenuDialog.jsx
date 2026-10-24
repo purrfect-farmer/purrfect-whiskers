@@ -7,12 +7,14 @@ export default memo(function SideMenuDialog({
   icon: Icon,
   open,
   onOpenChange,
+  badge = null,
   children,
 }) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Trigger title={title} aria-label={title} className="p-2">
+      <Dialog.Trigger title={title} aria-label={title} className="p-2 relative">
         <Icon className="size-5 text-orange-500" />
+        {badge}
       </Dialog.Trigger>
 
       {children}

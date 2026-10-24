@@ -7,7 +7,8 @@ export const IPC = Object.freeze({
   SAVE_BACKUP_FILE: "save-backup-file",
   OPEN_PATH: "open-path",
   INSTALL_EXTENSION: "install-extension",
-  UPDATE_EXTENSION: "update-extension",
+  CHECK_EXTENSION_UPDATE: "check-extension-update",
+  INSTALL_LATEST_EXTENSION: "install-latest-extension",
   GET_EXTENSION_VERSION: "get-extension-version",
   GET_DEFAULT_EXTENSION_PATH: "get-default-extension-path",
   PICK_EXTENSION_PATH: "pick-extension-path",
@@ -16,6 +17,7 @@ export const IPC = Object.freeze({
   REMOVE_SESSION: "remove-session",
   CONFIGURE_THEME: "configure-theme",
   GENERATE_USER_AGENT: "generate-user-agent",
+  SYNC_USER_AGENTS: "sync-user-agents",
 });
 
 /** Channels between the host page and its webviews */
@@ -35,6 +37,7 @@ export const WEBVIEW_ACTION = Object.freeze({
   GET_WHISKER_DATA: "get-whisker-data",
   SET_WHISKER_DATA: "set-whisker-data",
   SET_PROXY: "set-proxy",
+  SET_USER_AGENT: "set-user-agent",
   SET_TELEGRAM_INIT_DATA: "set-telegram-init-data",
   LAUNCH_ACCOUNT: "launch-account",
   RESPONSE_LAUNCH_ACCOUNT: "response-launch-account",

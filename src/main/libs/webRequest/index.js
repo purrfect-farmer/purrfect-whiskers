@@ -1,8 +1,9 @@
 import { applyHeaderModifications, getMatchingRules } from "./rules";
 import { createCorsTracker, stripBlockingHeaders } from "./cors";
 
-import { applyUserAgent } from "./userAgent";
+import { applyUserAgent, getUserAgent } from "./userAgent";
 import { createHeaders } from "./headers";
+import { getSecChUa } from "./clientHints";
 
 export { clearSessionRules, setSessionRules } from "./rules";
 export { clearUserAgent, setUserAgent } from "./userAgent";
@@ -10,16 +11,9 @@ export { clearUserAgent, setUserAgent } from "./userAgent";
 const URL_FILTER = { urls: ["*://*/*", "ws://*/*", "wss://*/*"] };
 const WEB_URL_REGEX = /^(http|https|ws|wss):\/\//;
 
-const CHROME_MAJOR_VERSION = process.versions.chrome.split(".")[0];
-
 /** Headers a Telegram Android WebView sends */
 const ANDROID_WEBVIEW_HEADERS = Object.freeze({
   "X-Requested-With": "org.telegram.messenger",
-  "Sec-Ch-Ua": [
-    `"Android WebView";v="${CHROME_MAJOR_VERSION}"`,
-    `"Chromium";v="${CHROME_MAJOR_VERSION}"`,
-    `"Not)A;Brand";v="24"`,
-  ].join(", "),
   "Sec-Ch-Ua-Mobile": "?1",
   "Sec-Ch-Ua-Platform": `"Android"`,
 });
@@ -27,13 +21,18 @@ const ANDROID_WEBVIEW_HEADERS = Object.freeze({
 /** Sessions with listeners already registered */
 const registeredSessions = new WeakSet();
 
-/** @param {ReturnType<typeof createHeaders>} headers */
-function applyAndroidWebviewHeaders(headers) {
+/**
+ * @param {ReturnType<typeof createHeaders>} headers
+ * @param {string|undefined} userAgent
+ */
+function applyAndroidWebviewHeaders(headers, userAgent) {
   headers.deleteWhere((name) => name.startsWith("sec-fetch-"));
 
   for (const [name, value] of Object.entries(ANDROID_WEBVIEW_HEADERS)) {
     headers.set(name, value);
   }
+
+  headers.set("Sec-Ch-Ua", getSecChUa(userAgent));
 }
 
 /**
@@ -73,7 +72,7 @@ export function registerWebRequest(session) {
 
     const headers = createHeaders(requestHeaders);
 
-    applyAndroidWebviewHeaders(headers);
+    applyAndroidWebviewHeaders(headers, getUserAgent(session));
     applyFrameReferer(headers, details.frame);
     applyUserAgent(session, headers);
 

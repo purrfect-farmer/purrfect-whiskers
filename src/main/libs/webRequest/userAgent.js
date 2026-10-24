@@ -14,6 +14,14 @@ export function setUserAgent(session, userAgent) {
   session.setUserAgent(userAgent);
 }
 
+/**
+ * Gets the User-Agent of a session, or undefined when it has none
+ * @param {Electron.Session} session
+ */
+export function getUserAgent(session) {
+  return userAgents.get(session);
+}
+
 /** @param {Electron.Session} session */
 export function clearUserAgent(session) {
   userAgents.delete(session);
