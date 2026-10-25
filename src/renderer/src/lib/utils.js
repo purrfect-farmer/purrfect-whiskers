@@ -23,13 +23,17 @@ export function* chunkArrayGenerator(arr, size) {
  * @param {T[]} items
  * @param {number} size
  * @param {(item: T) => Promise<R>} task
+ * @param {(results: R[]) => void} [onChunk] Called after each chunk
  * @returns {Promise<R[]>}
  */
-export async function runInChunks(items, size, task) {
+export async function runInChunks(items, size, task, onChunk) {
   const results = [];
 
   for (const chunk of chunkArrayGenerator(items, size)) {
-    results.push(...(await Promise.all(chunk.map(task))));
+    const chunkResults = await Promise.all(chunk.map(task));
+
+    onChunk?.(chunkResults);
+    results.push(...chunkResults);
   }
 
   return results;

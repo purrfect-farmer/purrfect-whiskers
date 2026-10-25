@@ -48,11 +48,15 @@ export default function useAccountsSelector(accounts) {
     [accounts],
   );
 
-  return {
-    accounts,
-    selected,
-    selectedAccounts,
-    toggleAccount,
-    toggleAllAccounts,
-  };
+  return useMemo(
+    () => ({
+      accounts,
+      selected,
+      selectedAccounts,
+      setSelected,
+      toggleAccount,
+      toggleAllAccounts,
+    }),
+    [accounts, selected, selectedAccounts, toggleAccount, toggleAllAccounts],
+  );
 }

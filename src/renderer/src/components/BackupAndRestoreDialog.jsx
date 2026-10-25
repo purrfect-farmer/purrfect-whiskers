@@ -26,10 +26,14 @@ export default function BackupAndRestoreDialog() {
 
     closeAllAccounts();
 
-    const backups = await run(accounts, async (account) => ({
-      partition: account.partition,
-      backup: await getOrRestoreAccountBackup(account),
-    }));
+    const backups = await run(
+      accounts,
+      async (account) => ({
+        partition: account.partition,
+        backup: await getOrRestoreAccountBackup(account),
+      }),
+      { partitions: accounts.map((account) => account.partition) },
+    );
 
     return {
       app: useAppStore.getState(),
@@ -67,8 +71,11 @@ export default function BackupAndRestoreDialog() {
 
       const restorable = backups.filter((item) => accounts.has(item.partition));
 
-      await run(restorable, (item) =>
-        getOrRestoreAccountBackup(accounts.get(item.partition), item.backup),
+      await run(
+        restorable,
+        (item) =>
+          getOrRestoreAccountBackup(accounts.get(item.partition), item.backup),
+        { partitions: restorable.map((item) => item.partition) },
       );
 
       /** Keep this device's extension path */

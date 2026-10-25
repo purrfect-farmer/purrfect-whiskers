@@ -3,15 +3,14 @@ import { cn, getTelegramUser } from "../lib/utils";
 import AccountForm from "./AccountForm";
 import AppDialogContent from "./AppDialogContent";
 import { HiOutlineTrash } from "react-icons/hi2";
-import { IPC } from "../../../shared/constants/ipc";
 import { LuUserRoundPen } from "react-icons/lu";
 import TelegramUserCard from "./TelegramUserCard";
+import { deleteAccount } from "../lib/accounts";
 import { useCallback } from "react";
 import useAppStore from "../store/useAppStore";
 
 export default function EditAccountDialogContent({ account, close }) {
   const updateAccount = useAppStore((state) => state.updateAccount);
-  const removeAccount = useAppStore((state) => state.removeAccount);
 
   const user = getTelegramUser(account);
 
@@ -25,13 +24,10 @@ export default function EditAccountDialogContent({ account, close }) {
   );
 
   /** Delete Account */
-  const deleteAccount = useCallback(async () => {
-    removeAccount(account.partition);
-    await window.electron.ipcRenderer.invoke(
-      IPC.REMOVE_SESSION,
-      account.partition,
-    );
-  }, [account.partition, removeAccount]);
+  const removeAccount = useCallback(
+    () => deleteAccount(account.partition),
+    [account.partition],
+  );
 
   return (
     <AppDialogContent
@@ -46,7 +42,7 @@ export default function EditAccountDialogContent({ account, close }) {
       <p className="text-center text-neutral-500 dark:text-neutral-400">OR</p>
 
       <button
-        onClick={deleteAccount}
+        onClick={removeAccount}
         className={cn(
           "px-4 py-2.5 border border-red-500 text-red-500 rounded-xl",
           "flex items-center justify-center gap-2",

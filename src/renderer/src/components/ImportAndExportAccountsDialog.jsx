@@ -34,10 +34,14 @@ export default function ImportAndExportAccountsDialog() {
     const exportData = async () => {
       useAppStore.getState().closeAllAccounts();
 
-      const backups = await run(selectedAccounts, async (account) => ({
-        account,
-        backup: await getOrRestoreAccountBackup(account),
-      }));
+      const backups = await run(
+        selectedAccounts,
+        async (account) => ({
+          account,
+          backup: await getOrRestoreAccountBackup(account),
+        }),
+        { partitions: selectedAccounts.map((account) => account.partition) },
+      );
 
       await saveJsonFile("purrfect-whiskers-accounts-export", {
         accounts: backups,

@@ -1,13 +1,14 @@
-export const MAX_CONCURRENT_BACKUPS = Math.max(
+/** Hidden account webviews loaded at once */
+export const MAX_CONCURRENT_WEBVIEWS = Math.max(
   navigator.hardwareConcurrency || 1,
   3,
 );
 
-/** Attempts to load a backup webview before giving up, 30s each */
-export const MAX_BACKUP_ATTEMPTS = 5;
-export const BACKUP_ATTEMPT_INTERVAL = 30_000;
+/** Attempts to load a hidden webview, each ends after 30s without progress */
+export const MAX_WEBVIEW_ATTEMPTS = 5;
+export const WEBVIEW_ATTEMPT_INTERVAL = 30_000;
 
-/** Element holding the hidden webviews used for backups */
+/** Element holding the hidden account webviews */
 export const WEBVIEWS_CONTAINER_ID = "webviews-container";
 
 /** An account's border blinks this many times after being asked to open */
@@ -35,6 +36,7 @@ export const PROXY_PROVIDER = Object.freeze({
 export const LAUNCH_ERROR = Object.freeze({
   INVALID_REQUEST: "INVALID_REQUEST",
   ACCOUNT_NOT_FOUND: "ACCOUNT_NOT_FOUND",
+  ACCOUNT_BUSY: "ACCOUNT_BUSY",
 });
 
 /** Strategies for logging in to Telegram locally */

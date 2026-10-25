@@ -3,6 +3,8 @@ import { combine, createJSONStorage, persist } from "zustand/middleware";
 
 import { create } from "zustand";
 import { getTelegramUser } from "../lib/utils";
+import { isPartitionBusy } from "../lib/busyPartitions";
+import toast from "react-hot-toast";
 import { storage } from "./storage";
 import useFlashStore from "./useFlashStore";
 import useSettingsStore from "./useSettingsStore";
@@ -23,6 +25,7 @@ const withWhiskerUserAgents = (accounts) =>
 
 /**
  * Sets `running` on the accounts in `partitions`, or on all with `null`.
+ * Accounts a hidden webview is using are never opened.
  * Returns the same array when nothing changes.
  */
 const setRunning = (accounts, partitions, running) => {
@@ -32,6 +35,7 @@ const setRunning = (accounts, partitions, running) => {
     const matches = partitions === null || partitions.has(item.partition);
 
     if (!matches || Boolean(item.running) === running) return item;
+    if (running && isPartitionBusy(item.partition)) return item;
 
     changed = true;
     return { ...item, running };
@@ -162,6 +166,11 @@ export default create(
 
         /** Opens an account, shows its page and flashes it */
         launchAccount: (partition) => {
+          if (isPartitionBusy(partition)) {
+            toast.error("This account is busy with a background task.");
+            return;
+          }
+
           const accounts = setRunning(
             get().accounts,
             new Set([partition]),
@@ -202,6 +211,10 @@ export default create(
 
           if (!account) {
             return { success: false, error: LAUNCH_ERROR.ACCOUNT_NOT_FOUND };
+          }
+
+          if (isPartitionBusy(account.partition)) {
+            return { success: false, error: LAUNCH_ERROR.ACCOUNT_BUSY };
           }
 
           get().launchAccount(account.partition);

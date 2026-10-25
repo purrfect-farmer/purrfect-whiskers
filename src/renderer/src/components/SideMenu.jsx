@@ -8,6 +8,7 @@ import {
 import {
   LuArrowUpDown,
   LuDatabaseBackup,
+  LuEraser,
   LuGlobeLock,
   LuTags,
 } from "react-icons/lu";
@@ -15,6 +16,8 @@ import {
 import AccountListDialog from "./AccountListDialog";
 import AppInfoDialog from "./AppInfoDialog";
 import BackupAndRestoreDialog from "./BackupAndRestoreDialog";
+import CleanerDialog from "./CleanerDialog";
+import { CleanerProvider } from "./CleanerProvider";
 import { Dialog } from "radix-ui";
 import { FaSpider } from "react-icons/fa";
 import Icon from "../assets/images/icon.png";
@@ -63,6 +66,7 @@ export default function SideMenu() {
   const { hasUpdate } = useAppVersion();
   const isUpdatingExtension = useExtensionStore(selectIsUpdating);
   const spiderDialog = useDialogState();
+  const cleanerDialog = useDialogState();
 
   return (
     <div className="shrink-0 w-14 px-1.5 py-2 h-full flex flex-col gap-2 items-center overflow-y-auto">
@@ -88,6 +92,17 @@ export default function SideMenu() {
 
       <SideMenuDialog title="Import and Export accounts" icon={LuArrowUpDown}>
         <ImportAndExportAccountsDialog />
+      </SideMenuDialog>
+
+      <SideMenuDialog
+        title="Cleaner"
+        icon={LuEraser}
+        open={cleanerDialog.opened}
+        onOpenChange={cleanerDialog.setOpened}
+      >
+        <CleanerProvider onLaunch={cleanerDialog.closeDialog}>
+          <CleanerDialog />
+        </CleanerProvider>
       </SideMenuDialog>
 
       <SideMenuDialog

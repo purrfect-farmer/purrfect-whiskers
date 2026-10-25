@@ -12,8 +12,14 @@ const MAX_LIST_HEIGHT = 384;
 
 const computeItemKey = (_, account) => account.partition;
 
+/**
+ * Searchable, virtualized account toggles. `itemComponent` replaces the
+ * row and `getItemProps(account)` adds props to each row.
+ */
 export default function AccountsPicker({
   accounts,
+  itemComponent: Item = AccountsPickerItem,
+  getItemProps,
   disabled,
   selected,
   selectedAccounts,
@@ -35,15 +41,16 @@ export default function AccountsPicker({
   const itemContent = useCallback(
     (_, account) => (
       <div className="pb-2 px-2">
-        <AccountsPickerItem
+        <Item
           account={account}
           checked={selected.has(account.partition)}
           onToggle={toggleAccount}
           disabled={disabled}
+          {...getItemProps?.(account)}
         />
       </div>
     ),
-    [selected, toggleAccount, disabled],
+    [Item, getItemProps, selected, toggleAccount, disabled],
   );
 
   return (

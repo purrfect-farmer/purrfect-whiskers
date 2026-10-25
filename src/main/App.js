@@ -222,7 +222,13 @@ class App {
     await ses.clearStorageData();
 
     /** Remove Partition */
-    await fs.rm(ses.getStoragePath(), { recursive: true, force: true });
+    /** Retries ride out the lock a just closed webview still holds */
+    await fs.rm(ses.getStoragePath(), {
+      recursive: true,
+      force: true,
+      maxRetries: 5,
+      retryDelay: 200,
+    });
   }
 
   /** Start the mirror server, continuing without it on failure */
