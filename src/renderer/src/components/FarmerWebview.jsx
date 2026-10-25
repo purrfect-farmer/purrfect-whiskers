@@ -54,6 +54,11 @@ export default memo(function FarmerWebview({ account, pinned, togglePinned }) {
     );
   });
 
+  /** Answers the farmer's request through the webview that sent it */
+  const replyWhiskerData = useEffectEvent((reply) => {
+    reply({ action: WEBVIEW_ACTION.SET_WHISKER_DATA, data: whiskerData });
+  });
+
   /** Merges data sent by the webview into the account */
   const mergeAccountData = useEffectEvent((data) => {
     updateAccount({ ...data, partition });
@@ -100,7 +105,8 @@ export default memo(function FarmerWebview({ account, pinned, togglePinned }) {
   useEffect(
     () =>
       registerWebviewMessage(ref.current, {
-        [WEBVIEW_ACTION.GET_WHISKER_DATA]: () => sendWhiskerData(),
+        [WEBVIEW_ACTION.GET_WHISKER_DATA]: (_data, reply) =>
+          replyWhiskerData(reply),
         [WEBVIEW_ACTION.SET_PROXY]: (data) =>
           mergeAccountData(pickFarmerProxy(data)),
         [WEBVIEW_ACTION.SET_USER_AGENT]: (data) => adoptFarmerUserAgent(data),
