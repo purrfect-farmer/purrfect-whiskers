@@ -23,6 +23,19 @@ const ANDROID_WEBVIEW_HEADERS = Object.freeze({
   "Sec-Ch-Ua-Platform": `"Android"`,
 });
 
+/**
+ * Challenge hosts (and their subdomains) whose requests keep the browser's own
+ * headers, matching what their scripts read. `path` limits a shared host to the
+ * challenge's own paths.
+ */
+const NATIVE_HEADER_TARGETS = Object.freeze([
+  { host: "challenges.cloudflare.com" },
+  { host: "hcaptcha.com" },
+  { host: "recaptcha.net" },
+  { host: "www.google.com", path: "/recaptcha/" },
+  { host: "www.gstatic.com", path: "/recaptcha/" },
+]);
+
 /** Sessions with listeners already registered */
 const registeredSessions = new WeakSet();
 
@@ -38,6 +51,28 @@ function applyAndroidWebviewHeaders(headers, userAgent) {
   }
 
   headers.set("Sec-Ch-Ua", getSecChUa(userAgent));
+}
+
+/**
+ * Whether the request goes to a challenge listed in `NATIVE_HEADER_TARGETS`
+ * @param {string} url
+ */
+function isNativeHeaderRequest(url) {
+  let parsed;
+
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+
+  const { hostname, pathname } = parsed;
+
+  return NATIVE_HEADER_TARGETS.some(({ host, path }) => {
+    const isHost = hostname === host || hostname.endsWith(`.${host}`);
+
+    return isHost && (!path || pathname.startsWith(path));
+  });
 }
 
 /**
@@ -77,12 +112,14 @@ export function registerWebRequest(session) {
 
     const headers = createHeaders(requestHeaders);
 
-    applyAndroidWebviewHeaders(headers, getUserAgent(session));
-    applyFrameReferer(headers, details.frame);
-    applyUserAgent(session, headers);
+    if (!isNativeHeaderRequest(details.url)) {
+      applyAndroidWebviewHeaders(headers, getUserAgent(session));
+      applyFrameReferer(headers, details.frame);
+      applyUserAgent(session, headers);
 
-    for (const rule of getMatchingRules(session, details.url)) {
-      applyHeaderModifications(headers, rule.request);
+      for (const rule of getMatchingRules(session, details.url)) {
+        applyHeaderModifications(headers, rule.request);
+      }
     }
 
     cors.remember(details.id, headers);

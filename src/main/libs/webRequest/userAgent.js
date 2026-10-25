@@ -1,6 +1,8 @@
 import { app } from "electron";
 import { withChromeVersion } from "../../../shared/lib/userAgent";
 
+const SET_USER_AGENT_ON_SESSION = false;
+
 /**
  * User-Agent per session
  * @type {WeakMap<Electron.Session, string>}
@@ -39,7 +41,10 @@ export function setUserAgent(session, userAgent) {
   const engineUserAgent = withEngineChromeVersion(userAgent);
 
   userAgents.set(session, engineUserAgent);
-  session.setUserAgent(engineUserAgent);
+
+  if (SET_USER_AGENT_ON_SESSION) {
+    session.setUserAgent(engineUserAgent);
+  }
 }
 
 /**
@@ -56,7 +61,9 @@ export function getUserAgent(session) {
  */
 export function clearUserAgent(session) {
   userAgents.delete(session);
-  session.setUserAgent(app.userAgentFallback);
+  if (SET_USER_AGENT_ON_SESSION) {
+    session.setUserAgent(app.userAgentFallback);
+  }
 }
 
 /**
