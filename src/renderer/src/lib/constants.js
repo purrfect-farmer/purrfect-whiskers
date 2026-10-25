@@ -44,15 +44,17 @@ export const SPIDER_LOGIN_METHOD = Object.freeze({
   CODE: "code",
 });
 
-/** Fields holding an account's proxy and User-Agent options */
-export const PROXY_OPTION_KEYS = Object.freeze([
+/** Fields holding an account's proxy */
+export const PROXY_KEYS = Object.freeze([
   "proxyEnabled",
   "proxyHost",
   "proxyPort",
   "proxyUsername",
   "proxyPassword",
-  "userAgent",
 ]);
+
+/** Fields holding an account's proxy and User-Agent options */
+export const PROXY_OPTION_KEYS = Object.freeze([...PROXY_KEYS, "userAgent"]);
 
 /** Downloads the app checks for before it opens */
 export const BOOT_STEP = Object.freeze({

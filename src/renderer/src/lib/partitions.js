@@ -1,6 +1,6 @@
 import { IPC, WEBVIEW_CHANNEL } from "../../../shared/constants/ipc";
 
-import { PROXY_OPTION_KEYS } from "./constants";
+import { PROXY_KEYS, PROXY_OPTION_KEYS } from "./constants";
 
 const DEFAULT_WEBVIEW_URL = import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
 
@@ -8,6 +8,15 @@ const DEFAULT_WEBVIEW_URL = import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
 export function pickProxyOptions(account) {
   return Object.fromEntries(
     PROXY_OPTION_KEYS.map((key) => [key, account[key]]),
+  );
+}
+
+/** Picks the proxy fields present in data sent by the farmer */
+export function pickFarmerProxy(data) {
+  if (!data || typeof data !== "object") return {};
+
+  return Object.fromEntries(
+    PROXY_KEYS.filter((key) => key in data).map((key) => [key, data[key]]),
   );
 }
 

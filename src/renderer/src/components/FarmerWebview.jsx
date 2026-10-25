@@ -7,6 +7,7 @@ import {
 import {
   getWhiskerData,
   loadAccountWebview,
+  pickFarmerProxy,
   registerWebviewMessage,
   sendHostMessage,
 } from "../lib/partitions";
@@ -58,6 +59,20 @@ export default memo(function FarmerWebview({ account, pinned, togglePinned }) {
     updateAccount({ ...data, partition });
   });
 
+  /** Takes the farmer's User-Agent only when the account has none */
+  const adoptFarmerUserAgent = useEffectEvent((data) => {
+    if (account.userAgent || !data?.userAgent) return;
+
+    mergeAccountData({ userAgent: withWhiskerChromeVersion(data.userAgent) });
+  });
+
+  /** Takes the farmer's Telegram init data, ignoring anything else it sends */
+  const adoptTelegramInitData = useEffectEvent((data) => {
+    if (typeof data?.telegramInitData !== "string") return;
+
+    mergeAccountData({ telegramInitData: data.telegramInitData });
+  });
+
   /** Launch Account */
   const launchAccount = useEffectEvent((data, reply) => {
     reply({
@@ -86,13 +101,11 @@ export default memo(function FarmerWebview({ account, pinned, togglePinned }) {
     () =>
       registerWebviewMessage(ref.current, {
         [WEBVIEW_ACTION.GET_WHISKER_DATA]: () => sendWhiskerData(),
-        [WEBVIEW_ACTION.SET_PROXY]: (data) => mergeAccountData(data),
-        [WEBVIEW_ACTION.SET_USER_AGENT]: (data) =>
-          mergeAccountData({
-            userAgent: withWhiskerChromeVersion(data?.userAgent),
-          }),
+        [WEBVIEW_ACTION.SET_PROXY]: (data) =>
+          mergeAccountData(pickFarmerProxy(data)),
+        [WEBVIEW_ACTION.SET_USER_AGENT]: (data) => adoptFarmerUserAgent(data),
         [WEBVIEW_ACTION.SET_TELEGRAM_INIT_DATA]: (data) =>
-          mergeAccountData(data),
+          adoptTelegramInitData(data),
         [WEBVIEW_ACTION.LAUNCH_ACCOUNT]: (data, reply) =>
           launchAccount(data, reply),
       }),
