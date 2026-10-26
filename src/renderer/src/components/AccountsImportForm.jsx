@@ -13,7 +13,6 @@ import FormField from "./FormField";
 import { LuFileJson } from "react-icons/lu";
 import SubmitButton from "./SubmitButton";
 import TagsInput from "./TagsInput";
-import useAccountsImportForm from "../hooks/useAccountsImportForm";
 
 /** The file types the dropzone accepts */
 const JSON_FILES = { "application/json": [".json"] };
@@ -47,10 +46,14 @@ const PickedFile = memo(function PickedFile({ skippedCount }) {
 });
 
 /** A form for importing accounts from a file */
-export default memo(function AccountsImportForm({ run, isProcessing }) {
-  const { methods, onSubmit, pickFile, selector, skippedCount } =
-    useAccountsImportForm(run);
-
+export default memo(function AccountsImportForm({
+  methods,
+  onSubmit,
+  pickFile,
+  selector,
+  skippedCount,
+  isProcessing,
+}) {
   /** The handler for a dropped file */
   const onDrop = useCallback(([file]) => pickFile(file), [pickFile]);
 

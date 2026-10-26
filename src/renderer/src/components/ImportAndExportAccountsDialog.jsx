@@ -8,6 +8,7 @@ import Tabs from "./Tabs";
 import { getOrRestoreAccountBackup } from "../lib/accountBackup";
 import { saveJsonFile } from "../lib/utils";
 import toast from "react-hot-toast";
+import useAccountsImportForm from "../hooks/useAccountsImportForm";
 import useAccountsSelector from "../hooks/useAccountsSelector";
 import useAppStore from "../store/useAppStore";
 import useBatchRunner from "../hooks/useBatchRunner";
@@ -18,6 +19,9 @@ import { withoutTags } from "../lib/accountsFile";
 export default function ImportAndExportAccountsDialog() {
   const accounts = useAppStore((state) => state.accounts);
   const { isProcessing, target, progress, run } = useBatchRunner();
+
+  /** The import form, kept while the dialog is closed */
+  const importForm = useAccountsImportForm(run);
 
   /** Tabs */
   const tabs = useTabs(["export", "import"], "export");
@@ -77,7 +81,14 @@ export default function ImportAndExportAccountsDialog() {
 
         {/* Import */}
         <Tabs.Content value="import" className="flex flex-col gap-2">
-          <AccountsImportForm run={run} isProcessing={isProcessing} />
+          <AccountsImportForm
+            methods={importForm.methods}
+            onSubmit={importForm.onSubmit}
+            pickFile={importForm.pickFile}
+            selector={importForm.selector}
+            skippedCount={importForm.skippedCount}
+            isProcessing={isProcessing}
+          />
         </Tabs.Content>
       </Tabs>
 
