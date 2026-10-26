@@ -39,10 +39,12 @@ export async function askForNote(api, { accounts, tagCount, fallback }) {
  * Asks whether to keep an account that has no Telegram user, with the
  * account named on the prompt (`partition`). Resolves with true to keep it.
  */
-export async function askToKeepAccount(api, account) {
+export async function askToKeepAccount(api, account, isOpen = false) {
   const answer = await api.prompt({
     title: "Keep this account in the report?",
-    description: "It has no Telegram user yet",
+    description: isOpen
+      ? "It has no Telegram user yet; it's open so you can check it"
+      : "It has no Telegram user yet",
     partition: account.partition,
     actions: [{ value: "leave-out", label: "Leave out" }],
   });

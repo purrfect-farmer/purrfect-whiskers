@@ -1,6 +1,6 @@
 {
   "name": "example",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "Walks through every part of the scripts API on the selected accounts and saves a report to outputs/",
   "author": "Purrfect Whiskers",
   "type": "module",
@@ -64,6 +64,27 @@
         "label": "Ask for a note while running",
         "description": "Shows a prompt with an image, a timeout and extra buttons",
         "default": true
+      },
+      {
+        "key": "tagChecked",
+        "type": "boolean",
+        "label": "Tag accounts as checked",
+        "description": "Uses api.createTag and api.updateAccount to add an \"Example checked\" tag",
+        "default": false
+      },
+      {
+        "key": "openWithoutUser",
+        "type": "boolean",
+        "label": "Open accounts without a user",
+        "description": "Uses api.openAccount so you can look at them before deciding",
+        "default": false
+      },
+      {
+        "key": "copyFirst",
+        "type": "boolean",
+        "label": "Copy the first account",
+        "description": "Uses api.getBackup and api.addAccount to create a copy; really adds an account",
+        "default": false
       },
       {
         "key": "inputFiles",

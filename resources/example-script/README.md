@@ -16,6 +16,8 @@ example/
     card.js           builds the SVG image shown in the prompt
     accounts.js       reads the Telegram user, proxy and backup size
     files.js          reads the files chosen in a file option
+    history.js        api.storage: remembers the runs between runs
+    accountChanges.js api.getAccount, updateAccount, createTag, addAccount
     runWithLimit.js   handles a few accounts at a time and stops on Stop
     report.js         saves the report as JSON or CSV to outputs/
 ```
@@ -25,7 +27,8 @@ example/
 1. Prints its options. The manifest declares one of every option type:
    text, select, number, yes/no, file (several), folder, save, textarea and
    secret. The secret is printed masked.
-2. Reads the files chosen in "Files to read" itself, with `fs`.
+2. Prints when it last ran, kept with `api.storage`, then reads the files
+   chosen in "Files to read" itself, with `fs`.
 3. Reads the tag names with `api.getTags()`.
 4. Asks for a note with `api.prompt()`, showing an image, a "No note"
    button and a 2-minute timeout.
@@ -34,10 +37,21 @@ example/
      (a prompt naming the account);
    - reads its session with `api.getSession()` and, if turned on, its full
      backup with `api.getBackup()`;
-   - moves the progress bar with `api.progress()`.
+   - with "Open accounts without a user" on, opens those with
+     `api.openAccount()` so you can look at them;
+   - with "Tag accounts as checked" on, adds an "Example checked" tag made
+     with `api.createTag()`, reading the account fresh with
+     `api.getAccount()` and changing it with `api.updateAccount()`;
+   - moves the progress bar with `api.progress()` and shows which account it
+     is reading with `api.setStatus()`.
 6. Stops cleanly when you press Stop (`signal`), saving what was read.
-7. Asks with `api.confirm()` before saving the report to the chosen
-   folder (or `outputs/`), and a copy where "Also save a copy to" points.
+7. With "Copy the first account" on, reads its backup and creates a copy
+   with `api.addAccount()`.
+8. Asks with `api.confirm()` before saving the report to the chosen
+   folder (or `outputs/`), and a copy where "Also save a copy to" points,
+   then shows a toast with `api.notify()`.
+
+The options that change accounts are off by default.
 
 ## The entry file
 
@@ -74,8 +88,18 @@ export default async function ({ accounts, options, api, signal }) {
 | `prompt({ title, … })` | `{ action, values }` when the user answers, or `null` when they cancel, the prompt times out or the run stops. See [Prompts](#prompts). |
 | `confirm(title)` | `true` when the user continues, `false` when they cancel. |
 | `progress(done, total)` | Nothing; shows a progress bar above the output. |
+| `setStatus(text)` | Nothing; shows a status line under the progress bar. `null` clears it. |
+| `notify(text, kind)` | Nothing; shows a toast. `kind` is `"info"`, `"success"` or `"error"`. |
+| `getAccount(partition)` | The account as it is now. `accounts` is a snapshot from when the run started. |
+| `updateAccount(partition, changes)` | The updated account. `changes` may set `title`, `tags` (tag ids), `telegramInitData`, `userAgent`, `proxyEnabled`, `proxyHost`, `proxyPort`, `proxyUsername` and `proxyPassword`, checked by the same rules as the Edit Account form. Other fields and unknown tags are refused. |
+| `restoreBackup(partition, backup)` | `true` once the backup is written into the account, e.g. one from `getBackup` after changing it. The account's cached session is forgotten. |
+| `addAccount(fields, backup?)` | The new account, created with the same fields as `updateAccount` (a `title` is required) and the optional backup restored into it. It becomes part of the run. |
+| `openAccount(partition)` / `closeAccount(partition)` | `true`; shows or closes the account's window. Reading or restoring an open account closes it first. |
+| `createTag(name)` | The tag `{ id, name }`, or the existing one with that name. |
+| `storage.get(key)` / `storage.set(key, value)` / `storage.remove(key)` | Values this script keeps between runs: JSON up to 1 MB each and 5 MB in all. `get` returns `null` for a missing key. |
 
-`getSession` and `getBackup` only read the accounts the script runs on.
+Calls that name a `partition` only work on the accounts the script runs on,
+and on accounts it added.
 Reading an account opens it in the background, so the selected accounts are
 closed while the script runs.
 
