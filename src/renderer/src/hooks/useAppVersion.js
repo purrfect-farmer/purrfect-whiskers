@@ -4,8 +4,9 @@ import { getGithubHeaders } from "../../../shared/lib/github";
 import semver from "semver";
 import { useQuery } from "@tanstack/react-query";
 
-/** Installed version and latest release, checked once per app run */
+/** A hook for the installed version and the latest release */
 export default function useAppVersion() {
+  /** The query of the installed version */
   const currentQuery = useQuery({
     queryKey: ["app-version"],
     queryFn: () =>
@@ -15,6 +16,7 @@ export default function useAppVersion() {
     staleTime: Infinity,
   });
 
+  /** The query of the latest release */
   const latestQuery = useQuery({
     queryKey: ["app-latest-release"],
     queryFn: () =>
@@ -27,9 +29,12 @@ export default function useAppVersion() {
     retry: false,
   });
 
+  /** The installed version */
   const currentVersion = currentQuery.data ?? null;
+  /** The latest release version */
   const latestVersion = latestQuery.data ?? null;
 
+  /** Whether a newer release is available */
   const hasUpdate = Boolean(
     semver.valid(currentVersion) &&
     semver.valid(latestVersion) &&

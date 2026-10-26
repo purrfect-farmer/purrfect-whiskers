@@ -13,17 +13,21 @@ import { Collapsible } from "radix-ui";
 import ProxyDetail from "./ProxyDetail";
 import { getCountry } from "../lib/countries";
 
+/** A collapsible row showing a proxy and its details */
 export default memo(function ProxyListItem({
   proxy,
   index,
   expanded,
   onToggle,
 }) {
+  /** Whether the password is shown */
   const [showPassword, setShowPassword] = useState(false);
+  /** The proxy's country */
   const country = getCountry(proxy.countryCode);
+  /** The proxy's city and country name */
   const location = [proxy.city, country?.name].filter(Boolean).join(", ");
 
-  /** Copy Proxy URL */
+  /** The handler for copying the proxy URL */
   const copyProxy = () => copyText(getProxyUrl(proxy), "Proxy");
 
   return (

@@ -20,7 +20,9 @@ const DEFAULT_VALUES = { skipped: [] };
 
 /** A hook for finding and removing unused and unknown tags */
 export default function useTagsCleaner() {
+  /** The list of tags */
   const tags = useAppStore((state) => state.tags);
+  /** The list of accounts */
   const accounts = useAppStore((state) => state.accounts);
 
   /** The number of accounts carrying each tag id */
@@ -38,6 +40,7 @@ export default function useTagsCleaner() {
     [unused, unknown],
   );
 
+  /** The form methods */
   const methods = useForm({
     resolver: yupResolver(schema),
     defaultValues: DEFAULT_VALUES,

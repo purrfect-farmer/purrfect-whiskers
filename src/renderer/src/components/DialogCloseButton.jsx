@@ -2,12 +2,13 @@ import { Dialog } from "radix-ui";
 import { cn } from "../lib/utils";
 import { memo } from "react";
 
+/** The classes of each button variant */
 const VARIANT_CLASSES = {
   solid: "bg-orange-500 text-white mt-2",
   outline: "border border-orange-500 text-orange-500",
 };
 
-/** Closes the surrounding dialog */
+/** A button that closes the surrounding dialog */
 export default memo(function DialogCloseButton({
   variant = "solid",
   className,

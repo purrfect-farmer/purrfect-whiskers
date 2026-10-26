@@ -1,5 +1,6 @@
 import { Progress as ProgressPrimitive } from "radix-ui";
 
+/** A progress bar with its current and max counts */
 const Progress = ({ current, max }) => {
   return (
     <>

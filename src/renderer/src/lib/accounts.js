@@ -4,6 +4,7 @@ import useAppStore from "../store/useAppStore";
 /** Close the running accounts and open them again on the next frame */
 export function reloadRunningAccounts() {
   const { accounts, closeAllAccounts } = useAppStore.getState();
+  /** The partitions of the running accounts */
   const partitions = new Set(
     accounts.filter((item) => item.running).map((item) => item.partition),
   );
@@ -29,6 +30,7 @@ export async function deleteAccount(partition) {
 
 /** Delete accounts one at a time, resolving with the partitions removed */
 export async function deleteAccounts(partitions) {
+  /** The partitions removed */
   const removed = [];
 
   for (const partition of partitions) {

@@ -41,6 +41,7 @@ export function buildSpiderAccount({ purchase, index, title, tags }) {
 export function buildSpiderBackup({ account, purchase }) {
   const { enableLocalTelegramSession, localTelegramSession } = purchase;
 
+  /** The extension storage of the account */
   const chromeLocalStorage = {
     [STORAGE_KEY.ACCOUNTS]: [
       { id: "default", partition: account.partition, title: account.title },

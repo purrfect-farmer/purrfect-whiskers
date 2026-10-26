@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 
-/** Create Socket */
+/** The mirror socket */
 const socket = io("ws://127.0.0.1:7777");
 
 /** Handle Connection Events */

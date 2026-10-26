@@ -3,6 +3,7 @@ import { HiOutlineXMark } from "react-icons/hi2";
 import BrowserIcon from "../assets/images/browser.png";
 import { cn } from "../lib/utils";
 
+/** A tab button with a close button */
 export const TabButton = ({
   tab,
   setActiveTab,
@@ -10,16 +11,17 @@ export const TabButton = ({
   scrollToTabButton,
 }) => {
   /**
+   * The tab button's element
    * @type {import("react").Ref<HTMLDivElement>}
    */
   const buttonRef = useRef();
 
-  /** Button Click Handler */
+  /** The handler for switching to the tab */
   const handleTabButtonClick = useCallback(() => {
     setActiveTab(tab.id);
   }, [tab.id, setActiveTab]);
 
-  /** Close Button Click Handler */
+  /** The handler for closing the tab */
   const handleCloseButtonClick = useCallback(
     (ev) => {
       /** Stop Propagation */

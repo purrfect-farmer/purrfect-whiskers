@@ -31,8 +31,11 @@ export function accountMatchesTag(account, tagId) {
 /** A tag list with ids added and removed, or `tags` itself when unchanged */
 export function applyTagChanges(tags, add, remove) {
   const current = tags || [];
+  /** The ids to remove */
   const removed = new Set(remove);
+  /** The tag ids after the changes */
   const next = current.filter((tagId) => !removed.has(tagId));
+  /** The ids in the new list */
   const present = new Set(next);
 
   for (const tagId of add) {
@@ -42,6 +45,7 @@ export function applyTagChanges(tags, add, remove) {
     }
   }
 
+  /** Whether the list changed */
   const changed =
     next.length !== current.length ||
     next.some((tagId, index) => tagId !== current[index]);
@@ -51,6 +55,7 @@ export function applyTagChanges(tags, add, remove) {
 
 /** A count of accounts per tag id, including untagged ones */
 export function countTagUsage(accounts) {
+  /** The account count of each tag id */
   const counts = new Map([[UNTAGGED_TAG.id, 0]]);
 
   for (const account of accounts) {
@@ -68,10 +73,13 @@ export function countTagUsage(accounts) {
 
 /** A finder for unused tags and unknown tag ids */
 export function findTagIssues(tags, usage) {
+  /** The ids of the known tags */
   const known = new Set(tags.map((tag) => tag.id));
 
+  /** The tags no account uses */
   const unused = tags.filter((tag) => !usage.get(tag.id));
 
+  /** The tag ids without a tag, with their counts */
   const unknown = [];
 
   for (const [id, count] of usage) {

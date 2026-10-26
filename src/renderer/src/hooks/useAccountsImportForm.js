@@ -44,6 +44,7 @@ function getImportableAccounts(items) {
 
 /** A hook for importing the selected accounts of a file with chosen tags */
 export default function useAccountsImportForm(run) {
+  /** The form methods */
   const methods = useForm({
     resolver: yupResolver(schema),
     defaultValues: DEFAULT_VALUES,

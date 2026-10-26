@@ -3,16 +3,17 @@ import { createContext, useContext, useMemo } from "react";
 import { useSpiderAccountsForm } from "../hooks/useSpiderAccountsForm";
 import { useSpiderCore } from "../hooks/useSpiderCore";
 
+/** The context of the Spider state */
 const SpiderContext = createContext();
 
-/**
- * Holds Spider state above the dialog, so a purchase keeps running
- * after the dialog closes. `active` is the dialog's open state.
- */
+/** A provider of the Spider state and purchase form */
 export const SpiderProvider = ({ active, children }) => {
+  /** The core Spider state */
   const core = useSpiderCore({ active });
+  /** The Spider purchase form state */
   const form = useSpiderAccountsForm({ core });
 
+  /** The context value */
   const value = useMemo(() => ({ core, form }), [core, form]);
 
   return (
@@ -20,4 +21,5 @@ export const SpiderProvider = ({ active, children }) => {
   );
 };
 
+/** A hook for reading the Spider context */
 export const useSpider = () => useContext(SpiderContext);

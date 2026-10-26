@@ -4,29 +4,35 @@ export const MAX_CONCURRENT_WEBVIEWS = Math.max(
   3,
 );
 
-/** Attempts to load a hidden webview, each ends after 30s without progress */
+/** The most attempts to load a hidden webview */
 export const MAX_WEBVIEW_ATTEMPTS = 5;
+/** How long an attempt waits for progress */
 export const WEBVIEW_ATTEMPT_INTERVAL = 30_000;
 
 /** Element holding the hidden account webviews */
 export const WEBVIEWS_CONTAINER_ID = "webviews-container";
 
-/** An account's border blinks this many times after being asked to open */
+/** The number of blinks of an account's flash */
 export const FLASH_BLINKS = 6;
+/** The duration of one blink */
 export const FLASH_BLINK_DURATION = 160;
+/** The duration of the whole flash */
 export const FLASH_DURATION = FLASH_BLINKS * FLASH_BLINK_DURATION;
 
+/** The app themes */
 export const THEME = Object.freeze({
   SYSTEM: "system",
   LIGHT: "light",
   DARK: "dark",
 });
 
+/** The ways of reordering accounts */
 export const REORDER_MODE = Object.freeze({
   VIRTUAL: "virtual",
   DRAG: "drag",
 });
 
+/** The proxy providers */
 export const PROXY_PROVIDER = Object.freeze({
   WEBSHARE: "webshare",
   FLOXY: "floxy",
@@ -76,6 +82,7 @@ export const BOOT_STEP = Object.freeze({
   USER_AGENTS: "user-agents",
 });
 
+/** The statuses of a boot step */
 export const BOOT_STATUS = Object.freeze({
   PENDING: "pending",
   RUNNING: "running",
@@ -83,6 +90,7 @@ export const BOOT_STATUS = Object.freeze({
   FAILED: "failed",
 });
 
+/** The statuses of an extension update */
 export const EXTENSION_UPDATE_STATUS = Object.freeze({
   IDLE: "idle",
   CHECKING: "checking",

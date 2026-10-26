@@ -9,6 +9,7 @@ import { memo, useCallback, useEffect } from "react";
 import { updateExtension } from "../lib/extensionUpdate";
 import { useShallow } from "zustand/react/shallow";
 
+/** The text of each update status */
 const STATUS_TEXT = {
   [EXTENSION_UPDATE_STATUS.IDLE]: "Not checked yet",
   [EXTENSION_UPDATE_STATUS.CHECKING]: "Checking for updates...",
@@ -18,6 +19,7 @@ const STATUS_TEXT = {
   [EXTENSION_UPDATE_STATUS.FAILED]: "Update failed",
 };
 
+/** The classes of an action button */
 const BUTTON_CLASS_NAME = cn(
   "grow px-4 py-2 rounded-xl font-bold",
   "bg-neutral-100 dark:bg-neutral-700",
@@ -26,16 +28,22 @@ const BUTTON_CLASS_NAME = cn(
   "disabled:opacity-50 disabled:cursor-not-allowed",
 );
 
+/** The handler for checking for and installing an update */
 const checkAndUpdate = () => updateExtension();
+/** The handler for reinstalling the extension */
 const reinstall = () => updateExtension({ force: true });
 
-/** Installed and latest extension versions, with update and reinstall buttons */
+/**
+ * A section with the installed and latest extension versions,
+ * and update and reinstall buttons
+ */
 export default memo(function ExtensionUpdateSection({ extensionPath }) {
   const { status, currentVersion, latestVersion, error, setUpdateState } =
     useExtensionStore(useShallow((state) => state));
+  /** Whether an update is running */
   const isUpdating = useExtensionStore(selectIsUpdating);
 
-  /** Read the installed version when it's not known yet */
+  /** Reads the installed version when it's not known yet */
   useEffect(() => {
     if (currentVersion || !extensionPath) return;
 
@@ -44,6 +52,7 @@ export default memo(function ExtensionUpdateSection({ extensionPath }) {
       .then((version) => setUpdateState({ currentVersion: version }));
   }, [currentVersion, extensionPath, setUpdateState]);
 
+  /** The text of the update status */
   const statusText =
     status === EXTENSION_UPDATE_STATUS.FAILED && error
       ? `${STATUS_TEXT[status]}: ${error}`

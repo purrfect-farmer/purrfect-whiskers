@@ -6,11 +6,12 @@ import { useCallback } from "react";
 import useAppStore from "../store/useAppStore";
 import { uuid } from "../lib/utils";
 
+/** A dialog for adding and launching a new account */
 export default function AddAccountDialog({ close }) {
   const addAccount = useAppStore((state) => state.addAccount);
   const launchAccount = useAppStore((state) => state.launchAccount);
 
-  /** Create Account */
+  /** The handler for creating and launching the account */
   const createAccount = useCallback(
     (data) => {
       const partition = `persist:${uuid()}`;

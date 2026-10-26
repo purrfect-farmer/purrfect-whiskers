@@ -7,15 +7,13 @@ import TagsList from "./TagsList";
 import ScrollAwareVirtuoso from "./ScrollAwareVirtuoso";
 import useAccountsFilter from "../hooks/useAccountsFilter";
 
-/** Same as Tailwind's h-96 - the previous max height of the list */
+/** The max height of the list, in pixels */
 const MAX_LIST_HEIGHT = 384;
 
+/** The list key of an account */
 const computeItemKey = (_, account) => account.partition;
 
-/**
- * Searchable, virtualized account toggles. `itemComponent` replaces the
- * row and `getItemProps(account)` adds props to each row.
- */
+/** A searchable, virtualized list of account toggles */
 export default function AccountsPicker({
   accounts,
   itemComponent: Item = AccountsPickerItem,
@@ -27,6 +25,7 @@ export default function AccountsPicker({
   toggleAccount,
   toggleAllAccounts,
 }) {
+  /** The height of the list's content */
   const [listHeight, setListHeight] = useState(0);
   const {
     filterTags,
@@ -39,6 +38,7 @@ export default function AccountsPicker({
     list,
   } = useAccountsFilter(accounts);
 
+  /** The row of an account */
   const itemContent = useCallback(
     (_, account) => (
       <div className="pb-2 px-2">

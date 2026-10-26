@@ -12,13 +12,17 @@ export async function resolveExtensionPath() {
 
   if (extensionPath) return extensionPath;
 
+  /** The default extension path */
   const defaultPath = await invoke(IPC.GET_DEFAULT_EXTENSION_PATH);
   setExtensionPath(defaultPath);
 
   return defaultPath;
 }
 
-/** Install the latest extension when none is installed, resolving whether one is */
+/**
+ * Install the latest extension when none is installed,
+ * resolving whether one is
+ */
 export async function ensureExtension(extensionPath) {
   if (await invoke(IPC.GET_EXTENSION_VERSION, extensionPath)) return true;
 
@@ -27,7 +31,10 @@ export async function ensureExtension(extensionPath) {
   return Boolean(await invoke(IPC.GET_EXTENSION_VERSION, extensionPath));
 }
 
-/** Download the User-Agent catalog when missing, resolving whether one is available */
+/**
+ * Download the User-Agent catalog when missing,
+ * resolving whether one is available
+ */
 export function ensureUserAgents(extensionPath) {
   return invoke(IPC.SYNC_USER_AGENTS, extensionPath);
 }

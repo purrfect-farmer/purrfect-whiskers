@@ -22,15 +22,24 @@ const TAB_DISPOSITIONS = new Set([
   "background-tab",
 ]);
 
-/** Profile Class */
+/** The session, proxy and extension of one account partition */
 class Profile {
-  /** @type {string} */
+  /**
+   * The account partition
+   * @type {string}
+   */
   partition = "";
 
-  /** @type {Electron.Session} */
+  /**
+   * The partition's session
+   * @type {Electron.Session}
+   */
   session = null;
 
-  /** @type {{proxyHost: string, proxyPort?: number, proxyUsername?: string, proxyPassword?: string}|null} */
+  /**
+   * The applied proxy options, or null without a proxy
+   * @type {{proxyHost: string, proxyPort?: number, proxyUsername?: string, proxyPassword?: string}|null}
+   */
   proxyOptions = null;
 
   /** @param {string} partition */
@@ -39,7 +48,7 @@ class Profile {
     this.session = session.fromPartition(this.partition);
   }
 
-  /** Destroy Profile */
+  /** Removes the profile's extensions, rules, User-Agent and proxy */
   async destroy() {
     /* Remove Extensions */
     this.session.extensions.getAllExtensions().forEach((extension) => {
@@ -65,12 +74,12 @@ class Profile {
     }
   }
 
-  /** Configure Proxy */
+  /** Applies an account's proxy, User-Agent and request handling */
   async configureProxy(options = {}) {
     try {
       if (options.allowProxies && options.proxyEnabled && options.proxyHost) {
         if (!this.proxyOptions || !isEqual(this.proxyOptions, options)) {
-          /** Add credentials */
+          /** Store the proxy options */
           this.proxyOptions = options;
 
           /** Proxy Rules */
@@ -165,7 +174,7 @@ class Profile {
     });
   }
 
-  /** Get Extension */
+  /** Loads the extension of a path, returning it with the preload file */
   async getExtension(extensionPath) {
     let extension;
 

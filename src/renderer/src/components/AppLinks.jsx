@@ -3,6 +3,7 @@ import { HiOutlineGlobeAlt } from "react-icons/hi2";
 
 import { cn } from "../lib/utils";
 
+/** The app's website and repository links */
 const links = [
   {
     title: "Website",
@@ -16,6 +17,7 @@ const links = [
   },
 ];
 
+/** A grid of links to the app's website and repository */
 export default function AppLinks() {
   return (
     <div className="grid grid-cols-2 gap-2">

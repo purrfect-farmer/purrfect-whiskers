@@ -5,16 +5,18 @@ import { holdPartitions } from "../lib/busyPartitions";
 import { runInChunks } from "../lib/utils";
 import { useProgress } from "./useProgress";
 
-/**
- * Runs a task over many items in chunks, tracking its progress.
- * `partitions` stay busy for the whole run, so none of them can be opened
- * before or after its turn, and `onChunk` gets each chunk's results.
- */
+/** A hook for running a task over many items in chunks with progress */
 export default function useBatchRunner() {
+  /** Whether a batch is running */
   const [isProcessing, setIsProcessing] = useState(false);
+  /** The progress of the batch */
   const { target, progress, setTarget, resetProgress, incrementProgress } =
     useProgress();
 
+  /**
+   * The run of a task over items; `partitions` stay busy for the whole run
+   * and `onChunk` gets each chunk's results.
+   */
   const run = useCallback(
     async (items, task, { partitions = [], onChunk } = {}) => {
       const release = holdPartitions(partitions);

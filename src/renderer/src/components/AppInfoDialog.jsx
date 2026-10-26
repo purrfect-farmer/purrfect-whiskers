@@ -10,6 +10,7 @@ import Icon from "../assets/images/icon.png";
 import PrimaryButton from "./PrimaryButton";
 import useAppVersion from "../hooks/useAppVersion";
 
+/** A dialog with the app's version, update status and links */
 export default function AppInfoDialog() {
   const { currentVersion, latestVersion, hasUpdate } = useAppVersion();
 

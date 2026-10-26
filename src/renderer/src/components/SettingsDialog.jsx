@@ -16,13 +16,16 @@ import { useCallback } from "react";
 import useSettingsStore from "../store/useSettingsStore";
 import { useShallow } from "zustand/react/shallow";
 
+/** The theme options */
 const THEME_OPTIONS = [
   { value: THEME.SYSTEM, label: "System" },
   { value: THEME.LIGHT, label: "Light" },
   { value: THEME.DARK, label: "Dark" },
 ];
 
+/** A dialog for configuring the app settings */
 export default function SettingsDialog() {
+  /** The current settings */
   const settings = useSettingsStore(
     useShallow((state) => ({
       theme: state.theme,
@@ -37,7 +40,7 @@ export default function SettingsDialog() {
     })),
   );
 
-  /** Setters are stable, so they are read once */
+  /** The settings setters */
   const {
     setColumns,
     setRows,
@@ -52,13 +55,13 @@ export default function SettingsDialog() {
 
   const { extensionPath } = settings;
 
-  /** Open Extension Path */
+  /** The handler for opening the extension folder */
   const openExtensionPath = useCallback(
     () => window.electron.ipcRenderer.invoke(IPC.OPEN_PATH, extensionPath),
     [extensionPath],
   );
 
-  /** Pick Extension Path */
+  /** The handler for picking the extension folder */
   const pickExtensionPath = useCallback(async () => {
     const result = await window.electron.ipcRenderer.invoke(
       IPC.PICK_EXTENSION_PATH,

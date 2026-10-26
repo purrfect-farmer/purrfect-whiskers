@@ -7,6 +7,7 @@ import {
 
 import axios from "axios";
 
+/** A client for the Spider number service */
 export default class Spider {
   constructor(apiKey) {
     this.apiKey = apiKey;
@@ -73,9 +74,11 @@ export default class Spider {
 
   /** Buys a number, logs in to it and prepares its Telegram Web data */
   async purchaseAccount({ countryCode, twoFA, enableLocalTelegramSession }) {
+    /** The Spider login result */
     let telegram = null;
 
     try {
+      /** The bought number */
       const account = await this.getNumber(countryCode);
 
       if (!account?.["phone"]) {
@@ -90,6 +93,7 @@ export default class Spider {
         getCode: (hashCode) => this.getCode(hashCode),
       });
 
+      /** The local Telegram session, when enabled */
       const localTelegram = enableLocalTelegramSession
         ? await getLocalTelegramSession({ telegram, account, twoFA })
         : null;

@@ -6,20 +6,22 @@ import toast from "react-hot-toast";
 import useAppStore from "../store/useAppStore";
 import { useQuery } from "@tanstack/react-query";
 
-/** Refresh interval of balance and stock while the dialog is open */
+/** The refresh interval of the balance and stock */
 const REFRESH_INTERVAL = 60_000;
 
-/** Spider group whose countries can be purchased */
+/** The Spider group whose countries can be purchased */
 const PURCHASABLE_GROUP = "1";
 
+/** The keys the countries can be sorted by */
 const SORT_KEY = Object.freeze({ NAME: "name", PRICE: "price" });
+/** The directions of the sort */
 const SORT_DIR = Object.freeze({ ASC: "asc", DESC: "desc" });
 
 /** Flattens Spider's grouped country prices into a list */
 function parseCountries(data) {
   if (!data?.countries) return [];
 
-  /* Quantities are returned under the misspelled "cuantity" key */
+  /** The quantities, under Spider's misspelled "cuantity" key */
   const quantities = data.cuantity || data.quantity || {};
 
   return Object.entries(data.countries).flatMap(([group, list]) =>
@@ -39,19 +41,25 @@ function parseCountries(data) {
 }
 
 /**
- * Spider balance, countries and country selection.
- * Requests only run while `active`, so a closed dialog does not poll.
+ * A hook for the Spider balance, countries and country selection.
+ * Requests only run while `active`.
  */
 const useSpiderCore = ({ active }) => {
+  /** The Spider API key */
   const spiderApiKey = useAppStore((state) => state.spiderApiKey);
+  /** The country search text */
   const [searchTerm, setSearchTerm] = useState("");
+  /** The key the countries are sorted by */
   const [sortKey, setSortKey] = useState(SORT_KEY.NAME);
+  /** The direction of the sort */
   const [sortDir, setSortDir] = useState(SORT_DIR.ASC);
+  /** The country chosen for purchase */
   const [selectedCountry, setSelectedCountry] = useState(null);
 
+  /** Whether the requests run */
   const enabled = Boolean(spiderApiKey) && active;
 
-  /* Balance Query */
+  /** The query of the balance */
   const balanceQuery = useQuery({
     queryKey: ["spider-balance", spiderApiKey],
     queryFn: () => new Spider(spiderApiKey).getBalance(),
@@ -59,10 +67,10 @@ const useSpiderCore = ({ active }) => {
     enabled,
   });
 
-  /* Balance */
+  /** The wallet balance */
   const balance = balanceQuery.data?.wallet || 0;
 
-  /* Countries Query */
+  /** The query of the countries */
   const countriesQuery = useQuery({
     queryKey: ["spider-countries", spiderApiKey],
     queryFn: () => new Spider(spiderApiKey).getCountries(),
@@ -70,7 +78,7 @@ const useSpiderCore = ({ active }) => {
     enabled,
   });
 
-  /* Purchasable Countries */
+  /** The purchasable countries */
   const availableCountries = useMemo(() => {
     try {
       return parseCountries(countriesQuery.data).filter(
@@ -82,9 +90,11 @@ const useSpiderCore = ({ active }) => {
     }
   }, [countriesQuery.data]);
 
-  /* Filtered & Sorted Countries */
+  /** The countries filtered by search and sorted */
   const filteredCountries = useMemo(() => {
+    /** The lower-cased search term */
     const term = searchTerm.toLowerCase();
+    /** The sign of the sort direction */
     const direction = sortDir === SORT_DIR.DESC ? -1 : 1;
 
     return availableCountries
@@ -98,7 +108,7 @@ const useSpiderCore = ({ active }) => {
       });
   }, [availableCountries, searchTerm, sortKey, sortDir]);
 
-  /** Select Country */
+  /** The selection of a country in stock and within balance */
   const selectCountry = useCallback(
     (item) => {
       if (item.quantity <= 0) {
@@ -114,7 +124,7 @@ const useSpiderCore = ({ active }) => {
     [balance],
   );
 
-  /** Toggle Sort Direction */
+  /** The toggle of the sort direction */
   const toggleSortDir = useCallback(
     () =>
       setSortDir((dir) =>

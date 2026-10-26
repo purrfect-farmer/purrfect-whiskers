@@ -5,12 +5,12 @@ import toast from "react-hot-toast";
 import { twMerge } from "tailwind-merge";
 export { v4 as uuid } from "uuid";
 
-/** Class Names */
+/** Merges class names, resolving Tailwind conflicts */
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-/** Chunk Array Generator */
+/** Yields an array in chunks of `size` */
 export function* chunkArrayGenerator(arr, size) {
   for (let i = 0; i < arr.length; i += size) {
     yield arr.slice(i, i + size);
@@ -30,6 +30,7 @@ export async function runInChunks(items, size, task, onChunk) {
   const results = [];
 
   for (const chunk of chunkArrayGenerator(items, size)) {
+    /** The results of the chunk */
     const chunkResults = await Promise.all(chunk.map(task));
 
     onChunk?.(chunkResults);
@@ -41,6 +42,7 @@ export async function runInChunks(items, size, task, onChunk) {
 
 /** Saves data as a timestamped JSON file in the backup folder */
 export function saveJsonFile(prefix, data) {
+  /** The current time for the file name */
   const timestamp = formatDate(new Date(), "yyyyMMdd-HHmmss");
 
   return window.electron.ipcRenderer.invoke(
@@ -61,7 +63,7 @@ export async function copyText(value, label) {
   toast.success(`${label} copied!`);
 }
 
-/** Safe Field — normalizes null/undefined field values to "" for controlled inputs */
+/** A field with a null or undefined value as "" */
 export function safeField(field) {
   return {
     ...field,
@@ -69,17 +71,17 @@ export function safeField(field) {
   };
 }
 
-/** Get Telegram User Full Name */
+/** The full name of a Telegram user */
 export function getTelegramUserFullName(user) {
   return [user["first_name"], user["last_name"]].filter(Boolean).join(" ");
 }
 
-/** Search Includes */
+/** Whether a value includes the search, ignoring case */
 export function searchIncludes(value, search) {
   return value.toString().toLowerCase().includes(search.toLowerCase());
 }
 
-/** Extract InitDataUnsafe */
+/** Parses an init data string with its user */
 export function extractInitDataUnsafe(initData) {
   const parsedInitData = Object.fromEntries(
     new URLSearchParams(initData).entries(),
@@ -100,10 +102,10 @@ export function parseTelegramUser(initData) {
   }
 }
 
-/** Parsed users per account object; an edited account is a new object */
+/** The parsed Telegram user of each account object */
 const telegramUsers = new WeakMap();
 
-/** Get Account Telegram User */
+/** The Telegram user of an account, parsed once */
 export function getTelegramUser(account) {
   if (!account) return null;
 
@@ -114,7 +116,9 @@ export function getTelegramUser(account) {
   return telegramUsers.get(account);
 }
 
+/** Whether an account's title or Telegram user matches the search */
 export function matchesSearch(search, item) {
+  /** The Telegram user of the account */
   const user = getTelegramUser(item);
 
   const fullName = user ? getTelegramUserFullName(user) : "";

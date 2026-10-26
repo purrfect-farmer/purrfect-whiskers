@@ -3,6 +3,7 @@ import AccountSummary from "./AccountSummary";
 import { HiOutlineCheckBadge } from "react-icons/hi2";
 import { memo } from "react";
 
+/** A row of an account that launches it, with an edit button */
 export const AccountItem = memo(function AccountItem({ account, onLaunch }) {
   return (
     <div className="flex gap-2">

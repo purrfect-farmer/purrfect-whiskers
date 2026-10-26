@@ -24,22 +24,27 @@ export const CLEANER_TASK = Object.freeze({
   CLEAN: "clean",
 });
 
+/** Maps accounts to their partitions */
 const toPartitions = (accounts) => accounts.map((item) => item.partition);
 
 /**
- * Scans every account's Telegram session, lists the ones that are not
- * active and removes the selected ones after backing them up.
+ * A hook for scanning sessions and removing the inactive accounts.
  * `onLaunch` runs after an account is launched from the list.
  */
 export default function useCleanerCore({ onLaunch }) {
+  /** The list of accounts */
   const accounts = useAppStore((state) => state.accounts);
+  /** The progress and runner of the batches */
   const { target, progress, run } = useBatchRunner();
 
+  /** The task being run */
   const [task, setTask] = useState(null);
+  /** Whether the accounts have been scanned */
   const [hasScanned, setHasScanned] = useState(false);
+  /** The session status of each scanned partition */
   const [results, setResults] = useState(() => new Map());
 
-  /** Accounts removed elsewhere drop out of the list */
+  /** The scanned accounts without an active session */
   const listedAccounts = useMemo(
     () =>
       accounts.filter((account) => {
@@ -50,10 +55,11 @@ export default function useCleanerCore({ onLaunch }) {
     [accounts, results],
   );
 
+  /** The selection over the listed accounts */
   const selector = useAccountsSelector(listedAccounts);
   const { selectedAccounts, setSelected } = selector;
 
-  /** Runs one task at a time, behind a toast */
+  /** The run of a task behind a toast */
   const runTask = useCallback((name, job, messages) => {
     setTask(name);
 
@@ -63,9 +69,10 @@ export default function useCleanerCore({ onLaunch }) {
       .finally(() => setTask(null));
   }, []);
 
-  /** Apply a chunk of scan results in one update */
+  /** The update with a chunk of scan results */
   const applyStatuses = useCallback(
     (entries) => {
+      /** The partitions with a broken session */
       const broken = entries
         .filter(([, status]) => BROKEN_SESSION_STATUSES.has(status))
         .map(([partition]) => partition);
@@ -76,7 +83,9 @@ export default function useCleanerCore({ onLaunch }) {
     [setSelected],
   );
 
+  /** The scan of every account's session */
   const scan = useCallback(() => {
+    /** The scan job */
     const scanAccounts = async () => {
       const { accounts, closeAllAccounts } = useAppStore.getState();
 
@@ -106,24 +115,30 @@ export default function useCleanerCore({ onLaunch }) {
     });
   }, [run, runTask, setSelected, applyStatuses]);
 
+  /** The backup and removal of the selected accounts */
   const clean = useCallback(() => {
+    /** The clean job */
     const cleanAccounts = async () => {
+      /** The partitions being cleaned */
       const partitions = toPartitions(selectedAccounts);
 
-      /** Held until the removals finish, not just the backups */
+      /** The release of the held partitions */
       const release = holdPartitions(partitions);
 
       try {
         useAppStore.getState().closeAllAccounts();
 
+        /** The outcome of each account */
         const outcomes = await run(selectedAccounts, getCleanOutcome, {});
 
+        /** The outcomes with a saved backup */
         const backedUp = outcomes.filter((item) => item.backup);
+        /** The status entries of the accounts still active */
         const activeEntries = outcomes
           .filter((item) => item.status === SESSION_STATUS.ACTIVE)
           .map((item) => [item.account.partition, SESSION_STATUS.ACTIVE]);
 
-        /** Nothing is removed unless its backup was saved */
+        /** The save of the backups */
         if (backedUp.length > 0) {
           await saveJsonFile("purrfect-whiskers-cleaner-backup", {
             accounts: backedUp.map(({ account, backup }) => ({
@@ -133,6 +148,7 @@ export default function useCleanerCore({ onLaunch }) {
           });
         }
 
+        /** The partitions removed */
         const removed = await deleteAccounts(
           backedUp.map((item) => item.account.partition),
         );
@@ -141,6 +157,7 @@ export default function useCleanerCore({ onLaunch }) {
           withEntries(withoutKeys(prev, removed), activeEntries),
         );
 
+        /** The summary of the clean */
         const summary = summarizeClean(outcomes, removed);
 
         if (removed.length === 0 && activeEntries.length < outcomes.length) {
@@ -160,9 +177,10 @@ export default function useCleanerCore({ onLaunch }) {
     });
   }, [run, runTask, selectedAccounts]);
 
-  /** Show the account, closing the dialog unless it could not open */
+  /** The launch of an account, closing the dialog unless it is busy */
   const launchAccount = useCallback(
     (partition) => {
+      /** Whether the account is busy */
       const busy = isPartitionBusy(partition);
 
       useAppStore.getState().launchAccount(partition);

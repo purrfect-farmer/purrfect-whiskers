@@ -37,6 +37,7 @@ const DEFAULT_VALUES = {
 
 /** A hook for the bulk rename form */
 export default function useBulkRenameForm(selectedAccounts) {
+  /** The form methods */
   const methods = useForm({
     resolver: yupResolver(schema),
     defaultValues: DEFAULT_VALUES,

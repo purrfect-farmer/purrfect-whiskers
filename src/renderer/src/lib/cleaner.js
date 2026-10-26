@@ -38,9 +38,11 @@ export async function getCleanOutcome(account) {
   }
 }
 
-/** "a, b, c and 2 more" */
+/** The titles of accounts as "a, b, c and 2 more" */
 const nameAccounts = (accounts) => {
+  /** The named titles */
   const titles = accounts.slice(0, MAX_NAMED_TITLES).map((item) => item.title);
+  /** The number of accounts left unnamed */
   const rest = accounts.length - titles.length;
 
   return rest > 0 ? `${titles.join(", ")} and ${rest} more` : titles.join(", ");
@@ -48,14 +50,18 @@ const nameAccounts = (accounts) => {
 
 /** One line per kind of outcome of a clean */
 export function summarizeClean(outcomes, removed) {
+  /** The removed partitions */
   const removedSet = new Set(removed);
 
+  /** The outcomes of accounts signed in again */
   const active = outcomes.filter(
     (item) => item.status === SESSION_STATUS.ACTIVE,
   );
+  /** The outcomes of accounts that could not be backed up */
   const notBackedUp = outcomes.filter(
     (item) => item.status !== SESSION_STATUS.ACTIVE && !item.backup,
   );
+  /** The outcomes of backed-up accounts that could not be removed */
   const notRemoved = outcomes.filter(
     (item) => item.backup && !removedSet.has(item.account.partition),
   );

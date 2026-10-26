@@ -36,6 +36,7 @@ const DEFAULT_VALUES = { add: [], remove: [] };
 
 /** A hook for the bulk tags form */
 export default function useBulkTagsForm(selectedAccounts) {
+  /** The form methods */
   const methods = useForm({
     resolver: yupResolver(schema),
     defaultValues: DEFAULT_VALUES,

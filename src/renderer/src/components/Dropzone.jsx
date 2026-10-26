@@ -2,7 +2,7 @@ import { cn } from "../lib/utils";
 import { memo } from "react";
 import { useDropzone } from "react-dropzone";
 
-/** Drop target for a single file */
+/** A drop target for a single file */
 export default memo(function Dropzone({ accept, onDrop, disabled, fileLabel }) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,

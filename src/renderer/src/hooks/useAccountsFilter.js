@@ -4,10 +4,15 @@ import { useCallback, useMemo, useState } from "react";
 import { matchesSearch } from "../lib/utils";
 import useAppStore from "../store/useAppStore";
 
+/** A hook for filtering accounts by search and tag */
 export default function useAccountsFilter(accounts) {
+  /** The search text */
   const [search, setSearch] = useState("");
+  /** The id of the selected tag */
   const [selectedTag, setSelectedTag] = useState(null);
+  /** Whether the active tag is excluded */
   const [excluded, setExcluded] = useState(false);
+  /** The list of tags */
   const tags = useAppStore((state) => state.tags);
 
   /** The tags offered as filters, led by Untagged */
@@ -27,12 +32,13 @@ export default function useAccountsFilter(accounts) {
     [tags, selectedTag],
   );
 
+  /** The reset of a selected tag that no longer exists */
   if (selectedTag && !activeTag) {
     setSelectedTag(null);
     setExcluded(false);
   }
 
-  /** Clicking a tag clears the search, since search takes precedence below */
+  /** The toggle for a tag filter */
   const selectTag = useCallback((id) => {
     setSearch("");
     setExcluded(false);
@@ -45,6 +51,7 @@ export default function useAccountsFilter(accounts) {
     setExcluded((prev) => !prev);
   }, []);
 
+  /** The filtered list of accounts */
   const list = useMemo(
     () =>
       search

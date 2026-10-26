@@ -16,27 +16,32 @@ import { WEBVIEW_ACTION } from "../../../shared/constants/ipc";
 import { holdPartitions } from "./busyPartitions";
 import useSettingsStore from "../store/useSettingsStore";
 
-/**
- * Runs `converse(ask)` in a hidden webview of the account, recreating the
- * webview whenever it makes no progress for WEBVIEW_ATTEMPT_INTERVAL.
- */
+/** Runs `converse(ask)` in a hidden webview, recreating it when stalled */
 function runConversation(account, converse) {
   const { partition, userAgent } = account;
   const { extensionPath, theme } = useSettingsStore.getState();
+  /** The element holding the hidden webviews */
   const container = document.getElementById(WEBVIEWS_CONTAINER_ID);
 
   return new Promise((resolve, reject) => {
+    /** The number of webviews created */
     let attempts = 0;
+    /** The current webview */
     let webview = null;
+    /** Removes the message listener of the current webview */
     let unsubscribe = null;
+    /** The retry timer */
     let timer = null;
+    /** Whether the conversation has finished */
     let settled = false;
 
+    /** Removes the current webview */
     const removeWebview = () => {
       unsubscribe?.();
       webview?.remove();
     };
 
+    /** Ends the conversation and removes the webview */
     const finish = () => {
       settled = true;
       clearTimeout(timer);
@@ -49,6 +54,7 @@ function runConversation(account, converse) {
       timer = setTimeout(attempt, WEBVIEW_ATTEMPT_INTERVAL);
     };
 
+    /** Creates a webview and starts the conversation in it */
     const attempt = () => {
       if (attempts >= MAX_WEBVIEW_ATTEMPTS) {
         finish();
@@ -59,13 +65,17 @@ function runConversation(account, converse) {
       attempts += 1;
       removeWebview();
 
+      /** The webview of this attempt */
       const current = createWebview(partition, extensionPath);
+      /** Whether this attempt is still the live one */
       const isCurrent = () => !settled && webview === current;
+      /** Whether the conversation has started */
       let started = false;
 
-      /** Replies are routed by action, so each ask adds its own handler */
+      /** The message handlers by action */
       const handlers = {};
 
+      /** Sends a message and resolves with its reply */
       const ask = (message, responseAction) =>
         new Promise((answer) => {
           if (!isCurrent()) return;
@@ -79,6 +89,7 @@ function runConversation(account, converse) {
           sendHostMessage(current, message);
         });
 
+      /** Starts the conversation once the farmer asks for its data */
       handlers[WEBVIEW_ACTION.GET_WHISKER_DATA] = () => {
         if (started) return;
         started = true;
@@ -106,6 +117,7 @@ function runConversation(account, converse) {
         );
       };
 
+      /** Applies the proxy the farmer sets */
       handlers[WEBVIEW_ACTION.SET_PROXY] = (data) => {
         configureProxy(partition, { ...data, userAgent, allowProxies: false });
       };
@@ -121,16 +133,13 @@ function runConversation(account, converse) {
 }
 
 /**
- * Loads an account in a hidden webview with proxies off and, once the
- * farmer asks for its data, resolves with `converse(ask)`.
- * `ask(message, responseAction)` sends a message and resolves with the reply.
- * A webview with no progress for WEBVIEW_ATTEMPT_INTERVAL is recreated and
- * the conversation starts over; the promise rejects after MAX_WEBVIEW_ATTEMPTS.
- * The partition counts as busy until it settles, so it cannot be opened.
+ * Runs `converse(ask)` with an account in a hidden webview, proxies off;
+ * `ask(message, responseAction)` resolves with the reply
  * @param {object} account
  * @param {(ask: Function) => Promise<any>} converse
  */
 export async function converseWithAccount(account, converse) {
+  /** Releases the account's partition */
   const release = holdPartitions([account.partition]);
 
   try {

@@ -38,13 +38,16 @@ const withoutEvent =
   (_event, ...args) =>
     handler(...args);
 
+/** The Electron app with its window, IPC handlers and profiles */
 class App {
+  /** The profiles of the account partitions */
   profiles = new ProfileRegistry();
 
   constructor() {
     this.initialize();
   }
 
+  /** Creates the main window */
   createWindow() {
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
     // Create the browser window.
@@ -86,8 +89,7 @@ class App {
       return { action: "deny" };
     });
 
-    // HMR for renderer base on electron-vite cli.
-    // Load the remote URL for development or the local html file for production.
+    // Load the dev server URL in development, the built page otherwise
     if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
       this.window.loadURL(process.env["ELECTRON_RENDERER_URL"]);
     } else {
@@ -97,6 +99,7 @@ class App {
 
   /** Register IPC Handlers */
   registerIpcHandlers() {
+    /** The handler of each IPC channel */
     const handlers = {
       [IPC.GET_APP_VERSION]: () => app.getVersion(),
       [IPC.GET_SESSION_COOKIE]: (event, options) =>
@@ -149,7 +152,7 @@ class App {
     });
   }
 
-  /** Save Backup File */
+  /** Saves a backup file to the documents folder and shows it */
   async saveBackupFile(filename, content) {
     /** Backup Directory */
     const backupDir = join(
@@ -186,7 +189,7 @@ class App {
     return result;
   }
 
-  /** Setup Session */
+  /** Sets up a session's proxy and loads its extension */
   async setupSession(data) {
     const profile = this.profiles.get(data.partition);
 
@@ -222,7 +225,6 @@ class App {
     await ses.clearStorageData();
 
     /** Remove Partition */
-    /** Retries ride out the lock a just closed webview still holds */
     await fs.rm(ses.getStoragePath(), {
       recursive: true,
       force: true,
@@ -240,19 +242,16 @@ class App {
     }
   }
 
+  /** Starts the app once Electron is ready */
   initialize() {
     applyBrowserUserAgentFallback();
 
-    // This method will be called when Electron has finished
-    // initialization and is ready to create browser windows.
-    // Some APIs can only be used after this event occurs.
+    // Set up the app once Electron is ready
     app.whenReady().then(async () => {
       // Set app user model id for windows
       electronApp.setAppUserModelId("Purrfect Whiskers");
 
-      // Default open or close DevTools by F12 in development
-      // and ignore CommandOrControl + R in production.
-      // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
+      // Toggle DevTools with F12 in development, ignore reload in production
       app.on("browser-window-created", (_, window) => {
         optimizer.watchWindowShortcuts(window);
       });
@@ -271,15 +270,12 @@ class App {
       this.createWindow();
 
       app.on("activate", () => {
-        // On macOS it's common to re-create a window in the app when the
-        // dock icon is clicked and there are no other windows open.
+        // Re-create the window when the dock icon is clicked with none open
         if (BrowserWindow.getAllWindows().length === 0) this.createWindow();
       });
     });
 
-    // Quit when all windows are closed, except on macOS. There, it's common
-    // for applications and their menu bar to stay active until the user quits
-    // explicitly with Cmd + Q.
+    // Quit when all windows are closed, except on macOS
     app.on("window-all-closed", async () => {
       if (process.platform !== "darwin") {
         await stopMirrorServer();

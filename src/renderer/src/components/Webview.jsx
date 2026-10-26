@@ -20,7 +20,9 @@ import useElementFullscreen from "../hooks/useElementFullscreen";
 import usePinnable from "../hooks/usePinnable";
 import useSettingsStore from "../store/useSettingsStore";
 
+/** A window for the account in a partition */
 export default memo(function Webview({ partition, pageIndex }) {
+  /** The account in the partition */
   const account = useAccount(partition);
 
   if (!account) return null;
@@ -28,16 +30,21 @@ export default memo(function Webview({ partition, pageIndex }) {
   return <AccountWindow account={account} pageIndex={pageIndex} />;
 });
 
+/** A window with an account's toolbar, farmer webview and browser */
 const AccountWindow = memo(function AccountWindow({ account, pageIndex }) {
   const { title, partition } = account;
+  /** The ref of the window container */
   const containerRef = useRef(null);
 
   const { currentPage } = useAppContext();
   const rows = useSettingsStore((state) => state.rows);
   const closeAccount = useAppStore((state) => state.closeAccount);
 
+  /** The account's browser state */
   const browser = useBrowser(partition);
+  /** The pinned state and position of the window */
   const { pinned, position, togglePinned, handleDrag } = usePinnable();
+  /** The fullscreen state of the window */
   const { isFullscreen, toggleFullscreen } = useElementFullscreen(containerRef);
 
   /** Keeps a pinned window in view across pages */
@@ -50,7 +57,7 @@ const AccountWindow = memo(function AccountWindow({ account, pageIndex }) {
     [pinned, currentPage, pageIndex, rows],
   );
 
-  /** Edit Account Dialog State */
+  /** The open state of the edit account dialog */
   const {
     opened: openEditAccountDialog,
     setOpened: setOpenEditAccountDialog,

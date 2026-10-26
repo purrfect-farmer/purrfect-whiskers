@@ -24,6 +24,7 @@ const TITLE_FIELDS = ["prefix", "suffix", "startNumber", "padding", "count"];
 
 /** The total price of the accounts being bought */
 const SpiderTotalPrice = memo(function SpiderTotalPrice({ price }) {
+  /** The number of accounts to buy */
   const count = useWatch({ name: "count" });
 
   return (
@@ -35,6 +36,7 @@ const SpiderTotalPrice = memo(function SpiderTotalPrice({ price }) {
 
 /** The title fields with a preview of the titles */
 const SpiderTitleFields = memo(function SpiderTitleFields({ disabled }) {
+  /** The values of the title fields */
   const [prefix, suffix, startNumber, padding, count] = useWatch({
     name: TITLE_FIELDS,
   });
@@ -78,9 +80,10 @@ const SpiderPurchaseActions = memo(function SpiderPurchaseActions({
   progress,
   cancelPurchase,
 }) {
+  /** The number of accounts to buy */
   const count = useWatch({ name: "count" });
 
-  /** Exceeds available stock */
+  /** Whether the count exceeds the available stock */
   const exceedsStock = count > maxCount;
 
   return (
@@ -108,11 +111,13 @@ const SpiderPurchaseActions = memo(function SpiderPurchaseActions({
   );
 });
 
+/** A form for buying Spider accounts in a country */
 export default function SpiderAccountsForm({ country, clearSelection }) {
   const { form } = useSpider();
   const { methods, onSubmit, mutation, progress, maxCount, cancelPurchase } =
     form;
 
+  /** Whether a purchase is running */
   const isPending = mutation.isPending;
 
   return (

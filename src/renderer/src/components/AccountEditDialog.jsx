@@ -5,6 +5,7 @@ import { cn } from "../lib/utils";
 import useDialogState from "../hooks/useDialogState";
 import EditAccountDialogContent from "./EditAccountDialogContent";
 
+/** A button that opens the edit dialog of an account */
 export const AccountEditDialog = ({ account }) => {
   const {
     opened: openEditAccountDialog,

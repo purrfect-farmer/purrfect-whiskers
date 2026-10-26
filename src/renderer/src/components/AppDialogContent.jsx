@@ -2,6 +2,7 @@ import BaseDialogContent from "./BaseDialogContent";
 import { Dialog } from "radix-ui";
 import { memo } from "react";
 
+/** The content of an app dialog with an icon, title and description */
 export default memo(function ({
   icon: Icon,
   title,

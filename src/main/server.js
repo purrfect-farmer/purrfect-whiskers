@@ -1,15 +1,16 @@
 import { createMirrorServer } from "./libs/mirror";
 
+/** The running mirror server, or null */
 let mirror = null;
 
-/** Start Server */
+/** Starts the mirror server, resolving with its addresses */
 export async function startMirrorServer() {
   mirror = await createMirrorServer();
 
   return mirror.addresses;
 }
 
-/** Close Server */
+/** Closes the mirror server */
 export async function stopMirrorServer() {
   if (mirror) {
     await mirror.io.close();

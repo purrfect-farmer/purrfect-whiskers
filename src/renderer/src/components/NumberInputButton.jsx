@@ -1,5 +1,6 @@
 import { cn } from "../lib/utils";
 
+/** A button for stepping a number field's value */
 export const NumberInputButton = (props) => (
   <button
     type="button"

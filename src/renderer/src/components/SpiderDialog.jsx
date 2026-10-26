@@ -8,6 +8,7 @@ import SpiderCountries from "./SpiderCountries";
 import useAppStore from "../store/useAppStore";
 import { useSpider } from "./SpiderProvider";
 
+/** A dialog for buying accounts from Spider */
 export default function SpiderDialog() {
   const { core } = useSpider();
   const setSpiderApiKey = useAppStore((state) => state.setSpiderApiKey);

@@ -19,6 +19,7 @@ export function formatNumberedTitle({
 
 /** A builder for one account's bulk rename title */
 export function buildTitle(account, index, values) {
+  /** The new title */
   const title =
     values.mode === RENAME_MODE.AFFIX
       ? `${values.prefix}${account.title}${values.suffix}`

@@ -26,6 +26,7 @@ const PreviewRow = ({ from, to }) => (
 
 /** A preview of the first and last renamed accounts */
 const RenamePreview = memo(function RenamePreview({ accounts }) {
+  /** The watched rename fields */
   const [mode, prefix, suffix, startNumber, padding] = useWatch({
     name: PREVIEW_FIELDS,
   });
@@ -61,6 +62,7 @@ const RenamePreview = memo(function RenamePreview({ accounts }) {
 
 /** The title fields of the chosen rename mode */
 const RenameFields = memo(function RenameFields() {
+  /** The rename mode */
   const mode = useWatch({ name: "mode" });
 
   return <NumberedTitleFields numbered={mode === RENAME_MODE.NUMBERED} />;

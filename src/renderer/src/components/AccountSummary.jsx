@@ -5,10 +5,7 @@ import AccountAvatar from "./AccountAvatar";
 import { memo } from "react";
 import useSettingsStore from "../store/useSettingsStore";
 
-/**
- * An account's avatar, title, Telegram name and tag marker.
- * `interactive` adds hover styles; `children` render at the end.
- */
+/** A summary of an account: its avatar, title, Telegram name and tags */
 export default memo(function AccountSummary({
   as: Component = "div",
   account,
@@ -17,13 +14,17 @@ export default memo(function AccountSummary({
   children,
   ...props
 }) {
+  /** Whether the account's Telegram details are shown */
   const showAccountDetails = useSettingsStore(
     (state) => state.showAccountDetails,
   );
 
+  /** The account's Telegram user, when details are shown */
   const user = showAccountDetails ? getTelegramUser(account) : null;
+  /** The Telegram user's full name */
   const userFullName = user ? getTelegramUserFullName(user) : "";
 
+  /** The classes of muted text */
   const mutedClassName = cn(
     "text-neutral-500 dark:text-neutral-400",
     interactive && "group-hover:text-orange-900",

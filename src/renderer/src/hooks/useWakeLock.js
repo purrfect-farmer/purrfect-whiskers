@@ -1,9 +1,13 @@
 import { useEffect, useRef } from "react";
 
+/** A hook for keeping the screen awake */
 export default function useWakeLock() {
+  /** The held wake lock */
   const wakeLockRef = useRef(null);
 
+  /** The holding of the screen wake lock */
   useEffect(() => {
+    /** The request of a new wake lock */
     const requestWakeLock = async () => {
       try {
         wakeLockRef.current?.release();
@@ -13,6 +17,7 @@ export default function useWakeLock() {
       }
     };
 
+    /** The handler of visibility changes */
     const handleVisibilityChange = async () => {
       if (
         wakeLockRef.current !== null &&

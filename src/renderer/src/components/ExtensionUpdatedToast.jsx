@@ -3,8 +3,9 @@ import { memo, useCallback } from "react";
 import { reloadRunningAccounts } from "../lib/accounts";
 import toast from "react-hot-toast";
 
-/** Toast announcing an installed update, offering to reload the accounts */
+/** A toast for an installed update with a reload accounts button */
 export default memo(function ExtensionUpdatedToast({ id, version }) {
+  /** The handler for reloading the running accounts */
   const reload = useCallback(() => {
     toast.dismiss(id);
     reloadRunningAccounts();

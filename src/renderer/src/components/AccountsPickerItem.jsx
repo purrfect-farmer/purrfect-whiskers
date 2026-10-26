@@ -2,6 +2,7 @@ import AccountSummary from "./AccountSummary";
 import Toggle from "./Toggle";
 import { memo } from "react";
 
+/** A row of an account with a toggle for selecting it */
 export default memo(function AccountsPickerItem({
   account,
   checked,

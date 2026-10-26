@@ -13,7 +13,9 @@ export {
   withEngineChromeVersion,
 } from "./userAgent";
 
+/** The URLs the listeners handle */
 const URL_FILTER = { urls: ["*://*/*", "ws://*/*", "wss://*/*"] };
+/** Matches http, https, ws and wss URLs */
 const WEB_URL_REGEX = /^(http|https|ws|wss):\/\//;
 
 /** Headers a Telegram Android WebView sends */
@@ -24,9 +26,8 @@ const ANDROID_WEBVIEW_HEADERS = Object.freeze({
 });
 
 /**
- * Challenge hosts (and their subdomains) whose requests keep the browser's own
- * headers, matching what their scripts read. `path` limits a shared host to the
- * challenge's own paths.
+ * Challenge hosts, with their subdomains, whose requests keep the browser's
+ * own headers; `path` limits a host to those paths
  */
 const NATIVE_HEADER_TARGETS = Object.freeze([
   { host: "challenges.cloudflare.com" },
@@ -40,6 +41,7 @@ const NATIVE_HEADER_TARGETS = Object.freeze([
 const registeredSessions = new WeakSet();
 
 /**
+ * Sets the headers a Telegram Android WebView sends
  * @param {ReturnType<typeof createHeaders>} headers
  * @param {string|undefined} userAgent
  */
@@ -91,9 +93,7 @@ function applyFrameReferer(headers, frame) {
 }
 
 /**
- * Registers the request and response listeners of a session once.
- * Rules and User-Agent are read per request, so later changes apply
- * without registering again.
+ * Registers the request and response listeners of a session once
  * @param {Electron.Session} session
  */
 export function registerWebRequest(session) {
@@ -101,6 +101,7 @@ export function registerWebRequest(session) {
 
   registeredSessions.add(session);
 
+  /** The CORS headers of the session's requests */
   const cors = createCorsTracker();
 
   session.webRequest.onBeforeSendHeaders(URL_FILTER, (details, callback) => {
@@ -110,6 +111,7 @@ export function registerWebRequest(session) {
       return callback({ requestHeaders });
     }
 
+    /** The case-insensitive view of the request headers */
     const headers = createHeaders(requestHeaders);
 
     if (!isNativeHeaderRequest(details.url)) {
@@ -134,6 +136,7 @@ export function registerWebRequest(session) {
       return callback({ responseHeaders });
     }
 
+    /** The case-insensitive view of the response headers */
     const headers = createHeaders(responseHeaders);
 
     stripBlockingHeaders(headers);
@@ -151,7 +154,7 @@ export function registerWebRequest(session) {
     });
   });
 
-  /* Requests that never reach onHeadersReceived */
+  /* Forget requests that never reach onHeadersReceived */
   session.webRequest.onCompleted(URL_FILTER, (details) => {
     cors.forget(details.id);
   });

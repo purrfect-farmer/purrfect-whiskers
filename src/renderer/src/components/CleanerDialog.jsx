@@ -19,6 +19,7 @@ const TASK_LABELS = {
   [CLEANER_TASK.CLEAN]: "Backing up accounts...",
 };
 
+/** A dialog for removing signed-out accounts and stale tags */
 export default function CleanerDialog() {
   const {
     task,
@@ -32,11 +33,13 @@ export default function CleanerDialog() {
     launchAccount,
   } = useCleaner();
 
+  /** The accounts and tags tabs */
   const tabs = useTabs(Object.values(CLEANER_TAB), CLEANER_TAB.ACCOUNTS);
+  /** Whether a scan or clean is running */
   const isProcessing = task !== null;
   const { accounts: listedAccounts, selectedAccounts } = selector;
 
-  /** Each row only re-renders when its own status changes */
+  /** The status and launch props of an account row */
   const getItemProps = useCallback(
     (account) => ({
       status: results.get(account.partition),

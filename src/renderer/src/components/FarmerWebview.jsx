@@ -23,6 +23,7 @@ import { withWhiskerChromeVersion } from "../lib/userAgent";
 import useSettingsStore from "../store/useSettingsStore";
 import useWebviewControls from "../hooks/useWebviewControls";
 
+/** A webview that runs the farmer for an account, with a toolbar */
 export default memo(function FarmerWebview({ account, pinned, togglePinned }) {
   const updateAccount = useAppStore((state) => state.updateAccount);
   const launchAccountByRequest = useAppStore(
@@ -38,13 +39,13 @@ export default memo(function FarmerWebview({ account, pinned, togglePinned }) {
   const { ref, isLoading, goBack, goForward, reload, stop, callWebviewMethod } =
     useWebviewControls();
 
-  /** Current Whisker Data */
+  /** The whisker data of the account */
   const whiskerData = useMemo(
     () => getWhiskerData({ account, settings: { allowProxies, theme } }),
     [account, allowProxies, theme],
   );
 
-  /** Send Whisker Data */
+  /** The callback that sends the whisker data to the webview */
   const sendWhiskerData = useEffectEvent(() => {
     callWebviewMethod((webview) =>
       sendHostMessage(webview, {
@@ -54,31 +55,34 @@ export default memo(function FarmerWebview({ account, pinned, togglePinned }) {
     );
   });
 
-  /** Answers the farmer's request through the webview that sent it */
+  /** The callback that replies with the whisker data */
   const replyWhiskerData = useEffectEvent((reply) => {
     reply({ action: WEBVIEW_ACTION.SET_WHISKER_DATA, data: whiskerData });
   });
 
-  /** Merges data sent by the webview into the account */
+  /** The callback that merges webview data into the account */
   const mergeAccountData = useEffectEvent((data) => {
     updateAccount({ ...data, partition });
   });
 
-  /** Takes the farmer's User-Agent only when the account has none */
+  /**
+   * The callback that adopts the farmer's User-Agent
+   * when the account has none
+   */
   const adoptFarmerUserAgent = useEffectEvent((data) => {
     if (account.userAgent || !data?.userAgent) return;
 
     mergeAccountData({ userAgent: withWhiskerChromeVersion(data.userAgent) });
   });
 
-  /** Takes the farmer's Telegram init data, ignoring anything else it sends */
+  /** The callback that adopts the farmer's Telegram init data */
   const adoptTelegramInitData = useEffectEvent((data) => {
     if (typeof data?.telegramInitData !== "string") return;
 
     mergeAccountData({ telegramInitData: data.telegramInitData });
   });
 
-  /** Launch Account */
+  /** The callback that launches an account on request */
   const launchAccount = useEffectEvent((data, reply) => {
     reply({
       action: WEBVIEW_ACTION.RESPONSE_LAUNCH_ACCOUNT,
@@ -88,7 +92,7 @@ export default memo(function FarmerWebview({ account, pinned, togglePinned }) {
     });
   });
 
-  /** Setup Webview */
+  /** Loads the account into the webview */
   useEffect(() => {
     const controller = new AbortController();
 
@@ -101,7 +105,7 @@ export default memo(function FarmerWebview({ account, pinned, togglePinned }) {
     return () => controller.abort();
   }, [ref, partition, extensionPath]);
 
-  /** Register Core Events */
+  /** Registers the webview message handlers */
   useEffect(
     () =>
       registerWebviewMessage(ref.current, {
@@ -118,7 +122,7 @@ export default memo(function FarmerWebview({ account, pinned, togglePinned }) {
     [ref],
   );
 
-  /** Send Whisker Data */
+  /** Sends the whisker data when it changes */
   useEffect(() => {
     sendWhiskerData();
   }, [whiskerData]);

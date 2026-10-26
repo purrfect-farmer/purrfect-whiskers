@@ -3,6 +3,7 @@ const ELECTRON_CHROME_VERSION = process.versions.chrome.split(".")[0];
 
 /** The `Sec-Ch-Ua` brands of an Android WebView running the User-Agent's Chrome */
 export function getSecChUa(userAgent) {
+  /** The Chrome major version */
   const version =
     userAgent?.match(/Chrome\/(\d+)/)?.[1] || ELECTRON_CHROME_VERSION;
 

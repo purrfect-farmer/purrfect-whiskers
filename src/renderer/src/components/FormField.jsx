@@ -1,7 +1,7 @@
 import { cn } from "../lib/utils";
 import { memo } from "react";
 
-/** A label, its control and the control's error */
+/** A form field with a label, its control and the control's error */
 export default memo(function FormField({ label, error, className, children }) {
   return (
     <div className={cn("flex flex-col gap-2 min-w-0", className)}>

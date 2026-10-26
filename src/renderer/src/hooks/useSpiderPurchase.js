@@ -46,12 +46,16 @@ async function setUpPurchasedAccount(account, purchase) {
   }
 }
 
-/** Buys accounts from Spider in batches, with progress and cancellation */
+/** A hook for buying Spider accounts in batches, with cancellation */
 export default function useSpiderPurchase(country) {
+  /** The abort controller of the running purchase */
   const abortControllerRef = useRef(null);
+  /** The Spider API key */
   const spiderApiKey = useAppStore((state) => state.spiderApiKey);
+  /** The progress of the purchase */
   const { progress, resetProgress, incrementProgress } = useProgress();
 
+  /** The purchase of the accounts in batches */
   const mutation = useMutation({
     mutationKey: ["purchase-spider-accounts", spiderApiKey, country?.code],
     mutationFn: async ({
@@ -62,12 +66,15 @@ export default function useSpiderPurchase(country) {
       title = NUMBERED_TITLE_DEFAULTS,
       tags = [],
     }) => {
+      /** The abort controller of this purchase */
       const controller = new AbortController();
       abortControllerRef.current = controller;
 
       resetProgress();
 
+      /** The Spider client */
       const spider = new Spider(spiderApiKey);
+      /** The result of each purchase */
       const results = [];
 
       /** Buys and sets up the account at position `index` */
@@ -75,6 +82,7 @@ export default function useSpiderPurchase(country) {
         try {
           if (controller.signal.aborted) return;
 
+          /** The purchase response */
           const purchase = await spider.purchaseAccount({
             countryCode: country.code,
             enableLocalTelegramSession,
@@ -87,6 +95,7 @@ export default function useSpiderPurchase(country) {
             );
           }
 
+          /** The new account */
           const account = buildSpiderAccount({
             purchase,
             index,
@@ -108,6 +117,7 @@ export default function useSpiderPurchase(country) {
       for (let i = 0; i < count; i += batch) {
         if (controller.signal.aborted) break;
 
+        /** The number of accounts in this batch */
         const size = Math.min(batch, count - i);
 
         await Promise.allSettled(
@@ -119,7 +129,7 @@ export default function useSpiderPurchase(country) {
     },
   });
 
-  /** Cancel purchase */
+  /** The cancellation of the purchase */
   const cancelPurchase = useCallback(() => {
     abortControllerRef.current?.abort?.();
     toast.success("Initiated cancellation...");

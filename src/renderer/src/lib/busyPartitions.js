@@ -7,6 +7,7 @@ export function holdPartitions(partitions) {
     holds.set(partition, (holds.get(partition) ?? 0) + 1);
   }
 
+  /** Whether the partitions were released */
   let released = false;
 
   return () => {
@@ -14,6 +15,7 @@ export function holdPartitions(partitions) {
     released = true;
 
     for (const partition of partitions) {
+      /** The remaining holds of the partition */
       const count = holds.get(partition) - 1;
 
       if (count > 0) {
@@ -25,6 +27,7 @@ export function holdPartitions(partitions) {
   };
 }
 
+/** Whether a hidden webview is using a partition */
 export function isPartitionBusy(partition) {
   return holds.has(partition);
 }

@@ -23,6 +23,7 @@ function applyProxiesToAccounts() {
   toast.success(`Applied proxies to ${accounts.length} account(s)!`);
 }
 
+/** A dialog for fetching and applying proxies */
 export default function ProxiesDialog() {
   const hasAccounts = useAppStore((state) => state.accounts.length > 0);
   const proxies = useAppStore((state) => state.proxies);
@@ -32,7 +33,7 @@ export default function ProxiesDialog() {
   const setProxyApiKey = useAppStore((state) => state.setProxyApiKey);
   const allowProxies = useSettingsStore((state) => state.allowProxies);
 
-  /** Fetch Proxies */
+  /** The mutation for fetching proxies from the provider */
   const fetchMutation = useMutation({
     mutationKey: ["proxies", proxyProvider],
     mutationFn: () =>

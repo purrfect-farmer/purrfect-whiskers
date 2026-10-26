@@ -3,16 +3,19 @@ import { THEME } from "../lib/constants";
 import { useEffect } from "react";
 import { useMedia } from "react-use";
 
+/** A hook for applying the chosen theme */
 export default function useTheme(theme) {
+  /** Whether the system prefers dark */
   const systemIsDark = useMedia("(prefers-color-scheme: dark)");
 
-  /** Configure Theme in Main Process */
+  /** The theme setup in the main process */
   useEffect(() => {
     window.electron.ipcRenderer.invoke(IPC.CONFIGURE_THEME, theme);
   }, [theme]);
 
-  /** Apply Theme */
+  /** The application of the theme to the page */
   useEffect(() => {
+    /** Whether the dark theme is on */
     const isDark =
       theme === THEME.DARK || (theme === THEME.SYSTEM && systemIsDark);
 

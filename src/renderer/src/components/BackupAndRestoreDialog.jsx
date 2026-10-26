@@ -15,12 +15,14 @@ import { useCallback } from "react";
 import useSettingsStore from "../store/useSettingsStore";
 import useTabs from "../hooks/useTabs";
 
+/** The file types the dropzone accepts */
 const JSON_FILES = { "application/json": [".json"] };
 
+/** A dialog for backing up and restoring all accounts */
 export default function BackupAndRestoreDialog() {
   const { isProcessing, target, progress, run } = useBatchRunner();
 
-  /** Collects every account's backup with the app and settings state */
+  /** The callback that collects every account's backup and the app state */
   const getBackupData = useCallback(async () => {
     const { accounts, closeAllAccounts } = useAppStore.getState();
 
@@ -42,7 +44,7 @@ export default function BackupAndRestoreDialog() {
     };
   }, [run]);
 
-  /** Backup All Data */
+  /** The handler for backing up all data */
   const backupData = useCallback(() => {
     toast
       .promise(
@@ -60,15 +62,17 @@ export default function BackupAndRestoreDialog() {
       });
   }, [getBackupData]);
 
-  /** Restores every account's data, then the app and settings state */
+  /** The callback that restores every account's data and the app state */
   const restoreBackup = useCallback(
     async ({ app, settings, backups }) => {
       useAppStore.getState().closeAllAccounts();
 
+      /** The backed-up accounts by partition */
       const accounts = new Map(
         app.accounts.map((account) => [account.partition, account]),
       );
 
+      /** The backups of accounts in the backed-up app state */
       const restorable = backups.filter((item) => accounts.has(item.partition));
 
       await run(
@@ -78,7 +82,7 @@ export default function BackupAndRestoreDialog() {
         { partitions: restorable.map((item) => item.partition) },
       );
 
-      /** Keep this device's extension path */
+      /** This device's extension path */
       const { extensionPath } = useSettingsStore.getState();
 
       useAppStore.setState(app);
@@ -87,7 +91,7 @@ export default function BackupAndRestoreDialog() {
     [run],
   );
 
-  /** On backup file drop */
+  /** The handler for a dropped backup file */
   const onDrop = useCallback(
     ([file]) => {
       if (!file) return;
@@ -109,7 +113,7 @@ export default function BackupAndRestoreDialog() {
     [restoreBackup],
   );
 
-  /** Tabs */
+  /** The backup and restore tabs */
   const tabs = useTabs(["backup", "restore"], "backup");
 
   return (

@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 
-/** Whether a persisted zustand store has loaded from storage */
+/** A hook for whether a persisted zustand store has loaded */
 export default function useStoreHydrated(store) {
+  /** Whether the store has loaded */
   const [hasHydrated, setHasHydrated] = useState(() =>
     store.persist.hasHydrated(),
   );
 
+  /** The tracking of the store's hydration */
   useEffect(() => {
     setHasHydrated(store.persist.hasHydrated());
 

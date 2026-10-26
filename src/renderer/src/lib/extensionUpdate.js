@@ -15,6 +15,7 @@ const UPDATED_TOAST_DURATION = 30_000;
 const invoke = (channel, ...args) =>
   window.electron.ipcRenderer.invoke(channel, ...args);
 
+/** Updates the extension update state */
 const setUpdateState = (state) =>
   useExtensionStore.getState().setUpdateState(state);
 
@@ -56,6 +57,7 @@ export async function updateExtension({ force = false, silent = false } = {}) {
   if (selectIsUpdating(useExtensionStore.getState())) return false;
 
   const { extensionPath } = useSettingsStore.getState();
+  /** The id of this update's toast */
   const toastId = `extension-update-${Date.now()}`;
 
   try {

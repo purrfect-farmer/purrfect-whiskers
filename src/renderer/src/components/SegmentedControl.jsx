@@ -1,6 +1,7 @@
 import { cn } from "../lib/utils";
 import { memo } from "react";
 
+/** The grid column classes for each option count */
 const GRID_COLUMNS = {
   2: "grid-cols-2",
   3: "grid-cols-3",
@@ -20,7 +21,9 @@ export default memo(function SegmentedControl({
   return (
     <div className={cn("grid gap-2", GRID_COLUMNS[options.length])}>
       {options.map((option) => {
+        /** Whether the option is the current value */
         const selected = option.value === value;
+        /** The option's icon */
         const Icon = option.icon;
 
         return (

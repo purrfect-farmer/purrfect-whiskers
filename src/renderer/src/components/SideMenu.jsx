@@ -39,7 +39,7 @@ import useExtensionStore, {
 } from "../store/useExtensionStore";
 import useDialogState from "../hooks/useDialogState";
 
-/** Toggle FullScreen */
+/** The handler for toggling fullscreen */
 const toggleFullScreen = () => {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen();
@@ -61,13 +61,18 @@ const EXTENSION_UPDATING_BADGE = (
   </span>
 );
 
-/** Reload App */
+/** The handler for reloading the app */
 const reloadApp = () => window.location.reload();
 
+/** A side menu of buttons that open the app's dialogs */
 export default function SideMenu() {
+  /** Whether a newer app version is available */
   const { hasUpdate } = useAppVersion();
+  /** Whether the extension is updating */
   const isUpdatingExtension = useExtensionStore(selectIsUpdating);
+  /** The open state of the Spider dialog */
   const spiderDialog = useDialogState();
+  /** The open state of the Cleaner dialog */
   const cleanerDialog = useDialogState();
 
   return (

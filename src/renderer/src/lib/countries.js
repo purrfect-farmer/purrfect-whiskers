@@ -7,9 +7,11 @@ const countries = new Map();
 export function getCountry(code) {
   if (!code) return null;
 
+  /** The upper-cased ISO code */
   const upper = code.toUpperCase();
 
   if (!countries.has(upper)) {
+    /** The country data of the code */
     const data = getCountryData(upper);
 
     countries.set(

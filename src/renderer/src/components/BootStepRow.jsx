@@ -8,6 +8,7 @@ import { BOOT_STATUS } from "../lib/constants";
 import { cn } from "../lib/utils";
 import { memo } from "react";
 
+/** The icon of each boot status */
 const STATUS_ICONS = {
   [BOOT_STATUS.PENDING]: HiOutlineClock,
   [BOOT_STATUS.RUNNING]: HiArrowPath,
@@ -15,6 +16,7 @@ const STATUS_ICONS = {
   [BOOT_STATUS.FAILED]: HiOutlineXCircle,
 };
 
+/** The text of each boot status */
 const STATUS_TEXT = {
   [BOOT_STATUS.PENDING]: "Waiting",
   [BOOT_STATUS.RUNNING]: "Checking",
@@ -22,6 +24,7 @@ const STATUS_TEXT = {
   [BOOT_STATUS.FAILED]: "Unavailable",
 };
 
+/** The text color of each boot status */
 const STATUS_COLORS = {
   [BOOT_STATUS.PENDING]: "text-neutral-400",
   [BOOT_STATUS.RUNNING]: "text-orange-500",
@@ -29,8 +32,9 @@ const STATUS_COLORS = {
   [BOOT_STATUS.FAILED]: "text-red-500",
 };
 
-/** One download the app checks for on boot, with its status */
+/** A row of a boot download with its status */
 export default memo(function BootStepRow({ label, status }) {
+  /** The icon of the status */
   const Icon = STATUS_ICONS[status];
 
   return (

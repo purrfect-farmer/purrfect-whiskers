@@ -32,6 +32,7 @@ const CLEARED_PROXY = {
 export default memo(function ProxyOptionsFields() {
   const { setValue } = useFormContext();
 
+  /** The handler for clearing every proxy option */
   const clearProxy = () => {
     for (const [name, value] of Object.entries(CLEARED_PROXY)) {
       setValue(name, value, { shouldDirty: true });

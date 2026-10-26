@@ -2,18 +2,21 @@ import { useMemo, useState } from "react";
 
 import { getCountry } from "../lib/countries";
 
-/** Lower-cased text a proxy is searched by */
+/** The lower-cased text a proxy is searched by */
 const getSearchText = (proxy, country) =>
   [proxy.host, proxy.port, proxy.city, country?.name, country?.code]
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
 
+/** A hook for filtering proxies by search and country */
 export default function useProxiesFilter(proxies) {
+  /** The search text */
   const [search, setSearch] = useState("");
+  /** The code of the active country */
   const [activeCountry, setActiveCountry] = useState(null);
 
-  /** Keep the original position so the number matches the assignment order */
+  /** The proxies with their position, country and search text */
   const indexed = useMemo(
     () =>
       proxies.map((proxy, index) => {
@@ -29,8 +32,9 @@ export default function useProxiesFilter(proxies) {
     [proxies],
   );
 
-  /** Countries sorted by proxy count */
+  /** The countries sorted by proxy count */
   const countries = useMemo(() => {
+    /** The number of proxies in each country */
     const counts = new Map();
 
     for (const { countryCode } of indexed) {
@@ -43,8 +47,9 @@ export default function useProxiesFilter(proxies) {
       .sort((a, b) => b.count - a.count);
   }, [indexed]);
 
-  /** Filtered List */
+  /** The filtered list of proxies */
   const list = useMemo(() => {
+    /** The search term */
     const term = search.trim().toLowerCase();
 
     if (!term && !activeCountry) return indexed;
@@ -56,6 +61,7 @@ export default function useProxiesFilter(proxies) {
     );
   }, [indexed, search, activeCountry]);
 
+  /** The number of valid proxies */
   const validCount = useMemo(
     () => proxies.filter((proxy) => proxy.valid === true).length,
     [proxies],

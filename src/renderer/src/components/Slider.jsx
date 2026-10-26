@@ -3,11 +3,13 @@ import { forwardRef, memo } from "react";
 import { Slider as SliderPrimitive } from "radix-ui";
 import { cn } from "../lib/utils";
 
+/** A slider with a thumb for each value */
 const Slider = forwardRef(
   (
     { trackClassName, rangeClassName, thumbClassName, ...props },
     forwardedRef,
   ) => {
+    /** The slider's values */
     const value = props.value || props.defaultValue;
 
     return (

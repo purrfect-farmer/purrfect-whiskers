@@ -2,6 +2,7 @@ import { Tabs as TabsPrimitive } from "radix-ui";
 
 import { cn } from "../lib/utils";
 
+/** The grid column classes for each tab count */
 const GRID_SIZES = {
   2: "grid-cols-2",
   3: "grid-cols-3",
@@ -9,8 +10,10 @@ const GRID_SIZES = {
   5: "grid-cols-5",
 };
 
+/** The default renderer of the tab triggers */
 const defaultRenderList = (content) => content;
 
+/** A tab list built from a list of values */
 const Tabs = ({
   children,
   rootClassName,
@@ -51,6 +54,7 @@ const Tabs = ({
   );
 };
 
+/** A tab panel that stays mounted while hidden */
 const TabsContent = (props) => (
   <TabsPrimitive.Content
     forceMount

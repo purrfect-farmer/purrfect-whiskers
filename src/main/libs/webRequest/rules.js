@@ -11,17 +11,19 @@ const HEADER_OPERATION = Object.freeze({
 const sessionRules = new WeakMap();
 
 /**
- * Indexes rules by request domain.
- * Rules without `requestDomains` are skipped.
+ * The header modifications of rules, indexed by request domain
  * @param {chrome.declarativeNetRequest.Rule[]} rules
  */
 function compileRules(rules) {
+  /** The header modifications of each domain */
   const compiled = new Map();
 
   for (const rule of rules || []) {
+    /** The domains the rule applies to */
     const domains = rule?.condition?.requestDomains || [];
 
     for (const domain of domains) {
+      /** The header modifications of the domain */
       const entry = compiled.get(domain) || { request: [], response: [] };
 
       entry.request.push(...(rule.action?.requestHeaders || []));
@@ -42,18 +44,21 @@ export function setSessionRules(session, rules) {
   sessionRules.set(session, compileRules(rules));
 }
 
-/** @param {Electron.Session} session */
+/**
+ * Forgets the rules of a session
+ * @param {Electron.Session} session
+ */
 export function clearSessionRules(session) {
   sessionRules.delete(session);
 }
 
 /**
- * Collects the rule entries matching a hostname or any of its parent
- * domains, the way `requestDomains` matches.
+ * The rule entries of a URL's hostname and its parent domains
  * @param {Electron.Session} session
  * @param {string} url
  */
 export function getMatchingRules(session, url) {
+  /** The compiled rules of the session */
   const compiled = sessionRules.get(session);
 
   if (!compiled?.size) return [];
@@ -66,6 +71,7 @@ export function getMatchingRules(session, url) {
     return [];
   }
 
+  /** The matching rule entries */
   const matches = [];
 
   while (domain) {

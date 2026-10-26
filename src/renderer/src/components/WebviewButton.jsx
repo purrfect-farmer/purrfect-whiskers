@@ -1,6 +1,7 @@
 import { cn } from "../lib/utils";
 import { memo } from "react";
 
+/** A round button for the webview toolbar */
 export default memo((props) => (
   <button
     type="button"

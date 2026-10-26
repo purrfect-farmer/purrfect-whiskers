@@ -5,11 +5,13 @@ import { cn } from "../lib/utils";
 import { memo } from "react";
 import propTypes from "prop-types";
 
+/** A reorderable item with a drag handle */
 const ReorderItem = memo(function ReorderItem({
   children,
   disabled,
   ...props
 }) {
+  /** The drag controls of the handle */
   const dragControls = useDragControls();
   return (
     <Reorder.Item {...props} dragListener={false} dragControls={dragControls}>

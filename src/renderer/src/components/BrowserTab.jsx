@@ -13,6 +13,7 @@ import isUrl from "is-url";
 import normalizeUrl from "normalize-url";
 import useWebviewControls from "../hooks/useWebviewControls";
 
+/** A browser tab with navigation buttons, an address bar and a webview */
 export default memo(function BrowserTab({
   id,
   url,
@@ -24,22 +25,20 @@ export default memo(function BrowserTab({
   const { ref, isLoading, goBack, goForward, reload, stop, callWebviewMethod } =
     useWebviewControls();
 
-  /** Address Bar */
+  /** The ref of the address bar */
   const addressBarRef = useRef();
 
-  /**
-   * Handle Form Submit
-   */
+  /** The handler for submitting the address bar */
   const handleFormSubmit = useCallback(
     (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
 
-      /** Blur */
       addressBarRef.current.blur();
 
-      /** Get Input */
+      /** The address bar text */
       const input = addressBarRef.current.value;
+      /** The normalized URL */
       const url = normalizeUrl(input);
 
       callWebviewMethod((webview) => {
@@ -53,10 +52,11 @@ export default memo(function BrowserTab({
     [callWebviewMethod],
   );
 
-  /** Address Bar Update */
+  /** Syncs the address bar with the page URL */
   useEffect(() => {
     const webview = ref.current;
 
+    /** The handler for a navigation */
     const handleNavigate = (ev) => {
       addressBarRef.current.value = ev.url;
     };
@@ -70,46 +70,41 @@ export default memo(function BrowserTab({
     };
   }, [ref]);
 
-  /** Handle Window Close */
+  /** Closes the tab when its page closes */
   useEffect(() => {
     const webview = ref.current;
 
-    /** Listen for Window Close */
+    /** The handler for the page closing */
     const listener = () => {
       closeTab(id);
     };
 
-    /** Listen For Close */
     webview.addEventListener("close", listener);
 
     return () => webview.removeEventListener("close", listener);
   }, [ref, id, closeTab]);
 
-  /** Favicon and Title */
+  /** Syncs the tab's title and icon with the page */
   useEffect(() => {
     const webview = ref.current;
 
-    /** Handle Page Title */
+    /** The handler for a title update */
     const handlePageTitle = (ev) => {
       updateTitle(id, ev.title);
     };
 
-    /** Handle Favicons */
+    /** The handler for a favicon update */
     const handleFavicons = (ev) => {
       updateIcon(id, ev.favicons);
     };
 
-    /** Update Title */
     webview.addEventListener("page-title-updated", handlePageTitle);
 
-    /** Update Icon */
     webview.addEventListener("page-favicon-updated", handleFavicons);
 
     return () => {
-      /** Remove Handler for Update Title */
       webview.removeEventListener("page-title-updated", handlePageTitle);
 
-      /** Remove Handler for Update Icon */
       webview.removeEventListener("page-favicon-updated", handleFavicons);
     };
   }, [ref, id, updateTitle, updateIcon]);

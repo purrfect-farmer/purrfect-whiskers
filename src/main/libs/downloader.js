@@ -7,7 +7,7 @@ import { deleteAsync } from "del";
 import { join } from "path";
 import { pipeline } from "stream/promises";
 
-/** Clean Directory */
+/** Deletes everything inside a directory */
 export async function cleanDirectory(dir) {
   try {
     await deleteAsync(join(dir, "**"), { force: true });
@@ -18,7 +18,7 @@ export async function cleanDirectory(dir) {
   }
 }
 
-/** Download Zip */
+/** Downloads a zip file to a path */
 export async function downloadZip(url, outputPath, headers = {}) {
   const response = await axios({
     url,
@@ -30,7 +30,7 @@ export async function downloadZip(url, outputPath, headers = {}) {
   await pipeline(response.data, createWriteStream(outputPath));
 }
 
-/** Extract Zip */
+/** Extracts a zip into an emptied directory */
 export async function extractZip(zipPath, extractToDir) {
   /** Log Zip Path */
   console.log("Zip file:", zipPath);
@@ -46,9 +46,11 @@ export async function extractZip(zipPath, extractToDir) {
   zip.extractAllTo(extractToDir, true);
 }
 
-/** Download and Extract */
+/** Downloads a zip and extracts it into a directory */
 export async function downloadAndExtract(url, extractToDir, headers = {}) {
+  /** The temporary download folder */
   const tempDir = await fs.mkdtemp(join(os.tmpdir(), "whiskers-"));
+  /** The path of the downloaded zip */
   const zipPath = join(tempDir, "temp.zip");
 
   try {

@@ -1,8 +1,9 @@
 import axios from "axios";
 
-/** Upper bound on pages followed, in case the API keeps returning `next` */
+/** The most pages followed */
 const MAX_PAGES = 100;
 
+/** A client for the Webshare proxy API */
 export default class WebshareClient {
   constructor({ apiKey, pageSize = 100 }) {
     this.pageSize = pageSize;
@@ -29,10 +30,12 @@ export default class WebshareClient {
 
   /** Get all proxies (follows pagination) */
   async getProxies() {
+    /** The proxies of every page */
     const proxies = [];
 
     for (let page = 1; page <= MAX_PAGES; page++) {
       const data = await this.getPage(page);
+      /** The proxies of the page */
       const results = data?.results ?? [];
 
       proxies.push(

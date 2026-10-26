@@ -2,8 +2,9 @@ import { configureProxy } from "../lib/partitions";
 import { useEffect } from "react";
 import useSettingsStore from "../store/useSettingsStore";
 
-/** Applies the account's proxy and User-Agent to its session */
+/** A hook for applying an account's proxy and User-Agent to its session */
 export default function useAccountProxy(account) {
+  /** Whether proxies are allowed */
   const allowProxies = useSettingsStore((state) => state.allowProxies);
   const {
     partition,
@@ -15,6 +16,7 @@ export default function useAccountProxy(account) {
     userAgent,
   } = account;
 
+  /** The proxy setup of the account's session */
   useEffect(() => {
     configureProxy(partition, {
       allowProxies,

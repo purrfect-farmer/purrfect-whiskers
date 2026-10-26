@@ -2,6 +2,7 @@ import ShockedCat from "../assets/images/shocked-cat.png?format=webp";
 import { memo } from "react";
 import PrimaryButton from "./PrimaryButton";
 
+/** A screen that shows an error with a reset button */
 export default memo(function ErrorFallback({ error, resetErrorBoundary }) {
   return (
     <div

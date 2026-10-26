@@ -4,10 +4,7 @@ import FormField from "./FormField";
 import { memo } from "react";
 import { safeField } from "../lib/utils";
 
-/**
- * A text input bound to a react-hook-form field.
- * `children` render beside the input, such as action buttons.
- */
+/** A text input bound to a form field */
 export default memo(function FormInputField({
   name,
   label,
@@ -20,6 +17,7 @@ export default memo(function FormInputField({
     <Controller
       name={name}
       render={({ field, fieldState }) => {
+        /** The text input */
         const input = (
           <Input
             {...safeField(field)}

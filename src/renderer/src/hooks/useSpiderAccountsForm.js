@@ -45,33 +45,38 @@ const DEFAULT_VALUES = {
 
 /** A hook for the Spider purchase form */
 const useSpiderAccountsForm = ({ core }) => {
+  /** The selected country */
   const country = core.selectedCountry;
+  /** The purchase mutation, progress and cancellation */
   const { mutation, progress, cancelPurchase } = useSpiderPurchase(country);
 
+  /** The form methods */
   const methods = useForm({
     resolver: yupResolver(schema),
     defaultValues: DEFAULT_VALUES,
   });
 
-  /** Maximum purchasable accounts (available stock) */
+  /** The number of accounts in stock */
   const maxCount = country?.quantity ?? 0;
 
+  /** The clamp of the count to the stock */
   useEffect(() => {
     if (methods.getValues("count") > maxCount) {
       methods.setValue("count", Math.max(1, maxCount));
     }
   }, [methods, maxCount]);
 
-  /** Purchase Accounts */
+  /** The purchase of the accounts */
   const purchaseAccounts = useCallback(
     async (values) => {
-      /* Prevent purchasing above available quantity */
+      /** The stop when the count exceeds the stock */
       if (values.count > maxCount) {
         toast.error(`Only ${maxCount} account(s) available for this country.`);
         return;
       }
 
       try {
+        /** The results of the purchase */
         const results = await mutation.mutateAsync({
           count: values.count,
           batch: values.batch,

@@ -20,6 +20,7 @@ import useAppStore from "../store/useAppStore";
 import useDialogState from "../hooks/useDialogState";
 import useSettingsStore from "../store/useSettingsStore";
 
+/** The classes of a header dialog trigger */
 const TRIGGER_BUTTON_CLASS = cn(
   "shrink-0",
   "bg-orange-100 text-orange-700",
@@ -29,6 +30,7 @@ const TRIGGER_BUTTON_CLASS = cn(
   "font-bold",
 );
 
+/** The list key of an account */
 const computeItemKey = (_, item) => item.partition;
 
 /** The classes of a header button that is switched on */
@@ -40,6 +42,7 @@ const RUNNING_BADGE = (
   <HiOutlineCheckBadge className="shrink-0 text-orange-500 size-4" />
 );
 
+/** A side dialog for searching, selecting and launching accounts */
 export default function AccountListDialog() {
   const accounts = useAppStore((state) => state.accounts);
   const launchAccount = useAppStore((state) => state.launchAccount);

@@ -6,6 +6,7 @@ import IconButton from "./IconButton";
 import Input from "./Input";
 import Select from "./Select";
 
+/** A searchable, sortable list of Spider countries */
 export default function SpiderCountries({
   selectCountry,
   filteredCountries,
@@ -16,6 +17,7 @@ export default function SpiderCountries({
   sortDir,
   toggleSortDir,
 }) {
+  /** Whether the countries are sorted ascending */
   const ascending = sortDir === SORT_DIR.ASC;
 
   return (

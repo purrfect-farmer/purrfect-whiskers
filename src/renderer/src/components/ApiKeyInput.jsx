@@ -4,10 +4,12 @@ import { memo } from "react";
 import toast from "react-hot-toast";
 import { useState } from "react";
 
-/** API key field saved on demand; an empty key is saved as null */
+/** An API key input with a save button */
 export default memo(function ApiKeyInput({ value, onSave, label }) {
+  /** The unsaved key */
   const [draft, setDraft] = useState(value || "");
 
+  /** The handler for saving the key */
   const handleSave = () => {
     onSave(draft.trim() || null);
     toast.success(`${label} saved!`);

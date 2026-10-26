@@ -11,8 +11,10 @@ import { useFormContext } from "react-hook-form";
 /** User-Agent input with a button that fills a random one from the catalog */
 export default memo(function UserAgentField() {
   const { setValue } = useFormContext();
+  /** Whether a User-Agent is being generated */
   const [isGenerating, setIsGenerating] = useState(false);
 
+  /** The handler for filling a random User-Agent */
   const generateUserAgent = useCallback(async () => {
     setIsGenerating(true);
 

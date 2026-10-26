@@ -3,14 +3,16 @@ import { useEffect, useState } from "react";
 import BootScreen from "./BootScreen";
 import useBoot from "../hooks/useBoot";
 
-/** Delay before the boot screen shows, so a quick boot doesn't flash it */
+/** The delay before the boot screen shows, in milliseconds */
 const REVEAL_DELAY = 300;
 
-/** Renders the app once the boot downloads finish or are skipped */
+/** A gate that shows the boot screen until the app has booted */
 export default function Boot({ children }) {
   const { isBooted, ...boot } = useBoot();
+  /** Whether the boot screen is shown */
   const [isRevealed, setIsRevealed] = useState(false);
 
+  /** Reveals the boot screen after the delay */
   useEffect(() => {
     const timeout = setTimeout(() => setIsRevealed(true), REVEAL_DELAY);
 

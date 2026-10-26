@@ -2,9 +2,11 @@ import { cn, getTelegramUserFullName } from "../lib/utils";
 
 import { LiaUser } from "react-icons/lia";
 
+/** A card showing a Telegram user */
 export default function TelegramUserCard({ user }) {
   if (!user) return null;
 
+  /** The user's full name */
   const fullName = getTelegramUserFullName(user);
 
   return (

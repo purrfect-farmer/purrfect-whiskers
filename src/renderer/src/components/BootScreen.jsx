@@ -5,12 +5,13 @@ import Icon from "../assets/images/icon.png";
 import PrimaryButton from "./PrimaryButton";
 import { memo } from "react";
 
+/** The label of each boot step */
 const STEP_LABELS = {
   [BOOT_STEP.EXTENSION]: "Extension",
   [BOOT_STEP.USER_AGENTS]: "User-Agents",
 };
 
-/** Shows the boot downloads, offering retry or continue when one fails */
+/** A screen with the boot downloads and retry or continue on failure */
 export default memo(function BootScreen({ statuses, hasFailed, retry, skip }) {
   return (
     <div className="min-h-dvh max-w-sm mx-auto p-4 flex flex-col gap-4 justify-center">

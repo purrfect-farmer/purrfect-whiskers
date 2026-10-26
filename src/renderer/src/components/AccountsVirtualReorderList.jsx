@@ -13,9 +13,10 @@ import ScrollAwareVirtuoso from "./ScrollAwareVirtuoso";
 import { cn, matchesSearch } from "../lib/utils";
 import useAppStore from "../store/useAppStore";
 
-/** Same as Tailwind's h-96 */
+/** The height of the list, in pixels */
 const LIST_HEIGHT = 384;
 
+/** The classes of a row control button */
 const CONTROL_BUTTON_CLASS = cn(
   "bg-neutral-100 dark:bg-neutral-700",
   "hover:bg-orange-100 hover:text-orange-700",
@@ -25,6 +26,7 @@ const CONTROL_BUTTON_CLASS = cn(
   "disabled:opacity-50",
 );
 
+/** A row of an account with its position and move controls */
 const AccountRow = memo(function AccountRow({
   account,
   index,
@@ -35,7 +37,7 @@ const AccountRow = memo(function AccountRow({
   onPlaceBefore,
   onStartMoving,
 }) {
-  /** The account currently being moved */
+  /** Whether this account is being moved */
   const isMoving = moving === account.partition;
 
   return (
@@ -108,7 +110,7 @@ const AccountRow = memo(function AccountRow({
   );
 });
 
-/** Trailing "Place at end" target, shown while an account is being moved */
+/** A "Place at end" button shown while an account is being moved */
 function PlaceAtEndFooter({ context }) {
   if (!context.moving) return null;
 
@@ -130,31 +132,34 @@ function PlaceAtEndFooter({ context }) {
   );
 }
 
-/** Stable, so virtuoso keeps the footer mounted */
+/** The custom components of the list */
 const LIST_COMPONENTS = { Footer: PlaceAtEndFooter };
 
+/** The list key of an account */
 const computeItemKey = (_, item) => item.partition;
 
-/**
- * Virtualized reordering, driven by explicit controls instead of dragging -
- * the rows are windowed, so there is nothing to drag onto once a destination
- * scrolls out of the DOM. Scales to thousands of accounts.
- */
+/** A virtualized list for reordering accounts with move controls */
 export default function AccountsVirtualReorderList({ accounts }) {
+  /** The ref of the virtualized list */
   const virtuoso = useRef(null);
+  /** The timeout that clears the highlight */
   const highlightTimeout = useRef(null);
 
+  /** The search text */
   const [search, setSearch] = useState("");
+  /** The partition of the account being moved */
   const [moving, setMoving] = useState(null);
+  /** The partition of the highlighted account */
   const [highlighted, setHighlighted] = useState(null);
 
   const moveAccount = useAppStore((state) => state.moveAccount);
 
+  /** The account being moved */
   const movingAccount = moving
     ? accounts.find((item) => item.partition === moving)
     : null;
 
-  /** Scrolls an index into view and flashes it */
+  /** The callback that scrolls to an account and highlights it */
   const revealIndex = useCallback((index, partition) => {
     virtuoso.current?.scrollToIndex({ index, align: "center" });
 
@@ -163,7 +168,7 @@ export default function AccountsVirtualReorderList({ accounts }) {
     highlightTimeout.current = setTimeout(() => setHighlighted(null), 1500);
   }, []);
 
-  /** Moves an account to a final index */
+  /** The handler for moving an account to an index */
   const handleMove = useCallback(
     (partition, toIndex) => {
       moveAccount(partition, toIndex);
@@ -172,10 +177,7 @@ export default function AccountsVirtualReorderList({ accounts }) {
     [moveAccount, revealIndex],
   );
 
-  /**
-   * Places the account being moved above the given row. Removing it first
-   * shifts everything below up by one, so the target is adjusted for that.
-   */
+  /** The handler for placing the moving account above a row */
   const handlePlaceBefore = useCallback(
     (index) => {
       const fromIndex = accounts.findIndex((item) => item.partition === moving);
@@ -187,13 +189,13 @@ export default function AccountsVirtualReorderList({ accounts }) {
     [accounts, moving, handleMove],
   );
 
-  /** Places the account being moved at the end of the list */
+  /** The handler for placing the moving account at the end */
   const handlePlaceAtEnd = useCallback(() => {
     handleMove(moving, accounts.length - 1);
     setMoving(null);
   }, [accounts.length, moving, handleMove]);
 
-  /** Rows read the moving state through context */
+  /** The row of an account */
   const itemContent = useCallback(
     (index, item, context) => (
       <div className="pb-2 px-2">
@@ -212,10 +214,7 @@ export default function AccountsVirtualReorderList({ accounts }) {
     [handleMove, handlePlaceBefore],
   );
 
-  /**
-   * Scrolls to the first match instead of filtering - the rows are indexed by
-   * their real position, so the list must stay complete.
-   */
+  /** The handler for a search that jumps to the first match */
   const handleSearch = useCallback(
     (value) => {
       setSearch(value);

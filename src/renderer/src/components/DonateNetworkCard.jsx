@@ -4,6 +4,7 @@ import { QRCodeSVG } from "qrcode.react";
 import Icon from "../assets/images/icon.png";
 import { cn, copyText } from "../lib/utils";
 
+/** A card with a network's donation address, QR code and copy button */
 export default function DonateNetworkCard({ network }) {
   return (
     <div className="flex gap-3 p-3 rounded-xl bg-neutral-100 dark:bg-neutral-700">

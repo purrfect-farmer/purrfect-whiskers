@@ -2,14 +2,12 @@ import { createContext, useContext } from "react";
 
 import useCleanerCore from "../hooks/useCleanerCore";
 
+/** The context of the Cleaner state */
 const CleanerContext = createContext();
 
-/**
- * Holds Cleaner state above the dialog, so a scan or clean keeps running
- * and its results stay after the dialog closes. `onLaunch` runs after an
- * account is launched from the list.
- */
+/** A provider of the Cleaner state */
 export const CleanerProvider = ({ onLaunch, children }) => {
+  /** The Cleaner state */
   const cleaner = useCleanerCore({ onLaunch });
 
   return (
@@ -19,4 +17,5 @@ export const CleanerProvider = ({ onLaunch, children }) => {
   );
 };
 
+/** A hook for reading the Cleaner state */
 export const useCleaner = () => useContext(CleanerContext);

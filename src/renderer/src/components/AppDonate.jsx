@@ -5,6 +5,7 @@ import DonateNetworkCard from "./DonateNetworkCard";
 import TonCoinIcon from "../assets/images/toncoin-ton-logo.svg";
 import { cn } from "../lib/utils";
 
+/** The networks that accept donations */
 const donateNetworks = [
   {
     name: "TON Network",
@@ -13,7 +14,9 @@ const donateNetworks = [
   },
 ];
 
+/** A button that shows or hides the donation addresses */
 export default function AppDonate() {
+  /** Whether the donation addresses are shown */
   const [showDonate, setShowDonate] = useState(false);
 
   return (

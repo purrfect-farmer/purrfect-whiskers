@@ -9,9 +9,10 @@ import useAppStore from "../store/useAppStore";
 import useExtensionStore from "../store/useExtensionStore";
 import useSettingsStore from "../store/useSettingsStore";
 
+/** The file types the dropzone accepts */
 const ZIP_FILES = { "application/zip": [".zip"] };
 
-/** Installs a dropped extension zip, reopening the accounts afterwards */
+/** The handler for installing a dropped extension zip */
 async function installExtension([file]) {
   if (!file) return;
 
@@ -28,7 +29,7 @@ async function installExtension([file]) {
       extensionPath,
     );
 
-    /** Let the settings read the installed version again */
+    /** Resets the installed version and update status */
     useExtensionStore.getState().setUpdateState({
       status: EXTENSION_UPDATE_STATUS.IDLE,
       currentVersion: null,
@@ -43,6 +44,7 @@ async function installExtension([file]) {
   }
 }
 
+/** A dialog for installing the extension from a zip file */
 export default function LoaderDialog() {
   return (
     <AppDialogContent

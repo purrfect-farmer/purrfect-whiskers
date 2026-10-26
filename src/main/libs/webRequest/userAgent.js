@@ -1,6 +1,7 @@
 import { app } from "electron";
 import { withChromeVersion } from "../../../shared/lib/userAgent";
 
+/** Whether the User-Agent is also set on the session itself */
 const SET_USER_AGENT_ON_SESSION = false;
 
 /**
@@ -38,6 +39,7 @@ export function withEngineChromeVersion(userAgent) {
  * @param {string} userAgent
  */
 export function setUserAgent(session, userAgent) {
+  /** The User-Agent naming the running Chrome version */
   const engineUserAgent = withEngineChromeVersion(userAgent);
 
   userAgents.set(session, engineUserAgent);
@@ -72,6 +74,7 @@ export function clearUserAgent(session) {
  * @param {ReturnType<import("./headers").createHeaders>} headers
  */
 export function applyUserAgent(session, headers) {
+  /** The User-Agent of the session */
   const userAgent = userAgents.get(session);
 
   if (userAgent && headers.get("User-Agent")) {

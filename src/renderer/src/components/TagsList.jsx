@@ -5,6 +5,7 @@ import { UNTAGGED_TAG, countTagUsage } from "../lib/tags";
 import { cn } from "../lib/utils";
 import { memo, useMemo } from "react";
 
+/** A list of tag filter buttons with their account counts */
 export default memo(function TagsList({
   accounts,
   tags,
@@ -14,15 +15,20 @@ export default memo(function TagsList({
   toggleExcluded,
   disabled,
 }) {
+  /** The number of accounts for each tag */
   const counts = useMemo(() => countTagUsage(accounts), [accounts]);
 
   return (
     <div className="flex flex-wrap gap-1 empty:hidden">
       {tags.map((tag) => {
+        /** Whether the tag is the active filter */
         const active = activeTag?.id === tag.id;
+        /** Whether the active tag is excluded */
         const activeExcluded = active && excluded;
+        /** The number of accounts with the tag */
         const count = counts.get(tag.id) || 0;
 
+        /** The tag's icon */
         const Icon =
           tag.id === UNTAGGED_TAG.id && !activeExcluded ? TbTagOff : HiTag;
 

@@ -2,6 +2,7 @@ import { memo } from "react";
 
 import { cn } from "../lib/utils";
 
+/** A styled select input */
 export default memo(function Select(props) {
   return (
     <select

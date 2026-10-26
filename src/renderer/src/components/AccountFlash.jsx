@@ -8,18 +8,16 @@ import { cn } from "../lib/utils";
 import { memo } from "react";
 import useFlashStore from "../store/useFlashStore";
 
+/** The CSS variables of the flash animation */
 const FLASH_STYLE = {
   "--flash-blink": `${FLASH_BLINK_DURATION}ms`,
   "--flash-blinks": FLASH_BLINKS,
   "--flash-duration": `${FLASH_DURATION}ms`,
 };
 
-/**
- * Light blue border that blinks rapidly over an account's window when the
- * account is asked to open. Each flash remounts the border, restarting it.
- * With reduced motion it shows steadily, then fades.
- */
+/** A blinking border over an account's window when it's asked to open */
 export default memo(function AccountFlash({ partition }) {
+  /** The key of this account's current flash, or 0 */
   const flashKey = useFlashStore((state) =>
     state.partition === partition ? state.key : 0,
   );

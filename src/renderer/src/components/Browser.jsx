@@ -6,12 +6,14 @@ import { TabButton } from "./TabButton";
 import WebviewButton from "./WebviewButton";
 import { cn } from "../lib/utils";
 
+/** A tabbed browser with a row of tab buttons */
 export default memo(function Browser({ browser, partition }) {
+  /** The ref of the tab buttons row */
   const tabButtonsContainerRef = useRef();
   const { tabs, addTab, closeTab, setActiveTab, updateTitle, updateIcon } =
     browser;
 
-  /** Scroll to Tab Button */
+  /** The callback that scrolls a tab button to the center of the row */
   const scrollToTabButton = useCallback((element) => {
     const container = tabButtonsContainerRef.current;
 

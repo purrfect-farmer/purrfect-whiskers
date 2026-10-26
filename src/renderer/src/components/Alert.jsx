@@ -7,13 +7,16 @@ import {
 
 import { cn } from "../lib/utils";
 
+/** The icon of each alert variant */
 const ALERT_ICONS = {
   info: HiOutlineInformationCircle,
   warning: HiOutlineExclamationTriangle,
   danger: HiOutlineXCircle,
   success: HiOutlineCheckCircle,
 };
+/** An alert box with a variant's colors and icon */
 export default function Alert({ as: Component = "div", variant, ...props }) {
+  /** The icon of the variant */
   const Icon = ALERT_ICONS[variant];
   return (
     <Component

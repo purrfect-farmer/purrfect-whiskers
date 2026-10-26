@@ -30,9 +30,11 @@ const withWhiskerUserAgents = (accounts) =>
  * Returns the same array when nothing changes.
  */
 const setRunning = (accounts, partitions, running) => {
+  /** Whether any account changed */
   let changed = false;
 
   const next = accounts.map((item) => {
+    /** Whether the account is targeted */
     const matches = partitions === null || partitions.has(item.partition);
 
     if (!matches || Boolean(item.running) === running) return item;
@@ -45,16 +47,24 @@ const setRunning = (accounts, partitions, running) => {
   return changed ? next : accounts;
 };
 
+/** The store of accounts, tags and proxies */
 export default create(
   persist(
     combine(
       {
+        /** The current page of running accounts */
         page: 0,
+        /** The saved accounts */
         accounts: [],
+        /** The saved tags */
         tags: [],
+        /** The Spider API key */
         spiderApiKey: null,
+        /** The chosen proxy provider */
         proxyProvider: PROXY_PROVIDER.WEBSHARE,
+        /** The API key of the proxy provider */
         proxyApiKey: null,
+        /** The fetched proxies */
         proxies: [],
       },
       (set, get) => ({
@@ -70,6 +80,7 @@ export default create(
         applyProxies: (partitions, proxies) => {
           if (!proxies.length) return;
 
+          /** The position of each partition */
           const indexes = new Map(
             partitions.map((partition, index) => [partition, index]),
           );
@@ -78,6 +89,7 @@ export default create(
             accounts: get().accounts.map((item) => {
               if (!indexes.has(item.partition)) return item;
 
+              /** The proxy of the account */
               const proxy =
                 proxies[indexes.get(item.partition) % proxies.length];
 
@@ -93,9 +105,12 @@ export default create(
           });
         },
 
+        /** Adds an account */
         addAccount: (data) => set({ accounts: [...get().accounts, data] }),
+        /** Adds the imported accounts not listed yet */
         importAccounts: (data) => {
           const existing = get().accounts;
+          /** The listed partitions */
           const partitions = new Set(existing.map((item) => item.partition));
 
           return set({
@@ -110,12 +125,14 @@ export default create(
         /** Moves an account to a new (final) index, clamped to the list */
         moveAccount: (partition, toIndex) => {
           const { accounts } = get();
+          /** The current index of the account */
           const fromIndex = accounts.findIndex(
             (item) => item.partition === partition,
           );
 
           if (fromIndex < 0) return;
 
+          /** The clamped target index */
           const target = Math.max(0, Math.min(toIndex, accounts.length - 1));
 
           if (target === fromIndex) return;
@@ -127,6 +144,7 @@ export default create(
 
           return set({ accounts: next });
         },
+        /** Merges changes into an account */
         updateAccount: (data) =>
           set({
             accounts: get().accounts.map((item) =>
@@ -135,7 +153,9 @@ export default create(
           }),
         /** Renames many accounts, returning how many changed */
         renameAccounts: (entries) => {
+          /** The new title of each partition */
           const titles = new Map(entries);
+          /** The number of renamed accounts */
           let changed = 0;
 
           const accounts = get().accounts.map((item) => {
@@ -154,7 +174,9 @@ export default create(
 
         /** Adds and removes tags on many accounts, returning how many changed */
         updateAccountsTags: (partitions, add, remove) => {
+          /** The partitions to update */
           const targets = new Set(partitions);
+          /** The number of changed accounts */
           let changed = 0;
 
           const accounts = get().accounts.map((item) => {
@@ -172,6 +194,7 @@ export default create(
 
           return changed;
         },
+        /** Removes an account */
         removeAccount: (partition) =>
           set({
             accounts: get().accounts.filter(
@@ -179,21 +202,26 @@ export default create(
             ),
           }),
 
+        /** Closes an account */
         closeAccount: (partition) =>
           set({
             accounts: setRunning(get().accounts, new Set([partition]), false),
           }),
 
+        /** Opens the accounts of a set of partitions */
         openAccounts: (partitions) =>
           set({ accounts: setRunning(get().accounts, partitions, true) }),
 
+        /** Closes every account */
         closeAllAccounts: () =>
           set({ accounts: setRunning(get().accounts, null, false) }),
 
+        /** Closes the running accounts of a page */
         closePage: (pageIndex) => {
           const { accounts } = get();
           const itemsPerPage = getItemsPerPage();
 
+          /** The partitions of the page's running accounts */
           const partitions = new Set(
             accounts
               .filter((item) => item.running)
@@ -211,12 +239,14 @@ export default create(
             return;
           }
 
+          /** The accounts with this one running */
           const accounts = setRunning(
             get().accounts,
             new Set([partition]),
             true,
           );
 
+          /** The index of the account among the running ones */
           const index = accounts
             .filter((item) => item.running)
             .findIndex((item) => item.partition === partition);
@@ -231,13 +261,20 @@ export default create(
           useFlashStore.getState().flash(partition);
         },
 
-        /** Opens many accounts and shows the first one, returning how many were busy */
+        /**
+         * Opens many accounts and shows the first one,
+         * returning how many were busy
+         */
         launchAccounts: (partitions) => {
+          /** The partitions to open */
           const targets = new Set(partitions);
+          /** The number of busy accounts */
           const busyCount = partitions.filter(isPartitionBusy).length;
 
           const accounts = setRunning(get().accounts, targets, true);
+          /** The running accounts */
           const running = accounts.filter((item) => item.running);
+          /** The index of the first opened account */
           const index = running.findIndex((item) =>
             targets.has(item.partition),
           );
@@ -259,12 +296,14 @@ export default create(
           const { partition, telegramUserId } = request || {};
           const { accounts } = get();
 
+          /** The requested Telegram user id */
           const userId = String(telegramUserId ?? "").trim();
 
           if (!partition && !userId) {
             return { success: false, error: LAUNCH_ERROR.INVALID_REQUEST };
           }
 
+          /** The requested account */
           const account = partition
             ? accounts.find((item) => item.partition === partition)
             : accounts.find((item) => {
@@ -286,12 +325,19 @@ export default create(
         },
 
         /** Tags */
+        /** Adds a tag */
         addTag: (tag) => set({ tags: [...get().tags, tag] }),
+        /** Removes a tag from the list and every account */
         removeTag: (id) => get().removeTags([id]),
 
-        /** Removes tags from the tag list and every account, returning how many accounts changed */
+        /**
+         * Removes tags from the tag list and every account,
+         * returning how many accounts changed
+         */
         removeTags: (ids) => {
+          /** The ids to remove */
           const removed = new Set(ids);
+          /** The number of changed accounts */
           let changed = 0;
 
           const accounts = get().accounts.map((item) => {
@@ -310,6 +356,7 @@ export default create(
 
           return changed;
         },
+        /** Renames a tag */
         updateTag: (id, name) =>
           set({
             tags: get().tags.map((item) =>
@@ -322,6 +369,7 @@ export default create(
     {
       name: "app-store", // unique name
       storage: createJSONStorage(() => storage),
+      /** Restores the saved state with up-to-date User-Agents */
       merge: (persistedState, currentState) => ({
         ...currentState,
         ...persistedState,

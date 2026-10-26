@@ -1,6 +1,5 @@
 /**
- * Case-insensitive view over a headers object.
- * Keys are indexed once, and every change writes through to `headers`.
+ * A case-insensitive view that edits a headers object
  * @param {Record<string, string | string[]>} headers
  */
 export function createHeaders(headers) {
@@ -12,11 +11,13 @@ export function createHeaders(headers) {
   }
 
   return {
+    /** The value of a header, or null */
     get(name) {
       const key = keys.get(name.toLowerCase());
       return key === undefined ? null : headers[key];
     },
 
+    /** Sets a header */
     set(name, value) {
       const lowerName = name.toLowerCase();
       const key = keys.get(lowerName) ?? name;
@@ -25,6 +26,7 @@ export function createHeaders(headers) {
       keys.set(lowerName, key);
     },
 
+    /** Deletes a header */
     delete(name) {
       const lowerName = name.toLowerCase();
       const key = keys.get(lowerName);

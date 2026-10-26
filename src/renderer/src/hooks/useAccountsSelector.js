@@ -1,20 +1,23 @@
 import { useCallback, useMemo, useState } from "react";
 
-/** Selection over a list of accounts, starting with all of them selected */
+/** A hook for selecting from a list of accounts */
 export default function useAccountsSelector(
   accounts,
   { initiallySelected = true } = {},
 ) {
+  /** The set of selected partitions */
   const [selected, setSelected] = useState(
     () =>
       new Set(initiallySelected ? accounts.map((item) => item.partition) : []),
   );
 
+  /** The selected accounts */
   const selectedAccounts = useMemo(
     () => accounts.filter((item) => selected.has(item.partition)),
     [accounts, selected],
   );
 
+  /** The toggle for one account */
   const toggleAccount = useCallback((partition, checked) => {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -29,10 +32,7 @@ export default function useAccountsSelector(
     });
   }, []);
 
-  /**
-   * Toggles only the given subset - accounts outside of it keep their
-   * current state, so toggling while a tag is active leaves the rest alone.
-   */
+  /** The toggle for all accounts, or only the given subset */
   const toggleAllAccounts = useCallback(
     (checked, subset = accounts) => {
       setSelected((prev) => {

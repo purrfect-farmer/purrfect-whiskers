@@ -36,6 +36,7 @@ async function readCatalog() {
 
 /** Download the catalog of a release tag */
 async function downloadCatalog(tag) {
+  /** The catalog URL of the tag */
   const url = import.meta.env.VITE_USER_AGENTS_CONTENTS_URL.replace(
     "{tag}",
     tag,
@@ -47,6 +48,7 @@ async function downloadCatalog(tag) {
     timeout: CATALOG_REQUEST_TIMEOUT,
   });
 
+  /** The downloaded User-Agents */
   const userAgents = response.data;
 
   if (!Array.isArray(userAgents) || userAgents.length === 0) {
@@ -63,6 +65,7 @@ async function downloadCatalog(tag) {
  */
 export async function syncUserAgents(extensionPath) {
   try {
+    /** The version of the installed extension */
     const tag = await getExtensionVersion(extensionPath);
 
     if (!tag) return false;
@@ -78,8 +81,12 @@ export async function syncUserAgents(extensionPath) {
   }
 }
 
-/** A random User-Agent from the catalog naming Electron's Chrome version, or null when there is none */
+/**
+ * A random User-Agent from the catalog naming Electron's Chrome version,
+ * or null when there is none
+ */
 export async function generateUserAgent() {
+  /** The User-Agents of the catalog */
   const userAgents = (await readCatalog())?.userAgents;
 
   return userAgents?.length

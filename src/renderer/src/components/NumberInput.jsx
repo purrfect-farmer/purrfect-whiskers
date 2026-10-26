@@ -2,6 +2,7 @@ import { HiOutlineChevronUp, HiOutlineChevronDown } from "react-icons/hi2";
 import Input from "./Input";
 import { NumberInputButton } from "./NumberInputButton";
 
+/** A number field with buttons for stepping its value up and down */
 export const NumberInput = ({
   value,
   label,

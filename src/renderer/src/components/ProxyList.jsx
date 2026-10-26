@@ -6,14 +6,19 @@ import ProxyListItem from "./ProxyListItem";
 import { Virtuoso } from "react-virtuoso";
 import useProxiesFilter from "../hooks/useProxiesFilter";
 
-/** Same as Tailwind's h-80 */
+/** The maximum height of the list */
 const MAX_LIST_HEIGHT = 320;
 
+/** The key of a proxy row */
 const computeItemKey = (_, item) => item.index;
 
+/** A searchable, filterable, virtualized list of proxies */
 export default function ProxyList({ proxies }) {
+  /** The height of the list's content */
   const [listHeight, setListHeight] = useState(0);
+  /** The indexes of the expanded proxies */
   const [expanded, setExpanded] = useState(() => new Set());
+  /** The proxies from the previous render */
   const [previousProxies, setPreviousProxies] = useState(proxies);
 
   /** Collapse everything when a new list is loaded */
@@ -22,7 +27,7 @@ export default function ProxyList({ proxies }) {
     setExpanded(new Set());
   }
 
-  /** Toggle Expanded */
+  /** The toggle for an expanded proxy */
   const toggleExpanded = useCallback((index) => {
     setExpanded((prev) => {
       const next = new Set(prev);
@@ -37,7 +42,7 @@ export default function ProxyList({ proxies }) {
     });
   }, []);
 
-  /** Filter */
+  /** The search, country filter and filtered list of proxies */
   const {
     search,
     setSearch,
@@ -48,6 +53,7 @@ export default function ProxyList({ proxies }) {
     validCount,
   } = useProxiesFilter(proxies);
 
+  /** The content of a proxy row */
   const itemContent = useCallback(
     (_, item) => (
       <div className="pb-2 px-2">

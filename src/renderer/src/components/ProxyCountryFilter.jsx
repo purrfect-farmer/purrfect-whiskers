@@ -1,5 +1,6 @@
 import { cn } from "../lib/utils";
 
+/** A row of buttons for filtering proxies by country */
 export default function ProxyCountryFilter({
   countries,
   total,

@@ -1,6 +1,7 @@
 import { HiOutlineSquare2Stack } from "react-icons/hi2";
 import { cn, copyText } from "../lib/utils";
 
+/** A labelled proxy detail with an optional copy button */
 export default function ProxyDetail({ label, value, copyValue, children }) {
   return (
     <>

@@ -2,13 +2,17 @@ import { SESSION_STATUS } from "../../../shared/constants/sessionStatus";
 import { WEBVIEW_ACTION } from "../../../shared/constants/ipc";
 import { converseWithAccount } from "./accountWebview";
 
+/** The known session statuses */
 const KNOWN_STATUSES = new Set(Object.values(SESSION_STATUS));
 
+/** The message asking for the session status */
 const SESSION_STATUS_REQUEST = { action: WEBVIEW_ACTION.GET_SESSION_STATUS };
+/** The message asking for the backup data */
 const BACKUP_REQUEST = { action: WEBVIEW_ACTION.GET_BACKUP_DATA };
 
 /** Ask a farmer for its session status, anything unknown is an error */
 async function askSessionStatus(ask) {
+  /** The reported session status */
   const status = await ask(
     SESSION_STATUS_REQUEST,
     WEBVIEW_ACTION.RESPONSE_GET_SESSION_STATUS,
@@ -34,12 +38,14 @@ export async function getAccountSessionStatus(account) {
  */
 export function backupAccountUnlessActive(account) {
   return converseWithAccount(account, async (ask) => {
+    /** The current session status */
     const status = await askSessionStatus(ask);
 
     if (status === SESSION_STATUS.ACTIVE) {
       return { status, backup: null };
     }
 
+    /** The backup data of the account */
     const backup = await ask(
       BACKUP_REQUEST,
       WEBVIEW_ACTION.RESPONSE_GET_BACKUP_DATA,

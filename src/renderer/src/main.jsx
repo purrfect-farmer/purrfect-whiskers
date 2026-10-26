@@ -7,8 +7,10 @@ import Boot from "./components/Boot";
 import { ErrorBoundary } from "react-error-boundary";
 import ErrorFallback from "./components/ErrorFallback";
 
+/** The React Query client */
 const queryClient = new QueryClient();
 
+/** The render of the app */
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>

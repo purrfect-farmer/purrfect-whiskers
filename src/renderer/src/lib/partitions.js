@@ -2,6 +2,7 @@ import { IPC, WEBVIEW_CHANNEL } from "../../../shared/constants/ipc";
 
 import { PROXY_KEYS, PROXY_OPTION_KEYS } from "./constants";
 
+/** The page loaded when no extension is available */
 const DEFAULT_WEBVIEW_URL = import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
 
 /** Picks the proxy and User-Agent options of an account */
@@ -20,7 +21,7 @@ export function pickFarmerProxy(data) {
   );
 }
 
-/** Configure Proxy */
+/** Applies proxy options to a partition's session */
 export function configureProxy(partition, options) {
   return window.electron.ipcRenderer.invoke(
     IPC.CONFIGURE_PROXY,
@@ -37,6 +38,7 @@ export function configureProxy(partition, options) {
  * @param {AbortSignal} [signal]
  */
 export async function loadAccountWebview(webview, options, signal) {
+  /** The page the webview loads */
   let src = DEFAULT_WEBVIEW_URL;
 
   try {
@@ -71,7 +73,7 @@ export function createWebview(partition, extensionPath) {
   return webview;
 }
 
-/** Get Whisker Data */
+/** The data an account's farmer starts with */
 export function getWhiskerData({ account, settings }) {
   const {
     title,
@@ -121,8 +123,10 @@ export function sendHostMessage(webview, message) {
  * @returns {() => void} Removes the listener
  */
 export function registerWebviewMessage(webview, handlers) {
+  /** Sends a reply to the webview */
   const reply = (message) => sendHostMessage(webview, message);
 
+  /** Calls the handler of each webview message */
   const listener = (event) => {
     if (event.channel !== WEBVIEW_CHANNEL.WEBVIEW_MESSAGE) return;
 

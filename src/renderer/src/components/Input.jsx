@@ -2,6 +2,7 @@ import { memo } from "react";
 
 import { cn } from "../lib/utils";
 
+/** A styled text input */
 export default memo(function Input(props) {
   return (
     <input

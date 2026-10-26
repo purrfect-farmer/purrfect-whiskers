@@ -21,6 +21,7 @@ const optionalText = () =>
     .nullable()
     .transform((value) => value || null);
 
+/** The schema of the account form */
 const schema = yup
   .object({
     partition: yup.string().nullable(),
@@ -56,9 +57,12 @@ function getDefaultValues(account) {
   };
 }
 
+/** A form for adding or editing an account */
 export default memo(function AccountForm({ account, handleFormSubmit }) {
+  /** The form's default values */
   const [defaultValues] = useState(() => getDefaultValues(account));
 
+  /** The account form */
   const form = useForm({
     resolver: yupResolver(schema),
     defaultValues,

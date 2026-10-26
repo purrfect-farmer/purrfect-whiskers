@@ -2,12 +2,13 @@ import { memo } from "react";
 
 import { cn } from "../lib/utils";
 
-/** Solid marks the dialog's main action, neutral the steps leading to it */
+/** The classes of each button variant */
 const VARIANT_CLASSES = {
   solid: "bg-orange-500 text-white",
   neutral: "bg-neutral-100 dark:bg-neutral-700",
 };
 
+/** A full-width button for a dialog's actions */
 export default memo(function PrimaryButton({
   as: Component = "button",
   variant = "solid",

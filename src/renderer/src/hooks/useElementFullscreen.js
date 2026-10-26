@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 
-/** Toggles fullscreen on the element in `ref` and tracks its state */
+/** A hook for toggling fullscreen on the element in `ref` */
 export default function useElementFullscreen(ref) {
+  /** Whether the element is fullscreen */
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  /** The toggle of fullscreen */
   const toggleFullscreen = useCallback(() => {
     const element = ref.current;
 
@@ -14,7 +16,9 @@ export default function useElementFullscreen(ref) {
     }
   }, [ref]);
 
+  /** The tracking of fullscreen changes */
   useEffect(() => {
+    /** The handler of fullscreen changes */
     const handleFullscreenChange = () =>
       setIsFullscreen(document.fullscreenElement === ref.current);
 

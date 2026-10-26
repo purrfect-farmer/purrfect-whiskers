@@ -11,6 +11,7 @@ export function parseAccountsFile(data) {
 
   if (!Array.isArray(items) || items.length === 0) return null;
 
+  /** Whether every item has an account partition */
   const valid = items.every(
     (item) => typeof item?.account?.partition === "string",
   );

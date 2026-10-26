@@ -2,10 +2,16 @@ import Profile from "./Profile";
 
 /** Keeps one Profile per partition and finds profiles by session */
 class ProfileRegistry {
-  /** @type {Map<string, Profile>} */
+  /**
+   * The profile of each partition
+   * @type {Map<string, Profile>}
+   */
   profiles = new Map();
 
-  /** @type {WeakMap<Electron.Session, Profile>} */
+  /**
+   * The profile of each session
+   * @type {WeakMap<Electron.Session, Profile>}
+   */
   sessions = new WeakMap();
 
   /**
@@ -25,6 +31,7 @@ class ProfileRegistry {
   }
 
   /**
+   * Finds the profile of a session
    * @param {Electron.Session | undefined} session
    * @returns {Profile | undefined}
    */

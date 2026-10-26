@@ -3,12 +3,10 @@ import { useEffect } from "react";
 import useAppStore from "../store/useAppStore";
 import useSettingsStore from "../store/useSettingsStore";
 
+/** Whether the accounts have been restored */
 let restored = false;
 
-/**
- * Closes the accounts left open by the last run, unless the user chose to
- * restore them. Runs once, after both stores have loaded from storage.
- */
+/** Closes the accounts left open by the last run unless set to restore */
 function restoreAccounts() {
   if (
     restored ||
@@ -25,7 +23,9 @@ function restoreAccounts() {
   }
 }
 
+/** A hook for restoring or closing the last run's open accounts */
 export default function useAccountsRestoration() {
+  /** The restoration once both stores have loaded */
   useEffect(() => {
     const unsubscribeApp =
       useAppStore.persist.onFinishHydration(restoreAccounts);

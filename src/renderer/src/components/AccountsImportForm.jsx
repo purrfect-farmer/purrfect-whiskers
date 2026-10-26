@@ -20,8 +20,9 @@ const JSON_FILES = { "application/json": [".json"] };
 /** The id of the import form */
 const FORM_ID = "accounts-import-form";
 
-/** The picked file, its skipped count or its error */
+/** A summary of the picked file, its skipped count or its error */
 const PickedFile = memo(function PickedFile({ skippedCount }) {
+  /** The picked file */
   const file = useWatch({ name: "file" });
   const { errors } = useFormState({ name: "file" });
 

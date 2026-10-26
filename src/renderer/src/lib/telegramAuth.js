@@ -14,11 +14,14 @@ const TELEGRAM_API_CREDENTIALS = {
 
 /** Sender of Telegram's login code messages */
 const TELEGRAM_SERVICE_USER_ID = 777000;
+/** Matches a login code */
 const LOGIN_CODE_REGEX = /(\d{5})/;
+/** How often the login code is checked */
 const LOGIN_CODE_POLL_INTERVAL = 5000;
+/** The most checks for a login code */
 const LOGIN_CODE_MAX_POLLS = 10;
 
-/** Create Telegram Client */
+/** Creates a Telegram Web-K client */
 function createTelegramClient(session) {
   return new TelegramClient(session, TELEGRAM_API_ID, TELEGRAM_API_HASH, {
     appVersion: "2.2 K",
@@ -44,6 +47,7 @@ export async function destroyClient(client) {
  * rethrowing that error.
  */
 async function startClient(client, params) {
+  /** The first login error */
   let authError = null;
 
   try {
@@ -62,8 +66,10 @@ async function startClient(client, params) {
 /** Polls `readCode` until it returns a code, or rejects on timeout */
 function waitForLoginCode(readCode) {
   return new Promise((resolve, reject) => {
+    /** The number of checks so far */
     let polls = 0;
 
+    /** Resolves with the code, or rejects after the last check */
     const check = () => {
       const code = readCode();
 
@@ -78,6 +84,7 @@ function waitForLoginCode(readCode) {
       polls += 1;
     };
 
+    /** The check timer */
     const interval = setInterval(check, LOGIN_CODE_POLL_INTERVAL);
     check();
   });
@@ -91,7 +98,9 @@ function waitForLoginCode(readCode) {
 export async function loginWithSpider({ account, twoFA, getCode }) {
   const client = createTelegramClient(new MemorySession());
 
+  /** The code and password Spider returned */
   let authResult = null;
+  /** Whether the login asked for the 2FA password */
   let used2FA = false;
 
   try {
@@ -107,6 +116,7 @@ export async function loginWithSpider({ account, twoFA, getCode }) {
       },
     });
 
+    /** The auth key of the session as hex */
     const authKey = client.session.authKey.getKey().toString("hex");
     const dcId = client.session.dcId;
     const user = await client.getMe();
@@ -135,12 +145,18 @@ export async function loginWithSpider({ account, twoFA, getCode }) {
  */
 async function getLocalSessionViaLoginCode({ telegram, account, twoFA }) {
   const client = createTelegramClient(new StringSession());
+  /** The filter for login code messages */
   const codeFilter = new NewMessage({ fromUsers: [TELEGRAM_SERVICE_USER_ID] });
 
+  /** The received login code */
   let loginCode = null;
+  /** Whether the login asked for the 2FA password */
   let used2FA = false;
 
-  /** @param {import("telegram/events").NewMessageEvent} event */
+  /**
+   * Stores the login code of a message
+   * @param {import("telegram/events").NewMessageEvent} event
+   */
   const handleMessage = (event) => {
     const match = (event.message?.message || "").match(LOGIN_CODE_REGEX);
 
@@ -177,14 +193,12 @@ function exportLoginToken(client) {
 }
 
 /**
- * Logs in a new local client by exported login token.
- *
- * This is the QR-login handshake: the new client exports a login token,
- * the already-authorized client accepts it, and the new client re-exports
- * to receive its own authorization. No second login code is requested.
+ * Logs in a new local client with a login token
+ * the already-authorized client accepts
  */
 async function getLocalSessionViaLoginToken({ telegram, account, twoFA }) {
   const client = createTelegramClient(new StringSession());
+  /** Whether the login asked for the 2FA password */
   let used2FA = false;
 
   try {
@@ -192,6 +206,7 @@ async function getLocalSessionViaLoginToken({ telegram, account, twoFA }) {
       /* Connect Without Authenticating */
       await client.connect();
 
+      /** The exported login token */
       const exported = await exportLoginToken(client);
 
       if (!(exported instanceof Api.auth.LoginToken)) {
@@ -227,10 +242,7 @@ async function getLocalSessionViaLoginToken({ telegram, account, twoFA }) {
 
       used2FA = true;
 
-      /**
-       * Prefer the password just rotated to in `loginWithSpider`,
-       * and fall back to the one Spider supplied.
-       */
+      /** The new 2FA password, or the one Spider supplied */
       const password = twoFA || telegram.authResult?.["password"];
 
       await client.signInWithPassword(TELEGRAM_API_CREDENTIALS, {
@@ -280,6 +292,7 @@ export async function getLocalTelegramSession({
 
 /** Telegram Web-K local storage that signs the account in */
 export function buildTelegramWebLocalStorage({ dcId, authKey, user }) {
+  /** The Web-K account entry */
   const account = {
     ["dcId"]: dcId,
     [`dc${dcId}_auth_key`]: authKey,

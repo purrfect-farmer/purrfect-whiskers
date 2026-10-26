@@ -13,6 +13,7 @@ import { useShallow } from "zustand/react/shallow";
 import useTheme from "./hooks/useTheme";
 import useWakeLock from "./hooks/useWakeLock";
 
+/** The options of the toaster */
 const TOAST_OPTIONS = {
   duration: 2000,
   loading: {
@@ -20,32 +21,41 @@ const TOAST_OPTIONS = {
   },
 };
 
-/** Partitions of the running accounts, in account order */
+/** Selects the running accounts' partitions, in account order */
 const selectRunningPartitions = (state) =>
   state.accounts.filter((item) => item.running).map((item) => item.partition);
 
+/** The app shell with the grid of running accounts */
 function App() {
+  /** The selected page */
   const page = useAppStore((state) => state.page);
+  /** The partitions of the running accounts */
   const runningPartitions = useAppStore(useShallow(selectRunningPartitions));
 
+  /** The chosen theme */
   const theme = useSettingsStore((state) => state.theme);
+  /** The number of grid columns */
   const columns = useSettingsStore((state) => state.columns);
+  /** The number of grid rows */
   const rows = useSettingsStore((state) => state.rows);
 
+  /** The number of accounts on a page */
   const itemsPerPage = columns * rows;
+  /** The number of pages */
   const pageCount = Math.ceil(runningPartitions.length / itemsPerPage);
+  /** The visible page, clamped to the pages */
   const currentPage = Math.max(0, Math.min(page, pageCount - 1));
 
-  /** Close Previous Accounts */
+  /** The restoration of the last run's accounts */
   useAccountsRestoration();
 
-  /** WakeLock */
+  /** The screen wake lock */
   useWakeLock();
 
-  /** Set Preferred Theme */
+  /** The application of the chosen theme */
   useTheme(theme);
 
-  /** Update Extension */
+  /** The automatic extension update */
   useExtensionUpdate();
 
   return (

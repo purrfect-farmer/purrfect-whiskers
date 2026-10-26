@@ -26,6 +26,7 @@ const FoundTags = memo(function FoundTags({
   foundIds,
   toggleTag,
 }) {
+  /** The unchecked tag ids */
   const skipped = useWatch({ name: "skipped" });
   /** The set of unchecked tag ids */
   const skippedIds = useMemo(() => new Set(skipped), [skipped]);

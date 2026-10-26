@@ -3,6 +3,7 @@ import { memo } from "react";
 import Toggle from "./Toggle";
 import { cn } from "../lib/utils";
 
+/** A toggle with a label */
 export default memo(function LabelToggle({ children, ...props }) {
   return (
     <label

@@ -18,13 +18,16 @@ import toast from "react-hot-toast";
 import useAppStore from "../store/useAppStore";
 import { yupResolver } from "@hookform/resolvers/yup";
 
+/** The schema of the add tag form */
 const schema = yup
   .object({
     name: yup.string().trim().required().label("Tag Name"),
   })
   .required();
 
+/** A reorderable tag that can be renamed or deleted */
 const TagItem = memo(function TagItem({ tag }) {
+  /** Whether the tag name is being edited */
   const [isEditing, setIsEditing] = useState(false);
   const updateTag = useAppStore((state) => state.updateTag);
   const removeTag = useAppStore((state) => state.removeTag);
@@ -96,11 +99,13 @@ const TagItem = memo(function TagItem({ tag }) {
   );
 });
 
+/** A dialog for adding, renaming, reordering and deleting tags */
 export default function TagsDialog() {
   const tags = useAppStore((state) => state.tags);
   const addTag = useAppStore((state) => state.addTag);
   const setTags = useAppStore((state) => state.setTags);
 
+  /** The add tag form */
   const form = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
@@ -108,6 +113,7 @@ export default function TagsDialog() {
     },
   });
 
+  /** The handler for adding a tag */
   const handleAddTag = (data) => {
     const newTag = createTag(data.name);
 

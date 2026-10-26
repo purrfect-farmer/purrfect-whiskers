@@ -1,4 +1,6 @@
+/** A display of the Spider wallet balance */
 export default function SpiderBalanceDisplay({ query }) {
+  /** The wallet balance */
   const balance = query.data?.wallet || 0;
 
   return (

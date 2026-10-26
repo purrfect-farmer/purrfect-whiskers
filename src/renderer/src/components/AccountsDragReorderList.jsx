@@ -5,13 +5,7 @@ import ReorderItem from "./ReorderItem";
 import { cn } from "../lib/utils";
 import useAppStore from "../store/useAppStore";
 
-/**
- * Drag-and-drop reordering, via motion's Reorder.
- *
- * Note that this mounts every row - motion needs them all in the DOM to track
- * their layout - so it does not scale to thousands of accounts. See
- * AccountsVirtualReorderList for the virtualized alternative.
- */
+/** A list for reordering accounts by drag and drop */
 export default function AccountsDragReorderList({ accounts }) {
   const setAccounts = useAppStore((state) => state.setAccounts);
 

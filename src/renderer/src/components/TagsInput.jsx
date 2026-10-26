@@ -14,8 +14,10 @@ import { createTag } from "../lib/tags";
 import toast from "react-hot-toast";
 import useAppStore from "../store/useAppStore";
 
+/** The empty list of selected tags */
 const NO_TAGS = [];
 
+/** A tag option in the suggestions */
 const TagOption = (props) => (
   <ComboboxOption
     {...props}
@@ -35,6 +37,7 @@ const TagOption = (props) => (
   </ComboboxOption>
 );
 
+/** A combobox input for selecting and creating tags */
 export default memo(function TagsInput({
   value,
   onChange,
@@ -42,11 +45,13 @@ export default memo(function TagsInput({
   allowCreate = true,
   placeholder = "Add Tag",
 }) {
+  /** The selected tag ids */
   const selectedTags = value || NO_TAGS;
 
   const tags = useAppStore((state) => state.tags);
   const addTag = useAppStore((state) => state.addTag);
 
+  /** The search query */
   const [query, setQuery] = useState("");
 
   /** Tag names by id */
@@ -65,6 +70,7 @@ export default memo(function TagsInput({
     );
   }, [tags, selectedTags, query]);
 
+  /** The handler for adding a selected or new tag */
   const handleTagAdd = (tag) => {
     if (!tag) return;
 
@@ -86,7 +92,7 @@ export default memo(function TagsInput({
     }
   };
 
-  /** Remove a selected tag */
+  /** The handler for removing a selected tag */
   const handleTagRemove = (tagId) => {
     onChange(selectedTags.filter((item) => item !== tagId));
   };

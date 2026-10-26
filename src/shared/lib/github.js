@@ -1,4 +1,4 @@
-/** Optional GitHub token  */
+/** The optional GitHub token */
 const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN || "";
 
 /** Whether a token was supplied at build time */

@@ -6,8 +6,9 @@ export function formatDateTime(value) {
   return `${format(date, "PPpp")} (${formatDistanceToNowStrict(date, { addSuffix: true })})`;
 }
 
-/** Get Proxy URL */
+/** The URL of a proxy */
 export function getProxyUrl(proxy) {
+  /** The credentials part of the URL */
   const auth = proxy.username
     ? `${proxy.username}:${proxy.password || ""}@`
     : "";

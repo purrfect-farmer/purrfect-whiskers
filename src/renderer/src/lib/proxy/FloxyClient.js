@@ -6,6 +6,7 @@ const DEDICATED_DATACENTER_PLAN = "DEDICATED_DATACENTER";
 /** Port of every Floxy proxy */
 const PROXY_PORT = 1338;
 
+/** A client for the Floxy proxy API */
 export default class FloxyClient {
   constructor({ apiKey }) {
     this.client = axios.create({
@@ -34,7 +35,7 @@ export default class FloxyClient {
     const details = await this.getPlan(planId);
     const { username, password } = details.authorization ?? {};
 
-    /** Flat map the IPs, keeping their location */
+    /** The plan's proxies, with their location */
     return (details["ip_list"] || []).flatMap((item) =>
       (item.cities || []).flatMap((city) =>
         (city.ips || []).map((ip) => ({
@@ -52,10 +53,12 @@ export default class FloxyClient {
   /** Get Proxies from all active dedicated datacenter plans */
   async getProxies() {
     const plans = await this.getActivePlans();
+    /** The dedicated datacenter plans */
     const dedicated = plans.filter(
       (plan) => plan.type === DEDICATED_DATACENTER_PLAN,
     );
 
+    /** The proxies of each plan */
     const results = await Promise.all(
       dedicated.map((plan) => this.getPlanProxies(plan.id)),
     );

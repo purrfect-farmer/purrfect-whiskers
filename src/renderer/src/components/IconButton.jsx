@@ -2,6 +2,7 @@ import { memo } from "react";
 
 import { cn } from "../lib/utils";
 
+/** A square button for an icon */
 export default memo(function IconButton(props) {
   return (
     <button

@@ -18,12 +18,12 @@ const RELEASE_FILE_REGEX = new RegExp(
   ).replaceAll(".", "\\."),
 );
 
-/** Get Default Extension Path */
+/** The default extension folder in the app's data */
 export function getDefaultExtensionPath() {
   return join(app.getPath("userData"), "Extension");
 }
 
-/** Pick Extension Path */
+/** Opens a dialog for picking the extension folder */
 export function pickExtensionPath(defaultPath) {
   return dialog.showOpenDialog({
     defaultPath,
@@ -31,7 +31,7 @@ export function pickExtensionPath(defaultPath) {
   });
 }
 
-/** Install Extension */
+/** Extracts an extension zip into a folder */
 export function installExtension(file, path) {
   return extractZip(file, path);
 }
@@ -66,6 +66,7 @@ async function getLatestRelease() {
 
 /** Download and extract a release asset into `path` */
 function installReleaseAsset(asset, path) {
+  /** Whether the asset is downloaded through the API with the token */
   const useApiAsset = hasGithubToken();
 
   return downloadAndExtract(
@@ -80,6 +81,7 @@ export async function checkExtensionUpdate(path) {
   const currentVersion = await getExtensionVersion(path);
   const latestVersion = (await getLatestRelease())["tag_name"];
 
+  /** Whether none is installed or the latest version is newer */
   const isOutdated =
     currentVersion === null || semver.gt(latestVersion, currentVersion);
 
@@ -89,6 +91,7 @@ export async function checkExtensionUpdate(path) {
 /** Installs the latest release, whatever version is installed */
 export async function installLatestExtension(path) {
   const latestRelease = await getLatestRelease();
+  /** The extension file of the release */
   const asset = latestRelease.assets.find((item) =>
     RELEASE_FILE_REGEX.test(item.name),
   );

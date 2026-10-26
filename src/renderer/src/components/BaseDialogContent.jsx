@@ -1,6 +1,7 @@
 import { Dialog } from "radix-ui";
 import { cn } from "../lib/utils";
 
+/** The overlay and centered panel of a dialog */
 export default function BaseDialogContent({ children, ...props }) {
   return (
     <Dialog.Portal>

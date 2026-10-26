@@ -11,10 +11,7 @@ import SegmentedControl from "./SegmentedControl";
 import useAppStore from "../store/useAppStore";
 import useSettingsStore from "../store/useSettingsStore";
 
-/**
- * The available reorder implementations. Any component taking `{ accounts }`
- * and writing the new order back to the store can be added here.
- */
+/** The reorder modes, each with its list component */
 const REORDER_MODES = [
   {
     value: REORDER_MODE.VIRTUAL,
@@ -30,6 +27,7 @@ const REORDER_MODES = [
   },
 ];
 
+/** A dialog for reordering accounts */
 export default function AccountsReorderDialog() {
   const accounts = useAppStore((state) => state.accounts);
 
@@ -40,10 +38,12 @@ export default function AccountsReorderDialog() {
     (state) => state.setAccountsReorderMode,
   );
 
+  /** The selected reorder mode */
   const mode =
     REORDER_MODES.find((item) => item.value === accountsReorderMode) ||
     REORDER_MODES[0];
 
+  /** The list component of the selected mode */
   const ReorderList = mode.component;
 
   return (

@@ -9,12 +9,14 @@ import { deleteAccount } from "../lib/accounts";
 import { useCallback } from "react";
 import useAppStore from "../store/useAppStore";
 
+/** The content of a dialog for editing or deleting an account */
 export default function EditAccountDialogContent({ account, close }) {
   const updateAccount = useAppStore((state) => state.updateAccount);
 
+  /** The account's Telegram user */
   const user = getTelegramUser(account);
 
-  /** Save Account Data */
+  /** The handler for saving the account */
   const saveAccountData = useCallback(
     (data) => {
       updateAccount(data);
@@ -23,7 +25,7 @@ export default function EditAccountDialogContent({ account, close }) {
     [updateAccount, close],
   );
 
-  /** Delete Account */
+  /** The handler for deleting the account */
   const removeAccount = useCallback(
     () => deleteAccount(account.partition),
     [account.partition],

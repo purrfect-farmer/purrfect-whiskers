@@ -6,7 +6,7 @@ import useAppStore from "../store/useAppStore";
 /** The provider values, in the order the tabs show them */
 const PROVIDER_VALUES = PROXY_PROVIDERS.map((provider) => provider.value);
 
-/** Switching provider clears the proxies fetched from the previous one */
+/** The handler for changing the proxy provider */
 function changeProvider(provider) {
   const { proxyProvider, setProxyProvider, setProxies } =
     useAppStore.getState();
@@ -17,9 +17,11 @@ function changeProvider(provider) {
   setProxies([]);
 }
 
+/** A tab list for picking the proxy provider */
 export default function ProxyProviderPicker({ disabled }) {
   const proxyProvider = useAppStore((state) => state.proxyProvider);
 
+  /** The provider tabs */
   const tabs = useMemo(
     () => ({
       list: PROVIDER_VALUES,

@@ -16,6 +16,7 @@ import { useCallback } from "react";
 import useTabs from "../hooks/useTabs";
 import { withoutTags } from "../lib/accountsFile";
 
+/** A dialog for exporting and importing accounts */
 export default function ImportAndExportAccountsDialog() {
   const accounts = useAppStore((state) => state.accounts);
   const { isProcessing, target, progress, run } = useBatchRunner();
@@ -23,15 +24,16 @@ export default function ImportAndExportAccountsDialog() {
   /** The import form, kept while the dialog is closed */
   const importForm = useAccountsImportForm(run);
 
-  /** Tabs */
+  /** The export and import tabs */
   const tabs = useTabs(["export", "import"], "export");
 
-  /** Selector */
+  /** The selection of accounts to export */
   const selector = useAccountsSelector(accounts);
   const { selectedAccounts } = selector;
 
-  /** Export accounts */
+  /** The handler for exporting the selected accounts */
   const exportAccounts = useCallback(() => {
+    /** The task that backs up and saves the selected accounts */
     const exportData = async () => {
       useAppStore.getState().closeAllAccounts();
 

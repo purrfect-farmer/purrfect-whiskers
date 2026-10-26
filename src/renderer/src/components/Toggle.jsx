@@ -2,6 +2,7 @@ import { memo } from "react";
 
 import { cn } from "../lib/utils";
 
+/** A switch-styled checkbox */
 export default memo(function Toggle({ className, ...props }) {
   return (
     <>

@@ -33,6 +33,7 @@ const TAB_SUBMIT = {
 /** A dialog for renaming and tagging many accounts at once */
 export default function BulkEditDialog() {
   const accounts = useAppStore((state) => state.accounts);
+  /** The rename and tags tabs */
   const tabs = useTabs(Object.values(BULK_EDIT_TAB), BULK_EDIT_TAB.RENAME);
 
   /** The selection of accounts to edit, starting empty */

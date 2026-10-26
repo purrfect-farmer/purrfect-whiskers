@@ -3,9 +3,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { uuid } from "../lib/utils";
 
+/** The URL of a new tab */
 const DEFAULT_URL = import.meta.env.VITE_DEFAULT_WEBVIEW_URL;
 
-/** Create a new active tab */
+/** Creates a new active tab */
 const createTab = (url = DEFAULT_URL) => ({
   id: uuid(),
   active: true,
@@ -13,27 +14,30 @@ const createTab = (url = DEFAULT_URL) => ({
   url,
 });
 
+/** A hook for the tabs of an account's browser */
 export default function useBrowser(partition) {
+  /** Whether the browser has been opened */
   const [enabled, setEnabled] = useState(false);
+  /** Whether the browser is shown */
   const [shown, setShown] = useState(false);
 
-  /** Tabs State */
+  /** The list of tabs */
   const [tabs, setTabs] = useState(() => [createTab()]);
 
-  /** Toggle Browser */
+  /** The toggle of the browser */
   const toggle = useCallback(() => {
     setEnabled(true);
     setShown((prev) => !prev);
   }, []);
 
-  /** Set Active Tab */
+  /** The setter of the active tab */
   const setActiveTab = useCallback((id) => {
     setTabs((prev) =>
       prev.map((item) => ({ ...item, active: item.id === id })),
     );
   }, []);
 
-  /** Add Tab */
+  /** The addition of a new active tab */
   const addTab = useCallback(({ url } = {}) => {
     setEnabled(true);
     setShown(true);
@@ -43,14 +47,16 @@ export default function useBrowser(partition) {
     ]);
   }, []);
 
-  /** Close Tab */
+  /** The removal of a tab */
   const closeTab = useCallback((id) => {
     setTabs((prev) => {
-      /** Get Index */
+      /** The index of the closed tab */
       const itemIndex = prev.findIndex((item) => item.id === id);
 
       if (itemIndex > -1) {
+        /** Whether the closed tab was active */
         const wasActive = prev[itemIndex].active;
+        /** The remaining tabs */
         const result = prev
           .filter((tab) => tab.id !== id)
           .map((tab, index) => ({
@@ -66,23 +72,23 @@ export default function useBrowser(partition) {
     });
   }, []);
 
-  /** Update Title */
+  /** The setter of a tab's title */
   const updateTitle = useCallback((id, title) => {
     setTabs((prev) =>
       prev.map((item) => (item.id === id ? { ...item, title } : item)),
     );
   }, []);
 
-  /** Update Icon */
+  /** The setter of a tab's icon */
   const updateIcon = useCallback((id, icons) => {
     setTabs((prev) =>
       prev.map((item) => (item.id === id ? { ...item, icon: icons[0] } : item)),
     );
   }, []);
 
-  /** Handle New Window Open */
+  /** The opening of new windows as tabs */
   useEffect(() => {
-    /** Listen for Window Open */
+    /** The listener for browser messages */
     const listener = (ev, args) => {
       const { id, action, data } = args;
       if (id === partition) {
