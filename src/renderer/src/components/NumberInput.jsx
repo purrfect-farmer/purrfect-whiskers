@@ -6,6 +6,8 @@ import { useId } from "react";
 
 /** A labelled number field with buttons for stepping its value up and down */
 export const NumberInput = ({
+  ref,
+  name,
   value,
   label,
   onChange,
@@ -27,7 +29,9 @@ export const NumberInput = ({
 
       <div className="flex gap-2 min-w-0">
         <Input
+          ref={ref}
           id={id}
+          name={name}
           type="number"
           min={min}
           max={max}

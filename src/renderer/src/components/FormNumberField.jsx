@@ -48,6 +48,8 @@ const NumberFieldControl = memo(function NumberFieldControl({
 
   return (
     <NumberInput
+      ref={field.ref}
+      name={field.name}
       label={label}
       value={draft ?? field.value}
       min={min}
