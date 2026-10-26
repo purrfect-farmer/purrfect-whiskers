@@ -92,10 +92,10 @@ async function summarizeProfile({ account, session }, index, total) {
 
 /**
  * The example script: summarizes the selected accounts and saves the
- * summary to outputs/. Each profile is `{ account, session }`, where
- * `session` is the account's Telegram session string.
+ * summary to outputs/. It receives `{ profiles }`, where each profile is
+ * `{ account, session }` and `session` is the account's Telegram session.
  */
-export default async function (profiles) {
+export default async function ({ profiles }) {
   console.log(styleText("green", `Running on ${profiles.length} account(s)`));
 
   const results = await runWithLimit(

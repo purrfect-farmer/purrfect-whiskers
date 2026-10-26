@@ -10,11 +10,11 @@ example/
   index.js       the entry file ("main", or index.js by default)
 ```
 
-The entry file exports one async function. Whiskers calls it with the
-selected accounts:
+The entry file exports one async function. Whiskers calls it with one
+object, so new properties can be added later without breaking scripts:
 
 ```js
-export default async function (profiles) {
+export default async function ({ profiles }) {
   for (const { account, session } of profiles) {
     // account: the Whiskers account (title, tags, proxy, telegramInitData…)
     // session: the account's Telegram session string

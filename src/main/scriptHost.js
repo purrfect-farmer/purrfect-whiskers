@@ -9,7 +9,7 @@ process.parentPort.once("message", async ({ data }) => {
     /** The script module */
     const script = await import(pathToFileURL(scriptPath).href);
 
-    await script.default(profiles);
+    await script.default({ profiles });
 
     process.parentPort.postMessage({ type: SCRIPT_EVENT.DONE });
   } catch (error) {
