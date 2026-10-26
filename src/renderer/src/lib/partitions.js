@@ -116,6 +116,18 @@ export function sendHostMessage(webview, message) {
   webview.send(WEBVIEW_CHANNEL.HOST_MESSAGE, message);
 }
 
+/** The longest request id a webview message may carry */
+const MAX_REQUEST_ID_LENGTH = 64;
+
+/** Whether a webview message's request id is one the host echoes back */
+function isRequestId(id) {
+  return (
+    typeof id === "string" &&
+    id.length > 0 &&
+    id.length <= MAX_REQUEST_ID_LENGTH
+  );
+}
+
 /**
  * Routes the webview's messages to `handlers` by action
  * @param {Electron.WebviewTag} webview
@@ -123,18 +135,25 @@ export function sendHostMessage(webview, message) {
  * @returns {() => void} Removes the listener
  */
 export function registerWebviewMessage(webview, handlers) {
-  /** Sends a reply to the webview */
-  const reply = (message) => sendHostMessage(webview, message);
-
-  /** Calls the handler of each webview message */
+  /** Calls the handler of each webview message, with a reply that echoes its request id */
   const listener = (event) => {
     if (event.channel !== WEBVIEW_CHANNEL.WEBVIEW_MESSAGE) return;
 
-    const { action, data } = event.args[0] || {};
+    const { action, data, id } = event.args[0] || {};
 
-    if (typeof handlers[action] === "function") {
-      handlers[action](data, reply);
-    }
+    if (typeof handlers[action] !== "function") return;
+
+    /** The request id the reply carries back, when the message has a valid one */
+    const requestId = isRequestId(id) ? id : null;
+
+    /** Sends a reply to the webview */
+    const reply = (message) =>
+      sendHostMessage(
+        webview,
+        requestId ? { ...message, id: requestId } : message,
+      );
+
+    handlers[action](data, reply);
   };
 
   webview.addEventListener("ipc-message", listener);

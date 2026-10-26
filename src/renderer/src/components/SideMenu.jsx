@@ -14,6 +14,7 @@ import {
   LuTags,
 } from "react-icons/lu";
 
+import AccountPickerDialog from "./AccountPickerDialog";
 import AccountListDialog from "./AccountListDialog";
 import AppInfoDialog from "./AppInfoDialog";
 import BackupAndRestoreDialog from "./BackupAndRestoreDialog";
@@ -99,6 +100,7 @@ export default function SideMenu() {
 
       <ScriptsMenuDialog />
       <ScriptPromptToast />
+      <AccountPickerDialog />
 
       <SideMenuDialog
         title="Settings"

@@ -121,6 +121,11 @@ export function getTelegramUser(account) {
   return telegramUsers.get(account);
 }
 
+/** Whether an account has a Telegram user with an id */
+export function hasTelegramUser(account) {
+  return getTelegramUser(account)?.["id"] != null;
+}
+
 /** Whether an account's title or Telegram user matches the search */
 export function matchesSearch(search, item) {
   /** The Telegram user of the account */

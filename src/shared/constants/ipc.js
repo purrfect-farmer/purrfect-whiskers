@@ -120,6 +120,10 @@ export const WEBVIEW_ACTION = Object.freeze({
   RESPONSE_RESTORE_BACKUP_DATA: "response-restore-backup-data",
   GET_SESSION_STATUS: "get-session-status",
   RESPONSE_GET_SESSION_STATUS: "response-get-session-status",
+  GET_ACCOUNTS: "get-accounts",
+  RESPONSE_GET_ACCOUNTS: "response-get-accounts",
+  PICK_ACCOUNTS: "pick-accounts",
+  RESPONSE_PICK_ACCOUNTS: "response-pick-accounts",
   OPEN_WINDOW: "open-window",
 });
 

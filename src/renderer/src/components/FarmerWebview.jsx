@@ -5,6 +5,12 @@ import {
   HiOutlineXMark,
 } from "react-icons/hi2";
 import {
+  farmerPickerSource,
+  lookupFarmerAccounts,
+  readPickTitle,
+  toFarmerAccount,
+} from "../lib/farmerAccounts";
+import {
   getWhiskerData,
   loadAccountWebview,
   pickFarmerProxy,
@@ -18,6 +24,7 @@ import { RiPushpin2Fill } from "react-icons/ri";
 import { WEBVIEW_ACTION } from "../../../shared/constants/ipc";
 import WebviewButton from "./WebviewButton";
 import { cn } from "../lib/utils";
+import useAccountPickerStore from "../store/useAccountPickerStore";
 import useAppStore from "../store/useAppStore";
 import { withWhiskerChromeVersion } from "../lib/userAgent";
 import useSettingsStore from "../store/useSettingsStore";
@@ -29,6 +36,8 @@ export default memo(function FarmerWebview({ account, pinned, togglePinned }) {
   const launchAccountByRequest = useAppStore(
     (state) => state.launchAccountByRequest,
   );
+  const requestAccountPick = useAccountPickerStore((state) => state.request);
+  const dropAccountPick = useAccountPickerStore((state) => state.dropFor);
   const theme = useSettingsStore((state) => state.theme);
   const allowProxies = useSettingsStore((state) => state.allowProxies);
   const extensionPath = useSettingsStore((state) => state.extensionPath);
@@ -92,6 +101,35 @@ export default memo(function FarmerWebview({ account, pinned, togglePinned }) {
     });
   });
 
+  /** The callback that replies with the accounts of the requested Telegram ids */
+  const getAccounts = useEffectEvent((data, reply) => {
+    reply({
+      action: WEBVIEW_ACTION.RESPONSE_GET_ACCOUNTS,
+      data: lookupFarmerAccounts(useAppStore.getState().accounts, data),
+    });
+  });
+
+  /** The callback that asks the user to pick accounts for the farmer */
+  const pickAccounts = useEffectEvent((data, reply) => {
+    const title = readPickTitle(data);
+
+    requestAccountPick({
+      source: farmerPickerSource(partition),
+      title,
+      description: title
+        ? `Choose the accounts to send to ${title}`
+        : "Choose the accounts to send to the farmer",
+      requireTelegram: true,
+      onAnswer: (accounts) =>
+        reply({
+          action: WEBVIEW_ACTION.RESPONSE_PICK_ACCOUNTS,
+          data: accounts
+            ? { accounts: accounts.map(toFarmerAccount) }
+            : { cancelled: true },
+        }),
+    });
+  });
+
   /** Loads the account into the webview */
   useEffect(() => {
     const controller = new AbortController();
@@ -118,8 +156,18 @@ export default memo(function FarmerWebview({ account, pinned, togglePinned }) {
           adoptTelegramInitData(data),
         [WEBVIEW_ACTION.LAUNCH_ACCOUNT]: (data, reply) =>
           launchAccount(data, reply),
+        [WEBVIEW_ACTION.GET_ACCOUNTS]: (data, reply) =>
+          getAccounts(data, reply),
+        [WEBVIEW_ACTION.PICK_ACCOUNTS]: (data, reply) =>
+          pickAccounts(data, reply),
       }),
     [ref],
+  );
+
+  /** Drops the account's waiting pick request when its webview goes away */
+  useEffect(
+    () => () => dropAccountPick(farmerPickerSource(partition)),
+    [dropAccountPick, partition],
   );
 
   /** Sends the whisker data when it changes */
