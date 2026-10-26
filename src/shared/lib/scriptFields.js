@@ -1,3 +1,5 @@
+import * as yup from "yup";
+
 /** The types of a script field */
 export const FIELD_TYPE = Object.freeze({
   TEXT: "text",
@@ -10,13 +12,6 @@ export const FIELD_TYPE = Object.freeze({
 
 /** The known field types */
 const FIELD_TYPES = new Set(Object.values(FIELD_TYPE));
-
-/** The text field types, whose values are strings */
-const TEXT_TYPES = new Set([
-  FIELD_TYPE.TEXT,
-  FIELD_TYPE.TEXTAREA,
-  FIELD_TYPE.SECRET,
-]);
 
 /** The pattern of a field key */
 const KEY_PATTERN = /^[A-Za-z_][A-Za-z0-9_]{0,63}$/;
@@ -172,89 +167,119 @@ export function getDefaultValues(fields) {
   return Object.fromEntries(fields.map((field) => [field.key, field.default]));
 }
 
-/** The value of one field from untrusted input, with its error message */
-function validateValue(field, input) {
-  if (TEXT_TYPES.has(field.type)) {
-    const text = typeof input === "string" ? input : "";
-    const value = field.type === FIELD_TYPE.SECRET ? text : text.trim();
+/** A text value from untrusted input: trimmed text, or "" when not text */
+const toText = (input, trim) =>
+  typeof input === "string" ? (trim ? input.trim() : input) : "";
 
-    if (field.required && value === "") {
-      return { value, error: `${field.label} is required` };
-    }
+/** The yup schema of a text, textarea or secret field */
+function textSchema(field) {
+  /** Whether the value is trimmed */
+  const trim = field.type !== FIELD_TYPE.SECRET;
 
-    if (value.length > MAX_TEXT_LENGTH) {
-      return { value, error: `${field.label} is too long` };
-    }
+  /** The schema of the text */
+  const schema = yup
+    .string()
+    .transform((_value, input) => toText(input, trim))
+    .default("")
+    .max(MAX_TEXT_LENGTH, `${field.label} is too long`);
 
-    return { value };
-  }
+  return field.required
+    ? schema.required(`${field.label} is required`)
+    : schema;
+}
 
+/** The yup schema of a number field */
+function numberSchema(field) {
+  /** The message of a value that isn't a whole number */
+  const notWhole = `${field.label} must be a whole number`;
+
+  /** The schema of the number */
+  const schema = yup
+    .number()
+    .typeError(notWhole)
+    .required(notWhole)
+    .integer(notWhole)
+    .min(field.min, `${field.label} must be at least ${field.min}`);
+
+  return field.max === null
+    ? schema
+    : schema.max(field.max, `${field.label} must be at most ${field.max}`);
+}
+
+/** The yup schema of a select field; empty is caught by `required` alone */
+function selectSchema(field) {
+  /** The values the field accepts, and empty for no choice */
+  const allowed = ["", ...field.choices.map((choice) => choice.value)];
+
+  /** The schema of the choice */
+  const schema = yup
+    .string()
+    .transform((_value, input) =>
+      input === null || input === undefined ? "" : String(input),
+    )
+    .default("")
+    .oneOf(allowed, `${field.label} must be one of its choices`);
+
+  return field.required
+    ? schema.required(`${field.label} is required`)
+    : schema;
+}
+
+/** The yup schema of one field */
+function fieldSchema(field) {
   switch (field.type) {
-    case FIELD_TYPE.NUMBER: {
-      const value = typeof input === "string" ? Number(input) : input;
-
-      if (!Number.isInteger(value)) {
-        return { value, error: `${field.label} must be a whole number` };
-      }
-
-      if (value < field.min) {
-        return { value, error: `${field.label} must be at least ${field.min}` };
-      }
-
-      if (field.max !== null && value > field.max) {
-        return { value, error: `${field.label} must be at most ${field.max}` };
-      }
-
-      return { value };
-    }
-
+    case FIELD_TYPE.NUMBER:
+      return numberSchema(field);
     case FIELD_TYPE.BOOLEAN:
-      return { value: input === true };
-
-    case FIELD_TYPE.SELECT: {
-      const value = input === null || input === undefined ? "" : String(input);
-
-      if (value === "") {
-        return field.required
-          ? { value, error: `${field.label} is required` }
-          : { value };
-      }
-
-      if (!field.choices.some((choice) => choice.value === value)) {
-        return { value, error: `${field.label} must be one of its choices` };
-      }
-
-      return { value };
-    }
-
+      return yup
+        .boolean()
+        .transform((_value, input) => input === true)
+        .default(false);
+    case FIELD_TYPE.SELECT:
+      return selectSchema(field);
     default:
-      return { value: input };
+      return textSchema(field);
   }
 }
 
+/** The yup schema of a list of normalized fields */
+export function buildFieldsSchema(fields) {
+  return yup.object(
+    Object.fromEntries(fields.map((field) => [field.key, fieldSchema(field)])),
+  );
+}
+
+/** The options of a full check that keeps only the fields' keys */
+const CHECK_OPTIONS = { abortEarly: false, stripUnknown: true };
+
 /**
- * The values of the fields from untrusted input, and an error message for
- * each invalid field, by key
+ * The values of the fields from untrusted input, and the first error
+ * message of each invalid field, by key
  */
 export function validateValues(fields, input) {
+  /** The schema of the fields */
+  const schema = buildFieldsSchema(fields);
+
   /** The input values */
   const source = input && typeof input === "object" ? input : {};
 
-  /** The validated values */
-  const values = {};
+  /** The values cast by the schema, valid or not */
+  const values = schema.cast(source, { ...CHECK_OPTIONS, assert: false });
 
-  /** The error message of each invalid field */
-  const errors = {};
+  try {
+    schema.validateSync(source, CHECK_OPTIONS);
 
-  for (const field of fields) {
-    const { value, error } = validateValue(field, source[field.key]);
+    return { values, errors: {} };
+  } catch (error) {
+    /** The first error message of each invalid field */
+    const errors = {};
 
-    values[field.key] = value;
+    for (const issue of error.inner ?? []) {
+      errors[issue.path] ??= issue.message;
+    }
 
-    if (error) errors[field.key] = error;
+    return { values, errors };
   }
-
-  return { values, errors };
 }
 
 /** The values without the secret fields, which are never remembered */

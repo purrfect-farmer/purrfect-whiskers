@@ -1,27 +1,13 @@
-import { useCallback } from "react";
+import { buildFieldsSchema } from "../../../shared/lib/scriptFields";
 import { useForm } from "react-hook-form";
-import { validateValues } from "../../../shared/lib/scriptFields";
+import { useMemo } from "react";
+import { yupResolver } from "@hookform/resolvers/yup";
 
-/** A hook for a form of script fields, validated by their shared rules */
+/** A hook for a form of script fields, validated by their yup schema */
 export default function useScriptFieldsForm(fields, defaultValues) {
-  /** The resolver checking the values against the fields */
-  const resolver = useCallback(
-    (input) => {
-      const { values, errors } = validateValues(fields, input);
-
-      /** Whether every field is valid */
-      const isValid = Object.keys(errors).length === 0;
-
-      return {
-        values: isValid ? values : {},
-        errors: Object.fromEntries(
-          Object.entries(errors).map(([key, message]) => [
-            key,
-            { type: "validate", message },
-          ]),
-        ),
-      };
-    },
+  /** The resolver of the fields' schema */
+  const resolver = useMemo(
+    () => yupResolver(buildFieldsSchema(fields)),
     [fields],
   );
 
