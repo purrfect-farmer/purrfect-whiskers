@@ -181,7 +181,9 @@ export default function ScriptsPanel({
 
         <SectionHeader
           title="Output"
-          badge={<ScriptStatusBadge status={status} />}
+          badge={
+            <ScriptStatusBadge status={status} startedAt={runner.startedAt} />
+          }
         >
           <IconButton
             title="Clear Output"

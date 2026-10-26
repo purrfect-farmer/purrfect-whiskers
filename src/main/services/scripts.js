@@ -142,6 +142,7 @@ export class ScriptRunner {
     /** The run of this script */
     const run = {
       name,
+      startedAt: Date.now(),
       displayName,
       notification: null,
       child,
@@ -375,6 +376,7 @@ export class ScriptRunner {
       partitions: [...run.partitions],
       output: run.output.join(""),
       stopping: run.stopping,
+      startedAt: run.startedAt,
     };
   }
 

@@ -30,6 +30,9 @@ export default function useScriptRunner(onRestore) {
   /** The progress the script reported */
   const [progress, setProgress] = useState(NO_PROGRESS);
 
+  /** The time the current run started, or null */
+  const [startedAt, setStartedAt] = useState(null);
+
   /** The release of the run's accounts */
   const releaseRef = useRef(null);
 
@@ -136,6 +139,7 @@ export default function useScriptRunner(onRestore) {
       clear();
       onRestore(run.name);
       holdAccounts(run.partitions);
+      setStartedAt(run.startedAt);
       append(`Running ${run.name} (restored after reload)\n`);
       append(run.output);
       setStatus(run.stopping ? SCRIPT_STATUS.STOPPING : SCRIPT_STATUS.RUNNING);
@@ -151,6 +155,7 @@ export default function useScriptRunner(onRestore) {
       clear();
       setError(null);
       setProgress(NO_PROGRESS);
+      setStartedAt(Date.now());
       setStatus(SCRIPT_STATUS.RUNNING);
       append(`Running ${name} on ${accounts.length} account(s)\n`);
 
@@ -178,7 +183,7 @@ export default function useScriptRunner(onRestore) {
   );
 
   return useMemo(
-    () => ({ status, error, log, api, progress, start, stop }),
-    [status, error, log, api, progress, start, stop],
+    () => ({ status, error, log, api, progress, startedAt, start, stop }),
+    [status, error, log, api, progress, startedAt, start, stop],
   );
 }

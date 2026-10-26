@@ -148,3 +148,17 @@ const NUMBER_FORMAT = new Intl.NumberFormat();
 export function formatNumber(value) {
   return NUMBER_FORMAT.format(value);
 }
+
+/** A number of seconds as m:ss, or h:mm:ss from an hour */
+export function formatDuration(totalSeconds) {
+  /** The whole hours */
+  const hours = Math.floor(totalSeconds / 3600);
+  /** The minutes past the hours */
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  /** The seconds past the minutes, as two digits */
+  const seconds = String(totalSeconds % 60).padStart(2, "0");
+
+  return hours > 0
+    ? `${hours}:${String(minutes).padStart(2, "0")}:${seconds}`
+    : `${minutes}:${seconds}`;
+}

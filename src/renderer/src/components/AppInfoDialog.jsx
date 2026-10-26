@@ -35,9 +35,7 @@ export default function AppInfoDialog() {
             <SectionBadge tone="neutral">{currentVersion}</SectionBadge>
           ) : null}
           {hasUpdate ? (
-            <SectionBadge tone="orange" pulse>
-              Update available
-            </SectionBadge>
+            <SectionBadge tone="blue">Update available</SectionBadge>
           ) : latestVersion ? (
             <SectionBadge tone="green">Latest</SectionBadge>
           ) : null}

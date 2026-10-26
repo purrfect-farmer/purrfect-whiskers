@@ -16,7 +16,7 @@ const TagSection = ({ title, count, hint, children }) => (
     <div className="flex flex-col">
       <SectionHeader
         title={title}
-        badge={<SectionBadge tone="amber">{formatNumber(count)}</SectionBadge>}
+        badge={<SectionBadge tone="blue">{formatNumber(count)}</SectionBadge>}
       />
       <p className="text-neutral-500 dark:text-neutral-400">{hint}</p>
     </div>

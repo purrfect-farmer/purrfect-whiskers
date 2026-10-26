@@ -1,6 +1,7 @@
 import { memo, useEffect, useState } from "react";
 
 import SectionBadge from "./SectionBadge";
+import { formatDuration } from "../lib/utils";
 
 /** The seconds left before a time, never below zero */
 const getSecondsLeft = (time) =>
@@ -24,18 +25,9 @@ export default memo(function PromptCountdown({ expiresAt }) {
     return () => clearInterval(timer);
   }, [expiresAt]);
 
-  /** The whole minutes left */
-  const minutes = Math.floor(seconds / 60);
-
-  /** The seconds left past the minutes, as two digits */
-  const remainder = String(seconds % 60).padStart(2, "0");
-
-  /** The minutes and seconds left, as m:ss */
-  const label = `${minutes}:${remainder}`;
-
   return (
     <SectionBadge tone={seconds <= URGENT_SECONDS ? "red" : "amber"}>
-      {label}
+      {formatDuration(seconds)}
     </SectionBadge>
   );
 });

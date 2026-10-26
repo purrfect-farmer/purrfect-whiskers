@@ -65,7 +65,7 @@ export default memo(function ScriptPrompt({ prompt, waiting, onAnswer }) {
         <SectionHeader
           title="Input Needed"
           badge={
-            <SectionBadge tone="orange" pulse>
+            <SectionBadge tone="blue">
               {waiting > 1 ? `1 of ${waiting}` : "Waiting"}
             </SectionBadge>
           }

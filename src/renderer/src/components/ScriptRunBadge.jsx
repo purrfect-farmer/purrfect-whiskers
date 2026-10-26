@@ -1,9 +1,10 @@
 import useScriptRunStore, { selectIsRunning } from "../store/useScriptRunStore";
 
+import { LuLoaderCircle } from "react-icons/lu";
 import { cn } from "../lib/utils";
 import { memo } from "react";
 
-/** A badge on the Scripts button: the waiting prompts, or a running dot */
+/** The Scripts button badge: waiting prompts, or a spinner while running */
 export default memo(function ScriptRunBadge() {
   const isRunning = useScriptRunStore(selectIsRunning);
   const waiting = useScriptRunStore((state) => state.waiting);
@@ -28,10 +29,11 @@ export default memo(function ScriptRunBadge() {
     <span
       title="A script is running"
       className={cn(
-        "absolute right-0.5 top-0.5 size-2.5 rounded-full",
-        "bg-orange-500 ring-2 ring-white dark:ring-neutral-800",
-        "animate-pulse",
+        "absolute -right-0.5 -top-0.5 rounded-full",
+        "bg-white dark:bg-neutral-900 flex",
       )}
-    />
+    >
+      <LuLoaderCircle className="size-3.5 text-orange-500 animate-spin" />
+    </span>
   ) : null;
 });

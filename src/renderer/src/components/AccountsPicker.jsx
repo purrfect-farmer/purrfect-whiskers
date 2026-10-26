@@ -64,7 +64,7 @@ export default function AccountsPicker({
       <SectionHeader
         title="Accounts"
         badge={
-          <SectionBadge tone={selectedAccounts.length ? "orange" : "neutral"}>
+          <SectionBadge tone={selectedAccounts.length ? "blue" : "neutral"}>
             {formatNumber(selectedAccounts.length)} of{" "}
             {formatNumber(accounts.length)}
           </SectionBadge>
