@@ -1,5 +1,6 @@
 import { LuPackagePlus, LuRefreshCw, LuSquareTerminal } from "react-icons/lu";
 
+import { AiOutlineFolder } from "react-icons/ai";
 import IconButton from "./IconButton";
 import { cn } from "../lib/utils";
 import { memo } from "react";
@@ -24,37 +25,49 @@ const ScriptRow = memo(function ScriptRow({
   active,
   disabled,
   onSelect,
+  onOpenFolder,
 }) {
   return (
-    <button
-      type="button"
-      disabled={disabled}
-      aria-pressed={active}
-      title={script.description ?? script.displayName}
-      onClick={() => onSelect(script.name)}
-      className={cn(
-        "flex items-center gap-2 min-w-0",
-        "p-2 rounded-xl text-left disabled:opacity-50",
-        active
-          ? "bg-orange-500 text-white"
-          : "bg-neutral-100 dark:bg-neutral-700",
-      )}
-    >
-      <ScriptIcon icon={script.icon} active={active} />
-      <span className="grow min-w-0 truncate font-bold">
-        {script.displayName}
-      </span>
-      {script.version ? (
-        <span
-          className={cn(
-            "shrink-0",
-            active ? "text-white/80" : "text-neutral-500",
-          )}
-        >
-          v{script.version}
+    <div className="flex gap-2 min-w-0">
+      <button
+        type="button"
+        disabled={disabled}
+        aria-pressed={active}
+        title={script.description ?? script.displayName}
+        onClick={() => onSelect(script.name)}
+        className={cn(
+          "flex items-center gap-2 grow min-w-0",
+          "p-2 rounded-xl text-left disabled:opacity-50",
+          active
+            ? "bg-orange-500 text-white"
+            : "bg-neutral-100 dark:bg-neutral-700",
+        )}
+      >
+        <ScriptIcon icon={script.icon} active={active} />
+        <span className="grow min-w-0 truncate font-bold">
+          {script.displayName}
         </span>
-      ) : null}
-    </button>
+        {script.version ? (
+          <span
+            className={cn(
+              "shrink-0",
+              active ? "text-white/80" : "text-neutral-500",
+            )}
+          >
+            v{script.version}
+          </span>
+        ) : null}
+      </button>
+
+      <IconButton
+        title="Open Script Folder"
+        aria-label={`Open the folder of ${script.displayName}`}
+        onClick={() => onOpenFolder(script.name)}
+        className="p-2"
+      >
+        <AiOutlineFolder className="size-5" />
+      </IconButton>
+    </div>
   );
 });
 
@@ -65,6 +78,7 @@ export default memo(function ScriptPicker({
   onSelect,
   onRefresh,
   onInstall,
+  onOpenFolder,
   isLoading,
   isInstalling,
   disabled,
@@ -104,6 +118,7 @@ export default memo(function ScriptPicker({
               active={script.name === selected?.name}
               disabled={disabled}
               onSelect={onSelect}
+              onOpenFolder={onOpenFolder}
             />
           ))}
         </div>

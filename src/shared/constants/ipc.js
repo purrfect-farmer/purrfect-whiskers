@@ -25,6 +25,7 @@ export const IPC = Object.freeze({
   STOP_SCRIPT: "stop-script",
   INSTALL_SCRIPT: "install-script",
   GET_SCRIPT_RUN: "get-script-run",
+  OPEN_SCRIPT_FOLDER: "open-script-folder",
 });
 
 /** The channel carrying script run events from the main process */

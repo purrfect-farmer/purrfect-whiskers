@@ -1,9 +1,10 @@
 import { SCRIPT_CHANNEL, SCRIPT_EVENT } from "../../shared/constants/ipc";
-import { app, dialog, utilityProcess } from "electron";
+import { app, dialog, shell, utilityProcess } from "electron";
 
 import {
   exists,
   installScriptFromZip,
+  isPlainName,
   resolveScript,
 } from "../libs/scriptPackages";
 
@@ -62,6 +63,15 @@ export function pickScriptsFolder(defaultPath) {
     defaultPath: defaultPath || undefined,
     properties: ["openDirectory"],
   });
+}
+
+/** Opens the folder of the script `name` in the file manager */
+export function openScriptFolder(folder, name) {
+  if (typeof folder !== "string" || folder === "" || !isPlainName(name)) {
+    throw new Error("Invalid script");
+  }
+
+  return shell.openPath(path.join(folder, name));
 }
 
 /** Opens a zip picker and installs the chosen script package into `folder` */

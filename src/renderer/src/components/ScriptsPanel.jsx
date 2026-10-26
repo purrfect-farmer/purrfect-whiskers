@@ -2,9 +2,11 @@ import { LuCircleStop, LuPlay } from "react-icons/lu";
 import { useCallback, useMemo, useState } from "react";
 
 import AccountsPicker from "./AccountsPicker";
+import CachedSessionsButton from "./CachedSessionsButton";
 import Alert from "./Alert";
 import { cn } from "../lib/utils";
 import PrimaryButton from "./PrimaryButton";
+import { IPC } from "../../../shared/constants/ipc";
 import { SCRIPT_STATUS } from "../lib/constants";
 import ScriptLog from "./ScriptLog";
 import ScriptPicker from "./ScriptPicker";
@@ -40,6 +42,13 @@ export default function ScriptsPanel({
   /** Whether a run is reading sessions or running */
   const isBusy =
     status === SCRIPT_STATUS.READING || status === SCRIPT_STATUS.RUNNING;
+
+  /** The handler for opening a script's folder */
+  const openScriptFolder = useCallback(
+    (name) =>
+      window.electron.ipcRenderer.invoke(IPC.OPEN_SCRIPT_FOLDER, folder, name),
+    [folder],
+  );
 
   /** The handler for running the script */
   const runScript = useCallback(
@@ -81,6 +90,7 @@ export default function ScriptsPanel({
           onSelect={setChosenScript}
           onRefresh={packages.refresh}
           onInstall={packages.install}
+          onOpenFolder={openScriptFolder}
           isLoading={packages.isLoading}
           isInstalling={packages.isInstalling}
           disabled={isBusy}
@@ -90,23 +100,27 @@ export default function ScriptsPanel({
         <div
           className={cn(
             "sticky top-0 bottom-0 z-10 -mx-2 px-2 py-1",
+            "flex gap-2",
             "bg-white dark:bg-neutral-800",
           )}
         >
           {status === SCRIPT_STATUS.RUNNING ? (
-            <PrimaryButton variant="neutral" onClick={stop}>
+            <PrimaryButton variant="neutral" className="min-w-0" onClick={stop}>
               <LuCircleStop className="size-5 text-red-500" />
               Stop
             </PrimaryButton>
           ) : (
             <PrimaryButton
               disabled={isBusy || !script || selectedAccounts.length === 0}
+              className="min-w-0"
               onClick={runScript}
             >
               <LuPlay className="size-5" />
               Run ({selectedAccounts.length})
             </PrimaryButton>
           )}
+
+          <CachedSessionsButton disabled={isBusy} />
         </div>
 
         <AccountsPicker

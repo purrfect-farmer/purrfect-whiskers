@@ -21,6 +21,7 @@ import {
   getDefaultScriptsFolder,
   installScript,
   listScripts,
+  openScriptFolder,
   pickScriptsFolder,
 } from "./services/scripts";
 import { generateUserAgent, syncUserAgents } from "./services/userAgents";
@@ -150,6 +151,7 @@ class App {
       [IPC.STOP_SCRIPT]: () => this.scriptRunner.stop(),
       [IPC.INSTALL_SCRIPT]: withoutEvent(installScript),
       [IPC.GET_SCRIPT_RUN]: (event) => this.scriptRunner.attach(event.sender),
+      [IPC.OPEN_SCRIPT_FOLDER]: withoutEvent(openScriptFolder),
     };
 
     for (const [channel, handler] of Object.entries(handlers)) {
