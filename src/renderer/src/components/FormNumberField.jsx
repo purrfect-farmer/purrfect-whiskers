@@ -2,6 +2,7 @@ import { Controller } from "react-hook-form";
 import { NumberInput } from "./NumberInput";
 import { memo, useState } from "react";
 
+/** A parser for an integer clamped to `min`–`max` */
 const toClampedInteger = (value, min, max) =>
   Math.max(min, Math.min(parseInt(value) || min, max));
 

@@ -1,9 +1,10 @@
-/** Modes of the bulk renamer */
+/** The modes of the bulk renamer */
 export const RENAME_MODE = Object.freeze({
   NUMBERED: "numbered",
   AFFIX: "affix",
 });
 
+/** The most digits a title number can be padded to */
 export const MAX_TITLE_PADDING = 6;
 
 /** A formatter for numbered titles */

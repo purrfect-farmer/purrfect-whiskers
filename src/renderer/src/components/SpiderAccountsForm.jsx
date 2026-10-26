@@ -19,6 +19,7 @@ import TagsInput from "./TagsInput";
 import { formatNumberedTitle } from "../lib/titles";
 import { useSpider } from "./SpiderProvider";
 
+/** The fields the title preview watches */
 const TITLE_FIELDS = ["prefix", "suffix", "startNumber", "padding", "count"];
 
 /** The total price of the accounts being bought */

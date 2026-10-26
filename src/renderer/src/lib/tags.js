@@ -12,7 +12,7 @@ export function isTagIdTaken(tags, id, exceptId = null) {
   return tags.some((item) => item.id === id && item.id !== exceptId);
 }
 
-/** Pseudo tag matching accounts without any tag */
+/** The pseudo tag matching accounts without any tag */
 export const UNTAGGED_TAG = Object.freeze({
   id: "__untagged__",
   name: "Untagged",
@@ -28,7 +28,7 @@ export function accountMatchesTag(account, tagId) {
   return Boolean(account.tags?.includes(tagId));
 }
 
-/** Applies tag additions and removals, returning `tags` itself when unchanged */
+/** A tag list with ids added and removed, or `tags` itself when unchanged */
 export function applyTagChanges(tags, add, remove) {
   const current = tags || [];
   const removed = new Set(remove);

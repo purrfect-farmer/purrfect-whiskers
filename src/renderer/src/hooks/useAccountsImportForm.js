@@ -11,6 +11,7 @@ import useAccountsSelector from "./useAccountsSelector";
 import useAppStore from "../store/useAppStore";
 import { yupResolver } from "@hookform/resolvers/yup";
 
+/** The schema of the import form */
 const schema = yup
   .object({
     file: yup
@@ -24,10 +25,13 @@ const schema = yup
   })
   .required();
 
+/** The default values of the import form */
 const DEFAULT_VALUES = { file: null, tags: [] };
 
+/** The empty list of accounts */
 const NO_ACCOUNTS = [];
 
+/** The accounts of a file not already in the app, without their tags */
 function getImportableAccounts(items) {
   const existing = new Set(
     useAppStore.getState().accounts.map((account) => account.partition),

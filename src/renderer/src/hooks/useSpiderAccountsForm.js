@@ -12,8 +12,10 @@ import { useForm } from "react-hook-form";
 import useSpiderPurchase from "./useSpiderPurchase";
 import { yupResolver } from "@hookform/resolvers/yup";
 
+/** The most accounts bought at once */
 export const MAX_SPIDER_BATCH = 3;
 
+/** The schema of the Spider purchase form */
 const schema = yup
   .object({
     count: yup.number().integer().min(1).required().label("Number of Accounts"),
@@ -31,6 +33,7 @@ const schema = yup
   })
   .required();
 
+/** The default values of the Spider purchase form */
 const DEFAULT_VALUES = {
   count: 1,
   batch: 1,

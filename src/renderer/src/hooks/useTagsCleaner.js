@@ -8,12 +8,14 @@ import useAppStore from "../store/useAppStore";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 
+/** The schema of the tags cleaner form */
 const schema = yup
   .object({
     skipped: yup.array().of(yup.string()).required().default([]),
   })
   .required();
 
+/** The default values of the tags cleaner form */
 const DEFAULT_VALUES = { skipped: [] };
 
 /** A hook for finding and removing unused and unknown tags */

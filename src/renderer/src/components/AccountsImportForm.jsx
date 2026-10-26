@@ -15,6 +15,7 @@ import SubmitButton from "./SubmitButton";
 import TagsInput from "./TagsInput";
 import useAccountsImportForm from "../hooks/useAccountsImportForm";
 
+/** The file types the dropzone accepts */
 const JSON_FILES = { "application/json": [".json"] };
 
 /** The picked file, its skipped count or its error */
@@ -50,8 +51,10 @@ export default memo(function AccountsImportForm({ run, isProcessing }) {
   const { methods, onSubmit, pickFile, selector, skippedCount } =
     useAccountsImportForm(run);
 
+  /** The handler for a dropped file */
   const onDrop = useCallback(([file]) => pickFile(file), [pickFile]);
 
+  /** The number of accounts to import */
   const importCount = selector.selectedAccounts.length;
 
   return (

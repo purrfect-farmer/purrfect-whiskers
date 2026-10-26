@@ -6,11 +6,13 @@ import { memo } from "react";
 import NumberedTitleFields from "./NumberedTitleFields";
 import SegmentedControl from "./SegmentedControl";
 
+/** The options of the rename mode control */
 const MODE_OPTIONS = [
   { value: RENAME_MODE.NUMBERED, label: "Numbered" },
   { value: RENAME_MODE.AFFIX, label: "Prefix / Suffix" },
 ];
 
+/** The fields the preview watches */
 const PREVIEW_FIELDS = ["mode", "prefix", "suffix", "startNumber", "padding"];
 
 /** A row showing a title and its new title */
@@ -38,6 +40,7 @@ const RenamePreview = memo(function RenamePreview({ accounts }) {
 
   /** The rename values being previewed */
   const values = { mode, prefix, suffix, startNumber, padding };
+  /** The first and last accounts being previewed */
   const lastIndex = accounts.length - 1;
   const first = accounts[0];
   const last = accounts[lastIndex];

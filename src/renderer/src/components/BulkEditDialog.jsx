@@ -13,6 +13,7 @@ import useBulkRenameForm from "../hooks/useBulkRenameForm";
 import useBulkTagsForm from "../hooks/useBulkTagsForm";
 import useTabs from "../hooks/useTabs";
 
+/** The options of the account selection */
 const SELECTOR_OPTIONS = { initiallySelected: false };
 
 /** The form id, submit label and pending label of each tab */

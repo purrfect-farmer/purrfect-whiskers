@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import useAccountsSelector from "./useAccountsSelector";
 import useAppStore from "../store/useAppStore";
 
+/** The options of the account selection */
 const SELECTOR_OPTIONS = { initiallySelected: false };
 
 /** A hook for selecting accounts and launching them at once */

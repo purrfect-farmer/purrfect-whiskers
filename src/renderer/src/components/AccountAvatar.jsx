@@ -13,7 +13,7 @@ const AVATAR_PLACEHOLDER = (
   </div>
 );
 
-/** An account's Telegram photo, deferred while a list scrolls past it */
+/** An account's Telegram photo, or a placeholder while it can't load */
 export default memo(function AccountAvatar({ user }) {
   const isScrolling = useContext(ListScrollingContext);
   const photoUrl = user?.["photo_url"];

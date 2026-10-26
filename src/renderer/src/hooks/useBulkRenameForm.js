@@ -12,6 +12,7 @@ import useAppStore from "../store/useAppStore";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 
+/** The schema of the bulk rename form */
 const schema = yup
   .object({
     mode: yup.string().oneOf(Object.values(RENAME_MODE)).required(),
@@ -28,6 +29,7 @@ const schema = yup
   })
   .required();
 
+/** The default values of the bulk rename form */
 const DEFAULT_VALUES = {
   mode: RENAME_MODE.NUMBERED,
   ...NUMBERED_TITLE_DEFAULTS,

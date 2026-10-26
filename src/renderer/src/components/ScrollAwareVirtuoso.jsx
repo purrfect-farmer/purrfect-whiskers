@@ -5,6 +5,7 @@ import { Virtuoso } from "react-virtuoso";
 /** Whether the surrounding virtualized list is scrolling */
 export const ListScrollingContext = createContext(false);
 
+/** The memoized Virtuoso list */
 const MemoVirtuoso = memo(Virtuoso);
 
 /** A Virtuoso list that shares whether it is scrolling with its rows */

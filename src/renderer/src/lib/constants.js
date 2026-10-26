@@ -32,13 +32,13 @@ export const PROXY_PROVIDER = Object.freeze({
   FLOXY: "floxy",
 });
 
-/** Tabs of the Bulk Edit dialog */
+/** The tabs of the Bulk Edit dialog */
 export const BULK_EDIT_TAB = Object.freeze({
   RENAME: "rename",
   TAGS: "tags",
 });
 
-/** Tabs of the Cleaner dialog */
+/** The tabs of the Cleaner dialog */
 export const CLEANER_TAB = Object.freeze({
   ACCOUNTS: "accounts",
   TAGS: "tags",

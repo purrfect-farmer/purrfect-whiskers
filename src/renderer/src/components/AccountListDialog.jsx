@@ -31,6 +31,7 @@ const TRIGGER_BUTTON_CLASS = cn(
 
 const computeItemKey = (_, item) => item.partition;
 
+/** The classes of a header button that is switched on */
 const ACTIVE_BUTTON_CLASS =
   "bg-orange-100 text-orange-700 dark:bg-orange-200 dark:text-orange-500";
 

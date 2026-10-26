@@ -7,6 +7,7 @@ import useAppStore from "../store/useAppStore";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 
+/** The schema of the bulk tags form */
 const schema = yup
   .object({
     add: yup.array().of(yup.string()).required().default([]),
@@ -30,6 +31,7 @@ const schema = yup
   })
   .required();
 
+/** The default values of the bulk tags form */
 const DEFAULT_VALUES = { add: [], remove: [] };
 
 /** A hook for the bulk tags form */
