@@ -38,6 +38,11 @@
   [role="button"]:not(:disabled) {
     @apply cursor-pointer;
   }
+
+  /* Keep hidden inputs inside their parent so they never stretch a scroll area */
+  :where(:has(> input[aria-hidden="true"], > input.sr-only)) {
+    position: relative;
+  }
 }
 
 /* Override injected styles */
