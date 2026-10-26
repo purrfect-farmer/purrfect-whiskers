@@ -1,4 +1,5 @@
 import AdmZip from "adm-zip";
+import { naturalCompare } from "../../shared/lib/naturalCompare";
 import { normalizeFields } from "../../shared/lib/scriptFields";
 import fs from "fs/promises";
 import os from "os";
@@ -178,7 +179,7 @@ export async function listScripts(folder) {
     });
   }
 
-  return scripts.sort((a, b) => a.displayName.localeCompare(b.displayName));
+  return scripts.sort((a, b) => naturalCompare(a.displayName, b.displayName));
 }
 
 /** The folder, details and options of script `name`, refusing other paths */

@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 
 import Spider from "../lib/Spider";
 import { getCountry } from "../lib/countries";
+import { naturalCompare } from "../../../shared/lib/naturalCompare";
 import toast from "react-hot-toast";
 import useAppStore from "../store/useAppStore";
 import { useQuery } from "@tanstack/react-query";
@@ -103,7 +104,7 @@ const useSpiderCore = ({ active }) => {
         const comparison =
           sortKey === SORT_KEY.PRICE
             ? a.price - b.price
-            : a.name.localeCompare(b.name);
+            : naturalCompare(a.name, b.name);
         return comparison * direction;
       });
   }, [availableCountries, searchTerm, sortKey, sortDir]);

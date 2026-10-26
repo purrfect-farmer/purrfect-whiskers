@@ -1,3 +1,4 @@
+import { naturalCompare } from "../../../shared/lib/naturalCompare";
 import { toTagId } from "../../../shared/lib/tagNames";
 
 /** Builds a tag from its name; the id is the kebab-cased name */
@@ -102,7 +103,7 @@ export function findTagIssues(tags, usage) {
     }
   }
 
-  unknown.sort((a, b) => a.id.localeCompare(b.id));
+  unknown.sort((a, b) => naturalCompare(a.id, b.id));
 
   return { unused, unknown };
 }
