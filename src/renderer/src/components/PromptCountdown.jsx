@@ -1,7 +1,8 @@
-import { memo, useEffect, useState } from "react";
+import { memo, useState } from "react";
 
 import SectionBadge from "./SectionBadge";
 import { formatDuration } from "../lib/utils";
+import { useInterval } from "react-use";
 
 /** The seconds left before a time, never below zero */
 const getSecondsLeft = (time) =>
@@ -15,15 +16,11 @@ export default memo(function PromptCountdown({ expiresAt }) {
   /** The seconds left */
   const [seconds, setSeconds] = useState(() => getSecondsLeft(expiresAt));
 
-  /** The tick of the countdown, once a second */
-  useEffect(() => {
-    const timer = setInterval(
-      () => setSeconds(getSecondsLeft(expiresAt)),
-      1000,
-    );
-
-    return () => clearInterval(timer);
-  }, [expiresAt]);
+  /** The tick of the countdown, once a second until it reaches zero */
+  useInterval(
+    () => setSeconds(getSecondsLeft(expiresAt)),
+    seconds > 0 ? 1000 : null,
+  );
 
   return (
     <SectionBadge tone={seconds <= URGENT_SECONDS ? "red" : "amber"}>

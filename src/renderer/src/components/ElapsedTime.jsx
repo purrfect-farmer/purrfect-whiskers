@@ -1,6 +1,7 @@
-import { memo, useEffect, useState } from "react";
+import { memo, useState } from "react";
 
 import { formatDuration } from "../lib/utils";
+import { useInterval } from "react-use";
 
 /** The whole seconds since a time, never below zero */
 const getSecondsSince = (time) =>
@@ -11,14 +12,8 @@ export default memo(function ElapsedTime({ since }) {
   /** The seconds passed */
   const [seconds, setSeconds] = useState(() => getSecondsSince(since));
 
-  /** The tick of the timer */
-  useEffect(() => {
-    setSeconds(getSecondsSince(since));
-
-    const timer = setInterval(() => setSeconds(getSecondsSince(since)), 1000);
-
-    return () => clearInterval(timer);
-  }, [since]);
+  /** The tick of the timer, once a second */
+  useInterval(() => setSeconds(getSecondsSince(since)), 1000);
 
   return <span className="tabular-nums">{formatDuration(seconds)}</span>;
 });
