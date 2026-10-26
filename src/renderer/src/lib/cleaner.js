@@ -1,5 +1,8 @@
 import { SESSION_STATUS } from "../../../shared/constants/sessionStatus";
-import { backupAccountUnlessActive } from "./accountSession";
+import {
+  backupAccountUnlessActive,
+  getAccountSessionStatus,
+} from "./accountSession";
 
 /** Titles named in a summary before the rest are counted */
 const MAX_NAMED_TITLES = 3;
@@ -38,6 +41,22 @@ export async function getCleanOutcome(account) {
   }
 }
 
+/** Check an account's session again without a backup, never rejecting */
+export async function getRemoveOutcome(account) {
+  return {
+    account,
+    status: await getAccountSessionStatus(account),
+    backup: null,
+  };
+}
+
+/** Whether a clean outcome may be removed: backed up, or not active */
+export function isRemovable(outcome, withBackup) {
+  return withBackup
+    ? Boolean(outcome.backup)
+    : outcome.status !== SESSION_STATUS.ACTIVE;
+}
+
 /** The titles of accounts as "a, b, c and 2 more" */
 const nameAccounts = (accounts) => {
   /** The named titles */
@@ -49,7 +68,7 @@ const nameAccounts = (accounts) => {
 };
 
 /** One line per kind of outcome of a clean */
-export function summarizeClean(outcomes, removed) {
+export function summarizeClean(outcomes, removed, withBackup) {
   /** The removed partitions */
   const removedSet = new Set(removed);
 
@@ -58,12 +77,15 @@ export function summarizeClean(outcomes, removed) {
     (item) => item.status === SESSION_STATUS.ACTIVE,
   );
   /** The outcomes of accounts that could not be backed up */
-  const notBackedUp = outcomes.filter(
-    (item) => item.status !== SESSION_STATUS.ACTIVE && !item.backup,
-  );
-  /** The outcomes of backed-up accounts that could not be removed */
+  const notBackedUp = withBackup
+    ? outcomes.filter(
+        (item) => item.status !== SESSION_STATUS.ACTIVE && !item.backup,
+      )
+    : [];
+  /** The outcomes of removable accounts that could not be removed */
   const notRemoved = outcomes.filter(
-    (item) => item.backup && !removedSet.has(item.account.partition),
+    (item) =>
+      isRemovable(item, withBackup) && !removedSet.has(item.account.partition),
   );
 
   return [

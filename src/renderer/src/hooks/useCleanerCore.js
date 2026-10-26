@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
 import {
   getCleanOutcome,
+  getRemoveOutcome,
+  isRemovable,
   summarizeClean,
   withEntries,
   withValues,
@@ -41,6 +43,8 @@ export default function useCleanerCore({ onLaunch }) {
   const [task, setTask] = useState(null);
   /** Whether the accounts have been scanned */
   const [hasScanned, setHasScanned] = useState(false);
+  /** Whether cleaning backs the accounts up before removing them */
+  const [withBackup, setWithBackup] = useState(true);
   /** The session status of each scanned partition */
   const [results, setResults] = useState(() => new Map());
 
@@ -129,8 +133,16 @@ export default function useCleanerCore({ onLaunch }) {
         useAppStore.getState().closeAllAccounts();
 
         /** The outcome of each account */
-        const outcomes = await run(selectedAccounts, getCleanOutcome, {});
+        const outcomes = await run(
+          selectedAccounts,
+          withBackup ? getCleanOutcome : getRemoveOutcome,
+          {},
+        );
 
+        /** The outcomes that may be removed */
+        const removable = outcomes.filter((item) =>
+          isRemovable(item, withBackup),
+        );
         /** The outcomes with a saved backup */
         const backedUp = outcomes.filter((item) => item.backup);
         /** The status entries of the accounts still active */
@@ -150,7 +162,7 @@ export default function useCleanerCore({ onLaunch }) {
 
         /** The partitions removed */
         const removed = await deleteAccounts(
-          backedUp.map((item) => item.account.partition),
+          removable.map((item) => item.account.partition),
         );
 
         setResults((prev) =>
@@ -158,7 +170,7 @@ export default function useCleanerCore({ onLaunch }) {
         );
 
         /** The summary of the clean */
-        const summary = summarizeClean(outcomes, removed);
+        const summary = summarizeClean(outcomes, removed, withBackup);
 
         if (removed.length === 0 && activeEntries.length < outcomes.length) {
           throw new Error(summary);
@@ -171,11 +183,13 @@ export default function useCleanerCore({ onLaunch }) {
     };
 
     return runTask(CLEANER_TASK.CLEAN, cleanAccounts, {
-      loading: "Backing up and removing accounts...",
+      loading: withBackup
+        ? "Backing up and removing accounts..."
+        : "Checking and removing accounts...",
       error: (error) => error.message || "Failed to clean accounts!",
       success: (summary) => summary,
     });
-  }, [run, runTask, selectedAccounts]);
+  }, [run, runTask, selectedAccounts, withBackup]);
 
   /** The launch of an account, closing the dialog unless it is busy */
   const launchAccount = useCallback(
@@ -200,11 +214,14 @@ export default function useCleanerCore({ onLaunch }) {
       results,
       hasScanned,
       selector,
+      withBackup,
+      setWithBackup,
       scan,
       clean,
       launchAccount,
     }),
     [
+      withBackup,
       task,
       target,
       progress,

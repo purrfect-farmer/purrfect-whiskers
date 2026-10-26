@@ -5,6 +5,7 @@ import AppDialogContent from "./AppDialogContent";
 import { CLEANER_TAB } from "../lib/constants";
 import CleanerAccountItem from "./CleanerAccountItem";
 import CleanerTagsTab from "./CleanerTagsTab";
+import LabelToggle from "./LabelToggle";
 import { LuEraser } from "react-icons/lu";
 import PrimaryButton from "./PrimaryButton";
 import { Progress } from "./Progress";
@@ -16,8 +17,11 @@ import useTabs from "../hooks/useTabs";
 /** Progress label for each task */
 const TASK_LABELS = {
   [CLEANER_TASK.SCAN]: "Checking sessions...",
-  [CLEANER_TASK.CLEAN]: "Backing up accounts...",
+  [CLEANER_TASK.CLEAN]: "Checking and removing accounts...",
 };
+
+/** Progress label of a clean that backs up first */
+const BACKUP_CLEAN_LABEL = "Backing up accounts...";
 
 /** A dialog for removing signed-out accounts and stale tags */
 export default function CleanerDialog() {
@@ -28,10 +32,27 @@ export default function CleanerDialog() {
     results,
     hasScanned,
     selector,
+    withBackup,
+    setWithBackup,
     scan,
     clean,
     launchAccount,
   } = useCleaner();
+
+  /** The progress label of the running task */
+  const taskLabel =
+    task === CLEANER_TASK.CLEAN && withBackup
+      ? BACKUP_CLEAN_LABEL
+      : TASK_LABELS[task];
+
+  /** The label of the clean button */
+  const cleanLabel = withBackup ? "Back up and Remove" : "Remove";
+
+  /** The handler for the backup toggle */
+  const toggleBackup = useCallback(
+    (event) => setWithBackup(event.target.checked),
+    [setWithBackup],
+  );
 
   /** The accounts and tags tabs */
   const tabs = useTabs(Object.values(CLEANER_TAB), CLEANER_TAB.ACCOUNTS);
@@ -62,8 +83,8 @@ export default function CleanerDialog() {
         >
           <Alert variant={"warning"} className="text-center">
             Every account is opened without its proxy to check its Telegram
-            session. Cleaning backs up the selected accounts before removing
-            them.
+            session. Cleaning checks the selected accounts again and keeps any
+            that are signed in.
           </Alert>
 
           <PrimaryButton
@@ -76,7 +97,7 @@ export default function CleanerDialog() {
 
           {isProcessing ? (
             <>
-              <p className="text-center">{TASK_LABELS[task]}</p>
+              <p className="text-center">{taskLabel}</p>
               <Progress current={progress} max={target} />
             </>
           ) : null}
@@ -90,11 +111,20 @@ export default function CleanerDialog() {
                 disabled={isProcessing}
               />
 
+              <LabelToggle
+                checked={withBackup}
+                disabled={isProcessing}
+                onChange={toggleBackup}
+              >
+                Back up first
+              </LabelToggle>
+
               <PrimaryButton
+                variant={withBackup ? "solid" : "danger"}
                 disabled={isProcessing || selectedAccounts.length === 0}
                 onClick={clean}
               >
-                Back up and Remove ({selectedAccounts.length})
+                {cleanLabel} ({selectedAccounts.length})
               </PrimaryButton>
             </>
           ) : hasScanned && !isProcessing ? (
