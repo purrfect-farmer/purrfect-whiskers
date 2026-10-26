@@ -9,6 +9,9 @@ export const SCRIPT_ENTRY = "index.js";
 /** The manifest file of a script */
 const MANIFEST_FILE = "package.json";
 
+/** The manifest key holding a script's app fields (display name, icon) */
+const MANIFEST_KEY = import.meta.env?.VITE_SCRIPT_MANIFEST_KEY;
+
 /** The media type of each supported icon extension */
 const ICON_TYPES = {
   ".png": "image/png",
@@ -91,9 +94,11 @@ export async function readManifest(scriptDir) {
   /** The package fields */
   const data = json && typeof json === "object" ? json : {};
 
-  /** The Whiskers fields */
-  const whiskers =
-    data.whiskers && typeof data.whiskers === "object" ? data.whiskers : {};
+  /** The app fields of the script */
+  const appFields =
+    MANIFEST_KEY && data[MANIFEST_KEY] && typeof data[MANIFEST_KEY] === "object"
+      ? data[MANIFEST_KEY]
+      : {};
 
   /** The author's name */
   const author = isText(data.author)
@@ -105,7 +110,7 @@ export async function readManifest(scriptDir) {
   return {
     name: isText(data.name) ? data.name.trim() : null,
     displayName:
-      [whiskers.displayName, data.name].find(isText)?.trim() ??
+      [appFields.displayName, data.name].find(isText)?.trim() ??
       path.basename(scriptDir),
     description: isText(data.description) ? data.description.trim() : null,
     version: isText(data.version) ? data.version.trim() : null,
@@ -114,7 +119,7 @@ export async function readManifest(scriptDir) {
       data.main === undefined
         ? path.join(scriptDir, SCRIPT_ENTRY)
         : resolveInside(scriptDir, data.main),
-    iconPath: resolveInside(scriptDir, whiskers.icon),
+    iconPath: resolveInside(scriptDir, appFields.icon),
   };
 }
 
@@ -245,7 +250,7 @@ export async function installScriptFromZip(folder, zipPath) {
   checkZipEntries(zip);
 
   /** The temporary extraction folder */
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "whiskers-script-"));
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "script-package-"));
 
   try {
     zip.extractAllTo(tempDir, true);
