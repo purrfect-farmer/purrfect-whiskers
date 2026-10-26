@@ -14,12 +14,20 @@ export default memo(function TagsList({
   excluded,
   toggleExcluded,
   disabled,
+  ref,
+  className,
+  style,
+  children,
 }) {
   /** The number of accounts for each tag */
   const counts = useMemo(() => countTagUsage(accounts), [accounts]);
 
   return (
-    <div className="flex flex-wrap gap-1 empty:hidden">
+    <div
+      ref={ref}
+      style={style}
+      className={cn("flex flex-wrap gap-1 empty:hidden", className)}
+    >
       {tags.map((tag) => {
         /** Whether the tag is the active filter */
         const active = activeTag?.id === tag.id;
@@ -31,6 +39,14 @@ export default memo(function TagsList({
         /** The tag's icon */
         const Icon =
           tag.id === UNTAGGED_TAG.id && !activeExcluded ? TbTagOff : HiTag;
+
+        /** The excluded name of the tag */
+        const excludedName = tag.excludedName ?? `Not ${tag.name}`;
+
+        /** The chip's text with its account count */
+        const label = activeExcluded
+          ? `${excludedName} (${accounts.length - count})`
+          : `${tag.name} (${count})`;
 
         return (
           <div
@@ -58,11 +74,7 @@ export default memo(function TagsList({
                   active ? "text-white" : "text-orange-500",
                 )}
               />
-              <span className="truncate">
-                {activeExcluded
-                  ? `${tag.excludedName ?? `Not ${tag.name}`} (${accounts.length - count})`
-                  : `${tag.name} (${count})`}
-              </span>
+              <span className="truncate">{label}</span>
             </button>
 
             {/* Include / Exclude */}
@@ -81,6 +93,7 @@ export default memo(function TagsList({
           </div>
         );
       })}
+      {children}
     </div>
   );
 });

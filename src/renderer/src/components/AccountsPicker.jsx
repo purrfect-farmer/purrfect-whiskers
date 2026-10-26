@@ -3,8 +3,7 @@ import { useCallback, useState } from "react";
 import AccountsPickerItem from "./AccountsPickerItem";
 import AccountsToggleAll from "./AccountsToggleAll";
 import Input from "./Input";
-import TagsList from "./TagsList";
-import TagsToggleButton from "./TagsToggleButton";
+import CollapsibleTags from "./CollapsibleTags";
 import ScrollAwareVirtuoso from "./ScrollAwareVirtuoso";
 import SectionBadge from "./SectionBadge";
 import SectionHeader from "./SectionHeader";
@@ -24,19 +23,12 @@ export default function AccountsPicker({
   getItemProps,
   disabled,
   showTags = true,
-  defaultTagsShown = true,
   scrollParent,
   selected,
   selectedAccounts,
   toggleAccount,
   toggleAllAccounts,
 }) {
-  /** Whether the tag filters are shown */
-  const [tagsShown, setTagsShown] = useState(defaultTagsShown);
-
-  /** The switch between showing and hiding the tag filters */
-  const toggleTagsShown = useCallback(() => setTagsShown((prev) => !prev), []);
-
   /** The height of the list's content */
   const [listHeight, setListHeight] = useState(0);
   const {
@@ -89,23 +81,13 @@ export default function AccountsPicker({
           value={search}
           onChange={(ev) => setSearch(ev.target.value)}
         />
-
-        {/* Toggle Tags */}
-        {showTags && filterTags.length > 0 ? (
-          <TagsToggleButton
-            count={filterTags.length - 1}
-            shown={tagsShown}
-            onToggle={toggleTagsShown}
-            disabled={disabled}
-          />
-        ) : null}
       </div>
 
-      {/* Tags (keep the active tag visible when hidden) */}
-      {showTags && (tagsShown || activeTag) ? (
-        <TagsList
+      {/* Tags */}
+      {showTags ? (
+        <CollapsibleTags
           accounts={accounts}
-          tags={tagsShown ? filterTags : [activeTag]}
+          tags={filterTags}
           disabled={disabled}
           activeTag={activeTag}
           selectTag={selectTag}
