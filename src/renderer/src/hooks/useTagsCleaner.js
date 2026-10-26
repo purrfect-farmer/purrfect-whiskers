@@ -1,6 +1,11 @@
 import * as yup from "yup";
 
-import { countTagUsage, findTagIssues } from "../lib/tags";
+import {
+  countTagUsage,
+  findAccountsWithTags,
+  findTagIssues,
+  summarizeTagRemoval,
+} from "../lib/tags";
 import { useCallback, useMemo } from "react";
 
 import toast from "react-hot-toast";
@@ -34,6 +39,16 @@ export default function useTagsCleaner() {
     [tags, usage],
   );
 
+  /** The accounts carrying each unknown tag */
+  const unknownAccounts = useMemo(
+    () =>
+      findAccountsWithTags(
+        accounts,
+        unknown.map((tag) => tag.id),
+      ),
+    [accounts, unknown],
+  );
+
   /** The list of found tag ids */
   const foundIds = useMemo(
     () => [...unused.map((tag) => tag.id), ...unknown.map((tag) => tag.id)],
@@ -59,6 +74,22 @@ export default function useTagsCleaner() {
     [methods],
   );
 
+  /** Checks or unchecks every tag in `ids` */
+  const setTagsChecked = useCallback(
+    (ids, checked) => {
+      /** The tag ids being changed */
+      const changed = new Set(ids);
+
+      /** The other unchecked tag ids */
+      const others = methods
+        .getValues("skipped")
+        .filter((id) => !changed.has(id));
+
+      methods.setValue("skipped", checked ? others : [...others, ...ids]);
+    },
+    [methods],
+  );
+
   /** The removal of the checked tags */
   const removeTags = useCallback(
     (values) => {
@@ -67,12 +98,21 @@ export default function useTagsCleaner() {
 
       if (ids.length === 0) return;
 
+      /** What the removal does, for the toast */
+      const summary = summarizeTagRemoval({
+        unused,
+        unknown,
+        unknownAccounts,
+        skipped,
+        done: true,
+      });
+
       useAppStore.getState().removeTags(ids);
       methods.reset(DEFAULT_VALUES);
 
-      toast.success(`Removed ${ids.length} tag(s)!`);
+      toast.success(summary);
     },
-    [foundIds, methods],
+    [foundIds, unused, unknown, unknownAccounts, methods],
   );
 
   /** The submit handler of the form */
@@ -81,5 +121,16 @@ export default function useTagsCleaner() {
     [methods, removeTags],
   );
 
-  return { methods, onSubmit, unused, unknown, foundIds, toggleTag };
+  return {
+    methods,
+    onSubmit,
+    unused,
+    unknown,
+    unknownAccounts,
+    foundIds,
+    toggleTag,
+    setTagsChecked,
+    tagCount: tags.length,
+    accountCount: accounts.length,
+  };
 }

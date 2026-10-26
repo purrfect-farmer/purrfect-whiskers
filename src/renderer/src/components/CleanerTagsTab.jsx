@@ -4,54 +4,92 @@ import { memo, useMemo } from "react";
 
 import Alert from "./Alert";
 import CleanerTagItem from "./CleanerTagItem";
-import SubmitButton from "./SubmitButton";
-import { cn, formatNumber } from "../lib/utils";
 import SectionBadge from "./SectionBadge";
 import SectionHeader from "./SectionHeader";
+import SubmitButton from "./SubmitButton";
+import { formatNumber } from "../lib/utils";
+import { summarizeTagRemoval } from "../lib/tags";
 import useTagsCleaner from "../hooks/useTagsCleaner";
 
-/** A titled group of found tags, with their count and a hint */
-const TagSection = ({ title, count, hint, children }) => (
-  <section className="flex flex-col gap-2 min-w-0">
-    <div className="flex flex-col">
-      <SectionHeader
-        title={title}
-        badge={<SectionBadge tone="blue">{formatNumber(count)}</SectionBadge>}
-      />
-      <p className="text-neutral-500 dark:text-neutral-400">{hint}</p>
-    </div>
-    {children}
-  </section>
-);
+/** A titled group of found tags, with their count, a hint and All/None */
+const TagSection = ({
+  title,
+  ids,
+  skippedIds,
+  hint,
+  onSetChecked,
+  children,
+}) => {
+  /** Whether every tag of the section is checked */
+  const allChecked = ids.every((id) => !skippedIds.has(id));
 
-/** The found tags and the remove button */
+  return (
+    <section className="flex flex-col gap-2 min-w-0">
+      <div className="flex flex-col min-w-0">
+        <SectionHeader
+          title={title}
+          badge={
+            <SectionBadge tone="blue">{formatNumber(ids.length)}</SectionBadge>
+          }
+        >
+          <button
+            type="button"
+            onClick={() => onSetChecked(ids, !allChecked)}
+            className="px-2 py-1 rounded-lg font-bold text-orange-500"
+          >
+            {allChecked ? "Select None" : "Select All"}
+          </button>
+        </SectionHeader>
+        <p className="text-neutral-500 dark:text-neutral-400">{hint}</p>
+      </div>
+      {children}
+    </section>
+  );
+};
+
+/** The found tags, what removing them does, and the remove button */
 const FoundTags = memo(function FoundTags({
   unused,
   unknown,
+  unknownAccounts,
   foundIds,
   toggleTag,
+  setTagsChecked,
 }) {
   /** The unchecked tag ids */
   const skipped = useWatch({ name: "skipped" });
   /** The set of unchecked tag ids */
   const skippedIds = useMemo(() => new Set(skipped), [skipped]);
 
+  /** The ids of each section */
+  const unusedIds = useMemo(() => unused.map((tag) => tag.id), [unused]);
+  const unknownIds = useMemo(() => unknown.map((tag) => tag.id), [unknown]);
+
   /** The number of tags to remove */
   const removeCount = foundIds.filter((id) => !skippedIds.has(id)).length;
 
+  /** What removing the checked tags does */
+  const summary = useMemo(
+    () =>
+      summarizeTagRemoval({
+        unused,
+        unknown,
+        unknownAccounts,
+        skipped: skippedIds,
+      }),
+    [unused, unknown, unknownAccounts, skippedIds],
+  );
+
   return (
     <>
-      <div
-        className={cn(
-          "flex flex-col gap-4",
-          "max-h-96 overflow-auto -mx-2 px-2",
-        )}
-      >
+      <div className="flex flex-col gap-4 max-h-96 overflow-auto -mx-2 px-2">
         {unused.length > 0 ? (
           <TagSection
             title="Unused Tags"
-            count={unused.length}
-            hint="Not on any account"
+            ids={unusedIds}
+            skippedIds={skippedIds}
+            hint="In your tag list, but not on any account"
+            onSetChecked={setTagsChecked}
           >
             {unused.map((tag) => (
               <CleanerTagItem
@@ -59,6 +97,7 @@ const FoundTags = memo(function FoundTags({
                 id={tag.id}
                 icon={HiTag}
                 name={tag.name}
+                detail="On no account"
                 checked={!skippedIds.has(tag.id)}
                 onToggle={toggleTag}
               />
@@ -69,8 +108,10 @@ const FoundTags = memo(function FoundTags({
         {unknown.length > 0 ? (
           <TagSection
             title="Unknown Tags"
-            count={unknown.length}
-            hint="On accounts but not in your tag list"
+            ids={unknownIds}
+            skippedIds={skippedIds}
+            hint="On accounts, but not in your tag list"
+            onSetChecked={setTagsChecked}
           >
             {unknown.map((tag) => (
               <CleanerTagItem
@@ -78,7 +119,8 @@ const FoundTags = memo(function FoundTags({
                 id={tag.id}
                 icon={HiOutlineQuestionMarkCircle}
                 name={tag.id}
-                detail={`On ${tag.count} account(s)`}
+                detail={`On ${formatNumber(tag.count)} account(s)`}
+                accounts={unknownAccounts.get(tag.id)}
                 checked={!skippedIds.has(tag.id)}
                 onToggle={toggleTag}
               />
@@ -86,6 +128,10 @@ const FoundTags = memo(function FoundTags({
           </TagSection>
         ) : null}
       </div>
+
+      <p className="text-center text-neutral-500 dark:text-neutral-400">
+        {summary}
+      </p>
 
       <SubmitButton pendingText="Removing..." disabled={removeCount === 0}>
         Remove ({removeCount})
@@ -96,8 +142,18 @@ const FoundTags = memo(function FoundTags({
 
 /** The Cleaner tab for removing unused and unknown tags */
 export default function CleanerTagsTab() {
-  const { methods, onSubmit, unused, unknown, foundIds, toggleTag } =
-    useTagsCleaner();
+  const {
+    methods,
+    onSubmit,
+    unused,
+    unknown,
+    unknownAccounts,
+    foundIds,
+    toggleTag,
+    setTagsChecked,
+    tagCount,
+    accountCount,
+  } = useTagsCleaner();
 
   return (
     <FormProvider {...methods}>
@@ -106,13 +162,16 @@ export default function CleanerTagsTab() {
           <FoundTags
             unused={unused}
             unknown={unknown}
+            unknownAccounts={unknownAccounts}
             foundIds={foundIds}
             toggleTag={toggleTag}
+            setTagsChecked={setTagsChecked}
           />
         ) : (
           <Alert variant={"success"}>
-            All clean! Every tag is on at least one account, and every tag on
-            your accounts is in your tag list.
+            All clean! Checked {formatNumber(tagCount)} tag(s) and{" "}
+            {formatNumber(accountCount)} account(s): every tag is on an account,
+            and every tag on an account is in your tag list.
           </Alert>
         )}
       </form>

@@ -71,6 +71,20 @@ export function countTagUsage(accounts) {
   return counts;
 }
 
+/** The accounts carrying each of the tag ids in `ids` */
+export function findAccountsWithTags(accounts, ids) {
+  /** The accounts of each tag id */
+  const found = new Map([...ids].map((id) => [id, []]));
+
+  for (const account of accounts) {
+    for (const tagId of account.tags || []) {
+      found.get(tagId)?.push(account);
+    }
+  }
+
+  return found;
+}
+
 /** A finder for unused tags and unknown tag ids */
 export function findTagIssues(tags, usage) {
   /** The ids of the known tags */
@@ -91,4 +105,53 @@ export function findTagIssues(tags, usage) {
   unknown.sort((a, b) => a.id.localeCompare(b.id));
 
   return { unused, unknown };
+}
+
+/**
+ * What removing the checked tags does, or did once `done`: unused tags
+ * leave the tag list and unknown tags leave the accounts carrying them
+ */
+export function summarizeTagRemoval({
+  unused,
+  unknown,
+  unknownAccounts,
+  skipped,
+  done = false,
+}) {
+  /** The checked unused tags */
+  const removedUnused = unused.filter((tag) => !skipped.has(tag.id));
+  /** The checked unknown tags */
+  const removedUnknown = unknown.filter((tag) => !skipped.has(tag.id));
+
+  /** The accounts losing an unknown tag */
+  const affected = new Set(
+    removedUnknown.flatMap((tag) =>
+      unknownAccounts.get(tag.id).map((account) => account.partition),
+    ),
+  );
+
+  /** The parts of the summary */
+  const parts = [];
+
+  if (removedUnused.length > 0) {
+    parts.push(
+      `${done ? "removed" : "removes"} ${removedUnused.length} unused ` +
+        "tag(s) from your tag list",
+    );
+  }
+
+  if (removedUnknown.length > 0) {
+    parts.push(
+      `${done ? "stripped" : "strips"} ${removedUnknown.length} unknown ` +
+        "tag(s) from " +
+        `${affected.size} account(s)`,
+    );
+  }
+
+  if (parts.length === 0) return "Nothing selected";
+
+  /** The sentence of the parts */
+  const sentence = parts.join(" and ");
+
+  return sentence[0].toUpperCase() + sentence.slice(1);
 }
