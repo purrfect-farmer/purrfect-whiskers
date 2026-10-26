@@ -23,6 +23,7 @@ export default function AccountsPicker({
   getItemProps,
   disabled,
   showTags = true,
+  autoFocusSearch = true,
   scrollParent,
   selected,
   selectedAccounts,
@@ -74,7 +75,7 @@ export default function AccountsPicker({
       <div className="flex gap-2 min-w-0">
         {/* Search Input */}
         <Input
-          autoFocus
+          autoFocus={autoFocusSearch}
           type="search"
           placeholder={"Search"}
           disabled={disabled}

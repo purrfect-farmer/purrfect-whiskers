@@ -109,6 +109,7 @@ export default function CleanerDialog() {
                 itemComponent={CleanerAccountItem}
                 getItemProps={getItemProps}
                 disabled={isProcessing}
+                autoFocusSearch={false}
               />
 
               <LabelToggle

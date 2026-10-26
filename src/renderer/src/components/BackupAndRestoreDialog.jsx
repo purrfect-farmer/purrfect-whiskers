@@ -119,15 +119,15 @@ export default function BackupAndRestoreDialog() {
   return (
     <AppDialogContent
       title={"Backup and Restore"}
-      description={"Create or Restore Backup"}
+      description={"Save everything to a file, or restore it"}
       icon={LuDatabaseBackup}
     >
       <Tabs tabs={tabs}>
         {/* Backup */}
         <Tabs.Content value="backup" className="flex flex-col gap-2">
-          <Alert variant={"warning"} className="text-center">
-            You are about to backup all data of the application. This includes
-            accounts and their Telegram Web data.
+          <Alert variant={"info"}>
+            Saves every account with its Telegram Web data, plus your settings,
+            to one file in the backup folder.
           </Alert>
 
           <PrimaryButton disabled={isProcessing} onClick={backupData}>
@@ -137,9 +137,9 @@ export default function BackupAndRestoreDialog() {
 
         {/* Restore */}
         <Tabs.Content value="restore" className="flex flex-col gap-2">
-          <Alert variant={"warning"} className="text-center">
-            You are about to restore all data of the application. This includes
-            accounts and their Telegram Web data.
+          <Alert variant={"warning"}>
+            Restoring replaces all your accounts and settings with the ones in
+            the backup file.
           </Alert>
 
           <Dropzone

@@ -1,3 +1,4 @@
+import { LuUpload } from "react-icons/lu";
 import { cn } from "../lib/utils";
 import { memo } from "react";
 import { useDropzone } from "react-dropzone";
@@ -16,13 +17,17 @@ export default memo(function Dropzone({ accept, onDrop, disabled, fileLabel }) {
     <div
       {...getRootProps()}
       className={cn(
-        "border border-dashed border-orange-500",
-        "px-4 py-10 text-center rounded-xl",
-        "text-orange-500",
+        "flex flex-col items-center gap-2",
+        "px-4 py-8 text-center rounded-xl cursor-pointer",
+        "border-2 border-dashed border-orange-500/60",
+        "text-neutral-700 dark:text-neutral-200",
+        "hover:bg-orange-50 dark:hover:bg-orange-950/30",
+        isDragActive && "bg-orange-50 dark:bg-orange-950/30",
         disabled && "opacity-50",
       )}
     >
       <input {...getInputProps()} />
+      <LuUpload className="size-6 text-orange-500" />
       {isDragActive ? (
         <p>Drop the {fileLabel} here ...</p>
       ) : (

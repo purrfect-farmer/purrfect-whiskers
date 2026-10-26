@@ -39,6 +39,16 @@
     @apply cursor-pointer;
   }
 
+  /* Show keyboard focus as a thin orange ring that follows rounded corners */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-orange-500/70;
+  }
+
+  /* No ring on containers that only take focus from code, such as dialogs */
+  [tabindex="-1"]:focus-visible {
+    @apply outline-none;
+  }
+
   /* Keep hidden inputs inside their parent so they never stretch a scroll area */
   :where(:has(> input[aria-hidden="true"], > input.sr-only)) {
     position: relative;

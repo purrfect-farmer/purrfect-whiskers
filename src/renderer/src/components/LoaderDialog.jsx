@@ -49,7 +49,7 @@ export default function LoaderDialog() {
   return (
     <AppDialogContent
       title={"Load Extension"}
-      description={"Install Extension Manually"}
+      description={"Install the extension from a zip file"}
       icon={HiOutlinePuzzlePiece}
     >
       <Alert variant={"warning"} className="text-center">

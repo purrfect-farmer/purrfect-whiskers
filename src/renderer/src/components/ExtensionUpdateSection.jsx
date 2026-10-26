@@ -3,20 +3,24 @@ import useExtensionStore, {
 } from "../store/useExtensionStore";
 import { EXTENSION_UPDATE_STATUS } from "../lib/constants";
 import { HiArrowPath } from "react-icons/hi2";
+import SectionBadge from "./SectionBadge";
 import { IPC } from "../../../shared/constants/ipc";
 import { cn } from "../lib/utils";
 import { memo, useCallback, useEffect } from "react";
 import { updateExtension } from "../lib/extensionUpdate";
 import { useShallow } from "zustand/react/shallow";
 
-/** The text of each update status */
-const STATUS_TEXT = {
-  [EXTENSION_UPDATE_STATUS.IDLE]: "Not checked yet",
-  [EXTENSION_UPDATE_STATUS.CHECKING]: "Checking for updates...",
-  [EXTENSION_UPDATE_STATUS.DOWNLOADING]: "Downloading update...",
-  [EXTENSION_UPDATE_STATUS.UP_TO_DATE]: "Up to date",
-  [EXTENSION_UPDATE_STATUS.UPDATED]: "Updated, reload accounts to use it",
-  [EXTENSION_UPDATE_STATUS.FAILED]: "Update failed",
+/** The text and badge tone of each update status */
+const STATUS_BADGES = {
+  [EXTENSION_UPDATE_STATUS.IDLE]: { text: "Not checked yet", tone: "neutral" },
+  [EXTENSION_UPDATE_STATUS.CHECKING]: { text: "Checking", tone: "amber" },
+  [EXTENSION_UPDATE_STATUS.DOWNLOADING]: { text: "Downloading", tone: "amber" },
+  [EXTENSION_UPDATE_STATUS.UP_TO_DATE]: { text: "Up to date", tone: "green" },
+  [EXTENSION_UPDATE_STATUS.UPDATED]: {
+    text: "Updated, reload accounts to use it",
+    tone: "blue",
+  },
+  [EXTENSION_UPDATE_STATUS.FAILED]: { text: "Update failed", tone: "red" },
 };
 
 /** The classes of an action button */
@@ -52,35 +56,31 @@ export default memo(function ExtensionUpdateSection({ extensionPath }) {
       .then((version) => setUpdateState({ currentVersion: version }));
   }, [currentVersion, extensionPath, setUpdateState]);
 
-  /** The text of the update status */
-  const statusText =
-    status === EXTENSION_UPDATE_STATUS.FAILED && error
-      ? `${STATUS_TEXT[status]}: ${error}`
-      : STATUS_TEXT[status];
+  /** The badge of the update status */
+  const badge = STATUS_BADGES[status];
 
   return (
     <div className="flex flex-col gap-2 min-w-0">
-      <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1">
-        <dt className="text-neutral-500 dark:text-neutral-400">Installed</dt>
-        <dd className="min-w-0 break-words">{currentVersion || "None"}</dd>
-        <dt className="text-neutral-500 dark:text-neutral-400">Latest</dt>
-        <dd className="min-w-0 break-words">{latestVersion || "Unknown"}</dd>
-      </dl>
+      <div className="flex flex-wrap items-center gap-2 min-w-0">
+        <SectionBadge tone="neutral">
+          Installed {currentVersion || "none"}
+        </SectionBadge>
+        <SectionBadge tone="neutral">
+          Latest {latestVersion || "unknown"}
+        </SectionBadge>
+        <span role="status" className="flex items-center gap-1 min-w-0">
+          {isUpdating ? (
+            <HiArrowPath
+              className={cn("shrink-0 size-4", "animate-spin text-orange-500")}
+            />
+          ) : null}
+          <SectionBadge tone={badge.tone}>{badge.text}</SectionBadge>
+        </span>
+      </div>
 
-      <p
-        role="status"
-        className={cn(
-          "flex items-center gap-2 min-w-0 break-words",
-          status === EXTENSION_UPDATE_STATUS.FAILED
-            ? "text-red-500"
-            : "text-neutral-500 dark:text-neutral-400",
-        )}
-      >
-        {isUpdating ? (
-          <HiArrowPath className="shrink-0 size-4 animate-spin text-orange-500" />
-        ) : null}
-        <span className="min-w-0">{statusText}</span>
-      </p>
+      {status === EXTENSION_UPDATE_STATUS.FAILED && error ? (
+        <p className="min-w-0 break-words text-red-500">{error}</p>
+      ) : null}
 
       <div className="flex flex-wrap gap-2">
         <button

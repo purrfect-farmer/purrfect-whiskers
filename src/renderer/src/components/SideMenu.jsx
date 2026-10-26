@@ -165,7 +165,7 @@ export default function SideMenu() {
       <button
         type="button"
         title="Toggle Fullscreen"
-        className="p-2"
+        className="p-2 rounded-xl"
         onClick={toggleFullScreen}
       >
         <HiOutlineArrowsPointingOut className="size-5 text-orange-500" />
@@ -192,7 +192,7 @@ export default function SideMenu() {
         <AppInfoDialog />
       </Dialog.Root>
 
-      <SideMenuDialog title="Loader" icon={HiOutlinePuzzlePiece}>
+      <SideMenuDialog title="Load Extension" icon={HiOutlinePuzzlePiece}>
         <LoaderDialog />
       </SideMenuDialog>
 
@@ -200,7 +200,7 @@ export default function SideMenu() {
       <button
         type="button"
         title="Reload App"
-        className="p-2"
+        className="p-2 rounded-xl"
         onClick={reloadApp}
       >
         <HiOutlineArrowPath className="size-5 text-orange-500" />

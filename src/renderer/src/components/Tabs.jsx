@@ -38,7 +38,7 @@ const Tabs = ({
               value={value}
               disabled={disabled}
               className={cn(
-                "p-2 disabled:opacity-50",
+                "p-2 rounded-t-lg disabled:opacity-50",
                 "border-b-4 border-transparent",
                 "data-[state=active]:border-orange-500",
                 triggerClassName

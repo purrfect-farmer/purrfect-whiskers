@@ -76,7 +76,7 @@ export default function SettingsDialog() {
   return (
     <AppDialogContent
       title={"Settings"}
-      description={"Configure Settings"}
+      description={"Theme, accounts and the extension"}
       icon={HiOutlineCog6Tooth}
     >
       <SectionHeader title="Preferred Theme" />
@@ -146,7 +146,12 @@ export default function SettingsDialog() {
           <AiOutlineSelect className="size-4" />
         </IconButton>
       </SectionHeader>
-      <Input readOnly title={extensionPath} value={extensionPath} />
+      <Input
+        readOnly
+        title={extensionPath}
+        value={extensionPath}
+        className="text-ellipsis"
+      />
 
       <LabelToggle
         onChange={(ev) => setAutoUpdateExtension(ev.target.checked)}

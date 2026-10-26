@@ -4,13 +4,13 @@ import { memo } from "react";
 
 /** The classes of each button variant */
 const VARIANT_CLASSES = {
-  solid: "bg-orange-500 text-white mt-2",
+  neutral: "bg-neutral-100 dark:bg-neutral-700",
   outline: "border border-orange-500 text-orange-500",
 };
 
 /** A button that closes the surrounding dialog */
 export default memo(function DialogCloseButton({
-  variant = "solid",
+  variant = "neutral",
   className,
   children = "Close",
 }) {
