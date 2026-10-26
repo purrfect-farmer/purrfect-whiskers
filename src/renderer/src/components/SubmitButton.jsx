@@ -8,12 +8,14 @@ export default memo(function SubmitButton({
   pendingText = "Saving...",
   className,
   disabled,
+  form,
 }) {
   const { isSubmitting } = useFormState();
 
   return (
     <PrimaryButton
       type="submit"
+      form={form}
       className={className}
       disabled={disabled || isSubmitting}
     >

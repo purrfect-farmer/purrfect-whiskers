@@ -5,8 +5,6 @@ import { memo } from "react";
 
 import NumberedTitleFields from "./NumberedTitleFields";
 import SegmentedControl from "./SegmentedControl";
-import SubmitButton from "./SubmitButton";
-import useBulkRenameForm from "../hooks/useBulkRenameForm";
 
 const MODE_OPTIONS = [
   { value: RENAME_MODE.NUMBERED, label: "Numbered" },
@@ -66,12 +64,15 @@ const RenameFields = memo(function RenameFields() {
 });
 
 /** A form for renaming the selected accounts */
-export default memo(function BulkRenameForm({ selectedAccounts }) {
-  const { methods, onSubmit } = useBulkRenameForm(selectedAccounts);
-
+export default memo(function BulkRenameForm({
+  id,
+  methods,
+  onSubmit,
+  selectedAccounts,
+}) {
   return (
     <FormProvider {...methods}>
-      <form onSubmit={onSubmit} className="flex flex-col gap-2 min-w-0">
+      <form id={id} onSubmit={onSubmit} className="flex flex-col gap-2 min-w-0">
         <Controller
           name="mode"
           render={({ field }) => (
@@ -86,13 +87,6 @@ export default memo(function BulkRenameForm({ selectedAccounts }) {
         <RenameFields />
 
         <RenamePreview accounts={selectedAccounts} />
-
-        <SubmitButton
-          pendingText="Renaming..."
-          disabled={selectedAccounts.length === 0}
-        >
-          Rename ({selectedAccounts.length})
-        </SubmitButton>
       </form>
     </FormProvider>
   );
