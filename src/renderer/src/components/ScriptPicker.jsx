@@ -28,21 +28,19 @@ const ScriptRow = memo(function ScriptRow({
           "flex items-center gap-2 grow min-w-0",
           "p-2 rounded-xl text-left disabled:opacity-50",
           active
-            ? "bg-orange-500 text-white"
+            ? [
+                "bg-neutral-200 dark:bg-neutral-600",
+                "ring-2 ring-inset ring-orange-500",
+              ]
             : "bg-neutral-100 dark:bg-neutral-700",
         )}
       >
-        <ScriptIcon icon={script.icon} active={active} />
+        <ScriptIcon icon={script.icon} />
         <span className="grow min-w-0 truncate font-bold">
           {script.displayName}
         </span>
         {script.version ? (
-          <span
-            className={cn(
-              "shrink-0",
-              active ? "text-white/80" : "text-neutral-500",
-            )}
-          >
+          <span className="shrink-0 text-neutral-500 dark:text-neutral-400">
             v{script.version}
           </span>
         ) : null}
