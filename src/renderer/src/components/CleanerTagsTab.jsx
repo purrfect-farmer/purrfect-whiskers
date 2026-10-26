@@ -2,6 +2,7 @@ import { FormProvider, useWatch } from "react-hook-form";
 import { HiOutlineQuestionMarkCircle, HiTag } from "react-icons/hi2";
 import { memo, useMemo } from "react";
 
+import Alert from "./Alert";
 import CleanerTagItem from "./CleanerTagItem";
 import SubmitButton from "./SubmitButton";
 import { cn } from "../lib/utils";
@@ -101,9 +102,10 @@ export default function CleanerTagsTab() {
             toggleTag={toggleTag}
           />
         ) : (
-          <p className="text-center text-neutral-500 dark:text-neutral-400">
-            Every tag is in use and known.
-          </p>
+          <Alert variant={"success"}>
+            All clean! Every tag is on at least one account, and every tag on
+            your accounts is in your tag list.
+          </Alert>
         )}
       </form>
     </FormProvider>
