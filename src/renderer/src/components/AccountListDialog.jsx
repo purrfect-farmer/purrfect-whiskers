@@ -11,7 +11,7 @@ import IconButton from "./IconButton";
 import Input from "./Input";
 import PrimaryButton from "./PrimaryButton";
 import TagsList from "./TagsList";
-import { Virtuoso } from "react-virtuoso";
+import ScrollAwareVirtuoso from "./ScrollAwareVirtuoso";
 import { cn } from "../lib/utils";
 import { useCallback } from "react";
 import useAccountsFilter from "../hooks/useAccountsFilter";
@@ -224,7 +224,7 @@ export default function AccountListDialog() {
 
         {/* Account List */}
         <div className="grow min-h-0">
-          <Virtuoso
+          <ScrollAwareVirtuoso
             style={{ height: "100%", width: "100%" }}
             data={list}
             computeItemKey={computeItemKey}

@@ -9,7 +9,7 @@ import AccountsReorderItem from "./AccountsReorderItem";
 import Alert from "./Alert";
 import Input from "./Input";
 import { LuArrowUpDown } from "react-icons/lu";
-import { Virtuoso } from "react-virtuoso";
+import ScrollAwareVirtuoso from "./ScrollAwareVirtuoso";
 import { cn, matchesSearch } from "../lib/utils";
 import useAppStore from "../store/useAppStore";
 
@@ -266,7 +266,7 @@ export default function AccountsVirtualReorderList({ accounts }) {
 
       {/* Accounts List */}
       <div className="min-h-px -mx-2" style={{ height: LIST_HEIGHT }}>
-        <Virtuoso
+        <ScrollAwareVirtuoso
           ref={virtuoso}
           style={{ height: "100%" }}
           data={accounts}

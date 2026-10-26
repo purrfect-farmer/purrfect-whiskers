@@ -4,7 +4,7 @@ import AccountsPickerItem from "./AccountsPickerItem";
 import AccountsToggleAll from "./AccountsToggleAll";
 import Input from "./Input";
 import TagsList from "./TagsList";
-import { Virtuoso } from "react-virtuoso";
+import ScrollAwareVirtuoso from "./ScrollAwareVirtuoso";
 import useAccountsFilter from "../hooks/useAccountsFilter";
 
 /** Same as Tailwind's h-96 - the previous max height of the list */
@@ -95,7 +95,7 @@ export default function AccountsPicker({
         className="min-h-px -mx-2"
         style={{ height: Math.min(listHeight, MAX_LIST_HEIGHT) }}
       >
-        <Virtuoso
+        <ScrollAwareVirtuoso
           style={{ height: "100%" }}
           data={list}
           totalListHeightChanged={setListHeight}

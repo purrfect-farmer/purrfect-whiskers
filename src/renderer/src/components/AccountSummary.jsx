@@ -1,7 +1,7 @@
 import { cn, getTelegramUser, getTelegramUserFullName } from "../lib/utils";
 
 import { HiTag } from "react-icons/hi2";
-import { LiaUser } from "react-icons/lia";
+import AccountAvatar from "./AccountAvatar";
 import { memo } from "react";
 import useSettingsStore from "../store/useSettingsStore";
 
@@ -46,19 +46,7 @@ export default memo(function AccountSummary({
       )}
     >
       {/* User */}
-      {showAccountDetails ? (
-        user?.["photo_url"] ? (
-          <img
-            src={user["photo_url"]}
-            className="size-8 shrink-0 rounded-full"
-            loading="lazy"
-          />
-        ) : (
-          <div className="p-1 shrink-0">
-            <LiaUser className="size-5" />
-          </div>
-        )
-      ) : null}
+      {showAccountDetails ? <AccountAvatar user={user} /> : null}
 
       <div className="flex flex-col grow min-w-0">
         {/* Title */}
