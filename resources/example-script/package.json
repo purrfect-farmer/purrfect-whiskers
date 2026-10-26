@@ -1,0 +1,12 @@
+{
+  "name": "example",
+  "version": "1.0.0",
+  "description": "Summarizes the selected accounts and saves the summary to outputs/",
+  "author": "Purrfect Whiskers",
+  "type": "module",
+  "main": "index.js",
+  "whiskers": {
+    "displayName": "Example",
+    "icon": "icon.svg"
+  }
+}

@@ -20,6 +20,14 @@ function forceExternalOverride(external) {
 export default defineConfig({
   main: {
     plugins: [],
+    build: {
+      rollupOptions: {
+        input: {
+          index: resolve("src/main/index.js"),
+          scriptHost: resolve("src/main/scriptHost.js"),
+        },
+      },
+    },
   },
   preload: {
     plugins: [forceExternalOverride(["electron"])],

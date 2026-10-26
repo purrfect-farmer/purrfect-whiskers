@@ -1,4 +1,4 @@
-import { HiOutlineCheckBadge, HiOutlinePlus, HiTag } from "react-icons/hi2";
+import { HiOutlineCheckBadge, HiOutlinePlus } from "react-icons/hi2";
 import { LuArrowUpDown, LuListChecks, LuRocket } from "react-icons/lu";
 
 import { AccountItem } from "./AccountItem";
@@ -11,6 +11,7 @@ import IconButton from "./IconButton";
 import Input from "./Input";
 import PrimaryButton from "./PrimaryButton";
 import TagsList from "./TagsList";
+import TagsToggleButton from "./TagsToggleButton";
 import ScrollAwareVirtuoso from "./ScrollAwareVirtuoso";
 import { cn } from "../lib/utils";
 import { useCallback } from "react";
@@ -32,10 +33,6 @@ const TRIGGER_BUTTON_CLASS = cn(
 
 /** The list key of an account */
 const computeItemKey = (_, item) => item.partition;
-
-/** The classes of a header button that is switched on */
-const ACTIVE_BUTTON_CLASS =
-  "bg-orange-100 text-orange-700 dark:bg-orange-200 dark:text-orange-500";
 
 /** The badge of a running account */
 const RUNNING_BADGE = (
@@ -123,7 +120,12 @@ export default function AccountListDialog() {
               </Dialog.Title>
 
               {/* Description */}
-              <Dialog.Description className="text-neutral-500 dark:text-neutral-400 leading-none">
+              <Dialog.Description
+                className={cn(
+                  "leading-none",
+                  "text-neutral-500 dark:text-neutral-400",
+                )}
+              >
                 {selecting ? "Select accounts to launch" : "Select an account"}
               </Dialog.Description>
             </div>
@@ -171,22 +173,11 @@ export default function AccountListDialog() {
 
             {/* Toggle Tags */}
             {tags.length > 0 ? (
-              <IconButton
-                title={showAccountTags ? "Hide Tags" : "Show Tags"}
-                onClick={() => setShowAccountTags(!showAccountTags)}
-                className={cn(
-                  "gap-1 font-bold",
-                  showAccountTags && ACTIVE_BUTTON_CLASS,
-                )}
-              >
-                <HiTag
-                  className={cn(
-                    "size-5",
-                    showAccountTags ? "text-orange-500" : "text-neutral-500",
-                  )}
-                />
-                <span className="leading-none">{tags.length}</span>
-              </IconButton>
+              <TagsToggleButton
+                count={tags.length}
+                shown={showAccountTags}
+                onToggle={() => setShowAccountTags(!showAccountTags)}
+              />
             ) : null}
 
             {/* Toggle Select Mode */}
@@ -194,7 +185,7 @@ export default function AccountListDialog() {
               title={selecting ? "Done Selecting" : "Select Accounts"}
               aria-pressed={selecting}
               onClick={toggleSelecting}
-              className={cn(selecting && ACTIVE_BUTTON_CLASS)}
+              active={selecting}
             >
               <LuListChecks
                 className={cn(

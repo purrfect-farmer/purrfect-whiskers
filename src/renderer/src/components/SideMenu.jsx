@@ -11,6 +11,7 @@ import {
   LuEraser,
   LuGlobeLock,
   LuListChecks,
+  LuSquareTerminal,
   LuTags,
 } from "react-icons/lu";
 
@@ -28,6 +29,7 @@ import LoaderDialog from "./LoaderDialog";
 import { MdOutlineBrowserUpdated } from "react-icons/md";
 import ProxiesDialog from "./ProxiesDialog";
 import SettingsDialog from "./SettingsDialog";
+import ScriptsDialog from "./ScriptsDialog";
 import SideMenuDialog from "./SideMenuDialog";
 import SpiderDialog from "./SpiderDialog";
 import { SpiderProvider } from "./SpiderProvider";
@@ -76,7 +78,13 @@ export default function SideMenu() {
   const cleanerDialog = useDialogState();
 
   return (
-    <div className="shrink-0 w-14 px-1.5 py-2 h-full flex flex-col gap-2 items-center overflow-y-auto">
+    <div
+      className={cn(
+        "shrink-0 w-14 h-full px-1.5 py-2",
+        "flex flex-col gap-2 items-center",
+        "overflow-y-auto",
+      )}
+    >
       <SideMenuDialog title="Accounts" icon={HiOutlineBars3}>
         <AccountListDialog />
       </SideMenuDialog>
@@ -87,6 +95,10 @@ export default function SideMenu() {
 
       <SideMenuDialog title="Bulk Edit" icon={LuListChecks}>
         <BulkEditDialog />
+      </SideMenuDialog>
+
+      <SideMenuDialog title="Scripts" icon={LuSquareTerminal}>
+        <ScriptsDialog />
       </SideMenuDialog>
 
       <SideMenuDialog

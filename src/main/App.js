@@ -16,6 +16,13 @@ import {
   installLatestExtension,
   pickExtensionPath,
 } from "./services/extension";
+import {
+  ScriptRunner,
+  getDefaultScriptsFolder,
+  installScript,
+  listScripts,
+  pickScriptsFolder,
+} from "./services/scripts";
 import { generateUserAgent, syncUserAgents } from "./services/userAgents";
 import {
   registerWebRequest,
@@ -42,6 +49,9 @@ const withoutEvent =
 class App {
   /** The profiles of the account partitions */
   profiles = new ProfileRegistry();
+
+  /** The runner of user scripts */
+  scriptRunner = new ScriptRunner();
 
   constructor() {
     this.initialize();
@@ -132,6 +142,14 @@ class App {
       }),
       [IPC.GENERATE_USER_AGENT]: withoutEvent(generateUserAgent),
       [IPC.SYNC_USER_AGENTS]: withoutEvent(syncUserAgents),
+      [IPC.GET_DEFAULT_SCRIPTS_FOLDER]: withoutEvent(getDefaultScriptsFolder),
+      [IPC.PICK_SCRIPTS_FOLDER]: withoutEvent(pickScriptsFolder),
+      [IPC.LIST_SCRIPTS]: withoutEvent(listScripts),
+      [IPC.RUN_SCRIPT]: (event, options) =>
+        this.scriptRunner.start(options, event.sender),
+      [IPC.STOP_SCRIPT]: () => this.scriptRunner.stop(),
+      [IPC.INSTALL_SCRIPT]: withoutEvent(installScript),
+      [IPC.GET_SCRIPT_RUN]: (event) => this.scriptRunner.attach(event.sender),
     };
 
     for (const [channel, handler] of Object.entries(handlers)) {

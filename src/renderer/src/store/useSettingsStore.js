@@ -32,12 +32,15 @@ export default create(
         columns: 4,
         /** The number of webview rows per page */
         rows: 1,
+        /** The folder holding the user scripts */
+        scriptsFolder: "",
       },
       (set) => ({
         setColumns: (columns) => set({ columns }),
         setRows: (rows) => set({ rows }),
         setTheme: (theme) => set({ theme }),
         setExtensionPath: (extensionPath) => set({ extensionPath }),
+        setScriptsFolder: (scriptsFolder) => set({ scriptsFolder }),
         setAutoUpdateExtension: (autoUpdateExtension) =>
           set({ autoUpdateExtension }),
         setAllowProxies: (allowProxies) => set({ allowProxies }),

@@ -1,12 +1,6 @@
+import { FARMER_STORAGE_KEY as STORAGE_KEY } from "./constants";
 import { formatNumberedTitle } from "./titles";
 import { uuid } from "./utils";
-
-/** Extension storage keys of the default farmer account */
-const STORAGE_KEY = Object.freeze({
-  ACCOUNTS: "shared:accounts",
-  LOCAL_TELEGRAM_SESSION: "account-default:local-telegram-session",
-  SETTINGS: "account-default:settings",
-});
 
 /** Mirror command that switches the farmer to Telegram Web K */
 export const OPEN_TELEGRAM_WEB_COMMAND = Object.freeze({

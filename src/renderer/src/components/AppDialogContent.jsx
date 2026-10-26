@@ -13,12 +13,12 @@ export default memo(function ({
   return (
     <BaseDialogContent {...props}>
       {typeof Icon === "string" ? (
-        <img src={Icon} className="size-10 mx-auto" />
+        <img src={Icon} className="size-10 shrink-0 mx-auto" />
       ) : (
-        <Icon className="size-10 mx-auto text-orange-500" />
+        <Icon className="size-10 shrink-0 mx-auto text-orange-500" />
       )}
 
-      <div className="flex flex-col gap-px">
+      <div className="flex flex-col gap-px shrink-0">
         <Dialog.Title className="text-xl font-bold font-turret-road text-orange-500 text-center">
           {title}
         </Dialog.Title>

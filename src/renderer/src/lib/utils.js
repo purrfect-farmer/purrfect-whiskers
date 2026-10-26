@@ -132,3 +132,11 @@ export function matchesSearch(search, item) {
     searchIncludes(userId, search)
   );
 }
+
+/** The prefix Electron adds to errors thrown by IPC handlers */
+const IPC_ERROR_PREFIX = /^Error invoking remote method '[^']+': (Error: )?/;
+
+/** The message of an error, without Electron's IPC prefix */
+export function getErrorMessage(error) {
+  return String(error?.message ?? error).replace(IPC_ERROR_PREFIX, "");
+}

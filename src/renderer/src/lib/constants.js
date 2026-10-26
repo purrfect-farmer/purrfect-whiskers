@@ -26,6 +26,26 @@ export const THEME = Object.freeze({
   DARK: "dark",
 });
 
+/** Extension storage keys of the default farmer account */
+export const FARMER_STORAGE_KEY = Object.freeze({
+  ACCOUNTS: "shared:accounts",
+  LOCAL_TELEGRAM_SESSION: "account-default:local-telegram-session",
+  SETTINGS: "account-default:settings",
+});
+
+/** The states of a script run */
+export const SCRIPT_STATUS = Object.freeze({
+  IDLE: "idle",
+  READING: "reading",
+  RUNNING: "running",
+  DONE: "done",
+  FAILED: "failed",
+  STOPPED: "stopped",
+});
+
+/** The most log lines a script run keeps */
+export const MAX_SCRIPT_LOG_LINES = 5_000;
+
 /** The ways of reordering accounts */
 export const REORDER_MODE = Object.freeze({
   VIRTUAL: "virtual",

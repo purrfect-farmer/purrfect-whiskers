@@ -18,6 +18,25 @@ export const IPC = Object.freeze({
   CONFIGURE_THEME: "configure-theme",
   GENERATE_USER_AGENT: "generate-user-agent",
   SYNC_USER_AGENTS: "sync-user-agents",
+  GET_DEFAULT_SCRIPTS_FOLDER: "get-default-scripts-folder",
+  PICK_SCRIPTS_FOLDER: "pick-scripts-folder",
+  LIST_SCRIPTS: "list-scripts",
+  RUN_SCRIPT: "run-script",
+  STOP_SCRIPT: "stop-script",
+  INSTALL_SCRIPT: "install-script",
+  GET_SCRIPT_RUN: "get-script-run",
+});
+
+/** The channel carrying script run events from the main process */
+export const SCRIPT_CHANNEL = "script-event";
+
+/** The events of a script run */
+export const SCRIPT_EVENT = Object.freeze({
+  OUTPUT: "output",
+  DONE: "done",
+  ERROR: "error",
+  EXIT: "exit",
+  STOPPED: "stopped",
 });
 
 /** Channels between the host page and its webviews */

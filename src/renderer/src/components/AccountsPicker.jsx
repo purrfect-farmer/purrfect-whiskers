@@ -4,6 +4,7 @@ import AccountsPickerItem from "./AccountsPickerItem";
 import AccountsToggleAll from "./AccountsToggleAll";
 import Input from "./Input";
 import TagsList from "./TagsList";
+import TagsToggleButton from "./TagsToggleButton";
 import ScrollAwareVirtuoso from "./ScrollAwareVirtuoso";
 import useAccountsFilter from "../hooks/useAccountsFilter";
 
@@ -20,11 +21,19 @@ export default function AccountsPicker({
   getItemProps,
   disabled,
   showTags = true,
+  defaultTagsShown = true,
+  scrollParent,
   selected,
   selectedAccounts,
   toggleAccount,
   toggleAllAccounts,
 }) {
+  /** Whether the tag filters are shown */
+  const [tagsShown, setTagsShown] = useState(defaultTagsShown);
+
+  /** The switch between showing and hiding the tag filters */
+  const toggleTagsShown = useCallback(() => setTagsShown((prev) => !prev), []);
+
   /** The height of the list's content */
   const [listHeight, setListHeight] = useState(0);
   const {
@@ -61,21 +70,33 @@ export default function AccountsPicker({
         Accounts ({selectedAccounts.length} / {accounts.length})
       </h4>
 
-      {/* Search Input */}
-      <Input
-        autoFocus
-        type="search"
-        placeholder={"Search"}
-        disabled={disabled}
-        value={search}
-        onChange={(ev) => setSearch(ev.target.value)}
-      />
+      <div className="flex gap-2 min-w-0">
+        {/* Search Input */}
+        <Input
+          autoFocus
+          type="search"
+          placeholder={"Search"}
+          disabled={disabled}
+          value={search}
+          onChange={(ev) => setSearch(ev.target.value)}
+        />
 
-      {/* Tags */}
-      {showTags ? (
+        {/* Toggle Tags */}
+        {showTags && filterTags.length > 0 ? (
+          <TagsToggleButton
+            count={filterTags.length - 1}
+            shown={tagsShown}
+            onToggle={toggleTagsShown}
+            disabled={disabled}
+          />
+        ) : null}
+      </div>
+
+      {/* Tags (keep the active tag visible when hidden) */}
+      {showTags && (tagsShown || activeTag) ? (
         <TagsList
           accounts={accounts}
-          tags={filterTags}
+          tags={tagsShown ? filterTags : [activeTag]}
           disabled={disabled}
           activeTag={activeTag}
           selectTag={selectTag}
@@ -91,18 +112,29 @@ export default function AccountsPicker({
         disabled={disabled}
       />
 
-      <div
-        className="min-h-px -mx-2"
-        style={{ height: Math.min(listHeight, MAX_LIST_HEIGHT) }}
-      >
-        <ScrollAwareVirtuoso
-          style={{ height: "100%" }}
-          data={list}
-          totalListHeightChanged={setListHeight}
-          computeItemKey={computeItemKey}
-          itemContent={itemContent}
-        />
-      </div>
+      {scrollParent ? (
+        <div className="-mx-2">
+          <ScrollAwareVirtuoso
+            customScrollParent={scrollParent}
+            data={list}
+            computeItemKey={computeItemKey}
+            itemContent={itemContent}
+          />
+        </div>
+      ) : (
+        <div
+          className="min-h-px -mx-2"
+          style={{ height: Math.min(listHeight, MAX_LIST_HEIGHT) }}
+        >
+          <ScrollAwareVirtuoso
+            style={{ height: "100%" }}
+            data={list}
+            totalListHeightChanged={setListHeight}
+            computeItemKey={computeItemKey}
+            itemContent={itemContent}
+          />
+        </div>
+      )}
     </div>
   );
 }
