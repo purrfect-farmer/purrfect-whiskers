@@ -12,10 +12,11 @@ export function isTagIdTaken(tags, id, exceptId = null) {
   return tags.some((item) => item.id === id && item.id !== exceptId);
 }
 
-/** Pseudo tag matching accounts without any tag */
+/** Pseudo tag matching accounts without any tag; excluded, it reads "Tagged" */
 export const UNTAGGED_TAG = Object.freeze({
   id: "__untagged__",
   name: "Untagged",
+  excludedName: "Tagged",
 });
 
 /** Whether the account carries the tag, or has no tags for `UNTAGGED_TAG` */

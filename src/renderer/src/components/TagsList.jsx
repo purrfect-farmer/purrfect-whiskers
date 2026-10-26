@@ -1,5 +1,6 @@
 import { HiTag } from "react-icons/hi2";
 import { LuFilterX } from "react-icons/lu";
+import { TbTagOff } from "react-icons/tb";
 import { UNTAGGED_TAG } from "../lib/tags";
 import { cn } from "../lib/utils";
 import { memo, useMemo } from "react";
@@ -43,6 +44,10 @@ export default memo(function TagsList({
         const activeExcluded = active && excluded;
         const count = counts.get(tag.id) || 0;
 
+        /** Untagged has its own icon, unless excluded to show tagged ones */
+        const Icon =
+          tag.id === UNTAGGED_TAG.id && !activeExcluded ? TbTagOff : HiTag;
+
         return (
           <div
             key={tag.id}
@@ -63,7 +68,7 @@ export default memo(function TagsList({
               onClick={() => selectTag(tag.id)}
               className="flex items-center gap-1 min-w-0 p-2"
             >
-              <HiTag
+              <Icon
                 className={cn(
                   "size-4 shrink-0",
                   active ? "text-white" : "text-orange-500",
@@ -71,7 +76,7 @@ export default memo(function TagsList({
               />
               <span className="truncate">
                 {activeExcluded
-                  ? `Not ${tag.name} (${accounts.length - count})`
+                  ? `${tag.excludedName ?? `Not ${tag.name}`} (${accounts.length - count})`
                   : `${tag.name} (${count})`}
               </span>
             </button>
