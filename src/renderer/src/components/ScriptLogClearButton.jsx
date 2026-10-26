@@ -19,7 +19,7 @@ export default memo(function ScriptLogClearButton() {
       disabled={isRunning || !hasLines}
       onClick={clearScriptLog}
     >
-      <LuTrash2 className="size-4" />
+      <LuTrash2 className="size-5" />
     </IconButton>
   );
 });

@@ -1,13 +1,18 @@
-import { SCRIPT_API } from "../../shared/constants/ipc";
-import { normalizePrompt } from "../../shared/lib/scriptPrompts";
+import { SCRIPT_API, SCRIPT_NOTIFY_TYPE } from "../../shared/constants/ipc";
+import { checkRequestArgs } from "./scriptRequestArgs";
 
 /** The known request methods */
 const API_METHODS = new Set(Object.values(SCRIPT_API));
 
-/** The requests that read one of the run's accounts */
+/** The requests about one of the run's accounts, named by the first argument */
 const ACCOUNT_REQUESTS = new Set([
   SCRIPT_API.GET_SESSION,
   SCRIPT_API.GET_BACKUP,
+  SCRIPT_API.GET_ACCOUNT,
+  SCRIPT_API.UPDATE_ACCOUNT,
+  SCRIPT_API.RESTORE_BACKUP,
+  SCRIPT_API.OPEN_ACCOUNT,
+  SCRIPT_API.CLOSE_ACCOUNT,
 ]);
 
 /** The accounts of a run from untrusted input */
@@ -39,6 +44,31 @@ export function toResponse(raw) {
   };
 }
 
+/** The longest status line or notification kept */
+const MAX_MESSAGE_LENGTH = 300;
+
+/** The known notification types */
+const NOTIFY_TYPES = new Set(Object.values(SCRIPT_NOTIFY_TYPE));
+
+/** A short message from untrusted input, or null */
+const toMessage = (value) =>
+  typeof value === "string" && value.trim() !== ""
+    ? value.trim().slice(0, MAX_MESSAGE_LENGTH)
+    : null;
+
+/** A script's status line from untrusted input, or null to clear it */
+export const toStatusText = toMessage;
+
+/** A script's notification from untrusted input */
+export function toNotification(message) {
+  return {
+    text: toMessage(message?.text) ?? "",
+    kind: NOTIFY_TYPES.has(message?.kind)
+      ? message.kind
+      : SCRIPT_NOTIFY_TYPE.INFO,
+  };
+}
+
 /** A whole, non-negative count from untrusted input */
 export function toCount(value) {
   return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
@@ -57,19 +87,17 @@ export function checkRequest({ id, method, args }, partitions) {
     return { error: "The account is not part of this run" };
   }
 
-  if (method !== SCRIPT_API.PROMPT) {
-    return { request: { id, method, args: params.slice(0, 1) } };
-  }
+  /** The checked arguments, or the error refusing them */
+  const checked = checkRequestArgs(method, params, partitions);
 
-  /** The prompt with only valid properties */
-  const prompt = normalizePrompt(params[0]);
+  if (checked.error) return { error: checked.error };
 
-  if (prompt.partition !== null && !partitions.has(prompt.partition)) {
-    return { error: "The account is not part of this run" };
-  }
-
-  /** The time the prompt closes by itself, or null */
-  const expiresAt = prompt.timeout ? Date.now() + prompt.timeout * 1000 : null;
-
-  return { request: { id, method, args: [prompt], expiresAt } };
+  return {
+    request: {
+      id,
+      method,
+      args: checked.args,
+      expiresAt: checked.expiresAt ?? null,
+    },
+  };
 }

@@ -3,7 +3,13 @@ import {
   SCRIPT_EVENT,
   SCRIPT_HOST_MESSAGE,
 } from "../../shared/constants/ipc";
-import { toCount, toResponse, toRunAccounts } from "../libs/scriptRuns";
+import {
+  toCount,
+  toNotification,
+  toResponse,
+  toRunAccounts,
+  toStatusText,
+} from "../libs/scriptRuns";
 
 import { ScriptRequests } from "./scriptRequests";
 import { checkPathValues } from "../libs/scriptPaths";
@@ -138,6 +144,16 @@ export class ScriptRunner {
     switch (message?.type) {
       case SCRIPT_HOST_MESSAGE.REQUEST:
         run.requests.forward(message);
+        break;
+
+      case SCRIPT_HOST_MESSAGE.STATUS:
+        this.emit(run, SCRIPT_EVENT.STATUS, {
+          text: toStatusText(message.text),
+        });
+        break;
+
+      case SCRIPT_HOST_MESSAGE.NOTIFY:
+        this.emit(run, SCRIPT_EVENT.NOTIFY, toNotification(message));
         break;
 
       case SCRIPT_HOST_MESSAGE.PROGRESS:

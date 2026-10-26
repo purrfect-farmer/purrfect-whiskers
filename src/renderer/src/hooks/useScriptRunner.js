@@ -14,34 +14,32 @@ import {
   queueScriptProgress,
 } from "../lib/scriptProgress";
 import useScriptRunStore, { NO_PROGRESS } from "../store/useScriptRunStore";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 
 import { SCRIPT_STATUS } from "../lib/constants";
 import { getErrorMessage } from "../lib/utils";
-import { holdPartitions } from "../lib/busyPartitions";
+import { holdRunAccounts, releaseRunAccounts } from "../lib/scriptRunAccounts";
+import { SCRIPT_NOTIFY_TYPE } from "../../../shared/constants/ipc";
+import toast from "react-hot-toast";
 import useAppStore from "../store/useAppStore";
 import useScriptApi from "./useScriptApi";
+
+/** Shows a script's notification as a toast */
+function showScriptNotification({ text, kind }) {
+  if (!text) return;
+
+  if (kind === SCRIPT_NOTIFY_TYPE.SUCCESS) toast.success(text);
+  else if (kind === SCRIPT_NOTIFY_TYPE.ERROR) toast.error(text);
+  else toast(text);
+}
 
 /** Merges changes into the run state */
 const setRunState = (state) => useScriptRunStore.getState().setRunState(state);
 
 /** A hook for running a script on accounts and following it in the store */
 export default function useScriptRunner(onRestore) {
-  /** The release of the run's accounts */
-  const releaseRef = useRef(null);
-
   const api = useScriptApi();
-  const { setPartitions, handleRequest, removePrompt, resetPrompts } = api;
-
-  /** Holds the run's accounts so nothing else opens them */
-  const holdAccounts = useCallback(
-    (partitions) => {
-      releaseRef.current?.();
-      releaseRef.current = holdPartitions(partitions);
-      setPartitions(partitions);
-    },
-    [setPartitions],
-  );
+  const { handleRequest, removePrompt, resetPrompts } = api;
 
   /** The end of a run, freeing its accounts */
   const finish = useCallback(
@@ -49,8 +47,7 @@ export default function useScriptRunner(onRestore) {
       endScriptLog();
       flushScriptProgress();
       resetPrompts();
-      releaseRef.current?.();
-      releaseRef.current = null;
+      releaseRunAccounts();
       setRunState({ status });
     },
     [resetPrompts],
@@ -78,6 +75,12 @@ export default function useScriptRunner(onRestore) {
           break;
         case SCRIPT_EVENT.PROGRESS:
           queueScriptProgress(message.done, message.total);
+          break;
+        case SCRIPT_EVENT.STATUS:
+          setRunState({ statusText: message.text });
+          break;
+        case SCRIPT_EVENT.NOTIFY:
+          showScriptNotification(message);
           break;
         case SCRIPT_EVENT.SHOW_PROMPT:
           useScriptRunStore.getState().setDialogOpen(true);
@@ -122,7 +125,8 @@ export default function useScriptRunner(onRestore) {
 
       clearScriptLog();
       onRestore(run.name);
-      holdAccounts(run.partitions);
+      useAppStore.getState().closeAccounts(run.partitions);
+      holdRunAccounts(run.partitions);
       appendScriptLog(`Running ${run.name} (restored after reload)\n`);
       appendScriptLog(run.output);
       setRunState({
@@ -131,7 +135,7 @@ export default function useScriptRunner(onRestore) {
         status: run.stopping ? SCRIPT_STATUS.STOPPING : SCRIPT_STATUS.RUNNING,
       });
     });
-  }, [holdAccounts, onRestore]);
+  }, [onRestore]);
 
   /** The run of a script on the accounts with the options */
   const start = useCallback(
@@ -144,6 +148,7 @@ export default function useScriptRunner(onRestore) {
       setRunState({
         runName: name,
         error: null,
+        statusText: null,
         progress: NO_PROGRESS,
         startedAt: Date.now(),
         status: SCRIPT_STATUS.RUNNING,
@@ -151,7 +156,7 @@ export default function useScriptRunner(onRestore) {
       appendScriptLog(`Running ${name} on ${accounts.length} account(s)\n`);
 
       useAppStore.getState().closeAccounts(partitions);
-      holdAccounts(partitions);
+      holdRunAccounts(partitions);
 
       try {
         await window.electron.ipcRenderer.invoke(IPC.RUN_SCRIPT, {
@@ -164,7 +169,7 @@ export default function useScriptRunner(onRestore) {
         fail(getErrorMessage(startError));
       }
     },
-    [fail, holdAccounts],
+    [fail],
   );
 
   /** The stop of the running script; a second stop kills it at once */

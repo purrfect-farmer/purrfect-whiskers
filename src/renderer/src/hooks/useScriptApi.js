@@ -1,55 +1,25 @@
 import { IPC, SCRIPT_API } from "../../../shared/constants/ipc";
-import { getAccountSession, readAccountBackup } from "../lib/accountSessions";
-import { useCallback, useMemo, useRef } from "react";
+import {
+  answerAccountRequest,
+  findAccountOrNull,
+} from "../lib/scriptAccountRequests";
+import { useCallback, useMemo } from "react";
 
 import { getErrorMessage } from "../lib/utils";
 import { normalizePrompt } from "../../../shared/lib/scriptPrompts";
-import useAppStore from "../store/useAppStore";
+import { isRunAccount } from "../lib/scriptRunAccounts";
 import useScriptRunStore from "../store/useScriptRunStore";
 
 /** Sends the answer of a script's request to the main process */
 const respond = (id, payload) =>
   window.electron.ipcRenderer.invoke(IPC.SCRIPT_RESPONSE, { id, ...payload });
 
-/** The accounts by partition, built once per accounts list */
-const accountMaps = new WeakMap();
-
-/** The account of a partition, or null */
-function findAccountOrNull(partition) {
-  const { accounts } = useAppStore.getState();
-
-  if (!accountMaps.has(accounts)) {
-    accountMaps.set(
-      accounts,
-      new Map(accounts.map((item) => [item.partition, item])),
-    );
-  }
-
-  return accountMaps.get(accounts).get(partition) ?? null;
-}
-
-/** The account of a partition */
-function findAccount(partition) {
-  const account = findAccountOrNull(partition);
-
-  if (!account) throw new Error("The account no longer exists");
-
-  return account;
-}
-
-/** The answer of a data request */
-async function readRequest(method, partition) {
-  switch (method) {
-    case SCRIPT_API.GET_SESSION:
-      return getAccountSession(findAccount(partition));
-    case SCRIPT_API.GET_BACKUP:
-      return readAccountBackup(findAccount(partition));
-    case SCRIPT_API.GET_TAGS:
-      return useAppStore.getState().tags;
-    default:
-      throw new Error(`Unknown request: ${method}`);
-  }
-}
+/** The requests that need no account of the run */
+const REQUESTS_WITHOUT_ACCOUNT = new Set([
+  SCRIPT_API.GET_TAGS,
+  SCRIPT_API.CREATE_TAG,
+  SCRIPT_API.ADD_ACCOUNT,
+]);
 
 /** The prompts waiting for an answer */
 const getPrompts = () => useScriptRunStore.getState().prompts;
@@ -60,14 +30,6 @@ const setPrompts = (prompts) =>
 
 /** A hook for answering a running script's requests and its prompts */
 export default function useScriptApi() {
-  /** The partitions of the run's accounts */
-  const partitionsRef = useRef(new Set());
-
-  /** Sets the partitions the run may read */
-  const setPartitions = useCallback((partitions) => {
-    partitionsRef.current = new Set(partitions);
-  }, []);
-
   /** The handler of a script's request */
   const handleRequest = useCallback(async ({ id, method, args, expiresAt }) => {
     if (method === SCRIPT_API.PROMPT) {
@@ -91,17 +53,12 @@ export default function useScriptApi() {
       return;
     }
 
-    /** The partition the request reads */
-    const partition = args[0];
-
     try {
-      if (method !== SCRIPT_API.GET_TAGS) {
-        if (!partitionsRef.current.has(partition)) {
-          throw new Error("The account is not part of this run");
-        }
+      if (!REQUESTS_WITHOUT_ACCOUNT.has(method) && !isRunAccount(args[0])) {
+        throw new Error("The account is not part of this run");
       }
 
-      respond(id, { result: await readRequest(method, partition) });
+      respond(id, { result: await answerAccountRequest(method, args) });
     } catch (error) {
       respond(id, { error: getErrorMessage(error) });
     }
@@ -127,12 +84,11 @@ export default function useScriptApi() {
 
   return useMemo(
     () => ({
-      setPartitions,
       handleRequest,
       answerPrompt,
       removePrompt,
       resetPrompts,
     }),
-    [setPartitions, handleRequest, answerPrompt, removePrompt, resetPrompts],
+    [handleRequest, answerPrompt, removePrompt, resetPrompts],
   );
 }

@@ -39,6 +39,17 @@ export function readAccountBackup(account) {
   return limitBackupReads(() => getOrRestoreAccountBackup(account));
 }
 
+/** Restores a backup into an account, a few accounts at a time */
+export async function restoreAccountBackup(account, backup) {
+  await limitBackupReads(() => getOrRestoreAccountBackup(account, backup));
+  forgetCachedSession(account.partition);
+}
+
+/** Forgets one account's cached session */
+export function forgetCachedSession(partition) {
+  if (sessions.delete(partition)) notify();
+}
+
 /** The session in a backup: the farmer's own, else Telegram Web's, or null */
 async function findSession(backup) {
   /** The farmer's local session */

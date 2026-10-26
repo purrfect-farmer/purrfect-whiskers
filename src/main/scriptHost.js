@@ -34,6 +34,24 @@ const api = Object.freeze({
     (await request(SCRIPT_API.PROMPT, { title })) !== null,
   progress: (done, total) =>
     send({ type: SCRIPT_HOST_MESSAGE.PROGRESS, done, total }),
+  setStatus: (text) => send({ type: SCRIPT_HOST_MESSAGE.STATUS, text }),
+  notify: (text, kind) =>
+    send({ type: SCRIPT_HOST_MESSAGE.NOTIFY, text, kind }),
+  getAccount: (partition) => request(SCRIPT_API.GET_ACCOUNT, partition),
+  updateAccount: (partition, changes) =>
+    request(SCRIPT_API.UPDATE_ACCOUNT, partition, changes),
+  restoreBackup: (partition, backup) =>
+    request(SCRIPT_API.RESTORE_BACKUP, partition, backup),
+  addAccount: (account, backup) =>
+    request(SCRIPT_API.ADD_ACCOUNT, account, backup),
+  openAccount: (partition) => request(SCRIPT_API.OPEN_ACCOUNT, partition),
+  closeAccount: (partition) => request(SCRIPT_API.CLOSE_ACCOUNT, partition),
+  createTag: (name) => request(SCRIPT_API.CREATE_TAG, name),
+  storage: Object.freeze({
+    get: (key) => request(SCRIPT_API.STORAGE_GET, key),
+    set: (key, value) => request(SCRIPT_API.STORAGE_SET, key, value),
+    remove: (key) => request(SCRIPT_API.STORAGE_SET, key, null),
+  }),
 });
 
 /** Runs the script with the selected accounts and options */

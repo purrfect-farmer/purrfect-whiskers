@@ -12,7 +12,7 @@ export default memo(function ScriptStopButton({ onStop }) {
   if (status === SCRIPT_STATUS.RUNNING) {
     return (
       <IconButton title="Stop" onClick={onStop} className="gap-1 font-bold">
-        <LuCircleStop className="size-4 text-red-500" />
+        <LuCircleStop className="size-5 text-red-500" />
         Stop
       </IconButton>
     );
@@ -20,7 +20,7 @@ export default memo(function ScriptStopButton({ onStop }) {
 
   return status === SCRIPT_STATUS.STOPPING ? (
     <IconButton title="Kill Now" onClick={onStop} className="gap-1 font-bold">
-      <LuSkull className="size-4 text-red-500" />
+      <LuSkull className="size-5 text-red-500" />
       Kill Now
     </IconButton>
   ) : null;

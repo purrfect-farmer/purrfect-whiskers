@@ -40,6 +40,8 @@ export const SCRIPT_EVENT = Object.freeze({
   PROMPT_CLOSED: "prompt-closed",
   SHOW_PROMPT: "show-prompt",
   PROGRESS: "progress",
+  STATUS: "status",
+  NOTIFY: "notify",
   STOPPING: "stopping",
   DONE: "done",
   ERROR: "error",
@@ -54,6 +56,8 @@ export const SCRIPT_HOST_MESSAGE = Object.freeze({
   ABORT: "abort",
   REQUEST: "request",
   PROGRESS: "progress",
+  STATUS: "status",
+  NOTIFY: "notify",
   DONE: "done",
   ERROR: "error",
 });
@@ -64,6 +68,28 @@ export const SCRIPT_API = Object.freeze({
   GET_BACKUP: "getBackup",
   GET_TAGS: "getTags",
   PROMPT: "prompt",
+  GET_ACCOUNT: "getAccount",
+  UPDATE_ACCOUNT: "updateAccount",
+  RESTORE_BACKUP: "restoreBackup",
+  ADD_ACCOUNT: "addAccount",
+  OPEN_ACCOUNT: "openAccount",
+  CLOSE_ACCOUNT: "closeAccount",
+  CREATE_TAG: "createTag",
+  STORAGE_GET: "storageGet",
+  STORAGE_SET: "storageSet",
+});
+
+/** The requests a script's storage answers in the main process */
+export const SCRIPT_STORAGE_API = Object.freeze([
+  SCRIPT_API.STORAGE_GET,
+  SCRIPT_API.STORAGE_SET,
+]);
+
+/** The kinds of message a script can show as a toast */
+export const SCRIPT_NOTIFY_TYPE = Object.freeze({
+  INFO: "info",
+  SUCCESS: "success",
+  ERROR: "error",
 });
 
 /** Channels between the host page and its webviews */

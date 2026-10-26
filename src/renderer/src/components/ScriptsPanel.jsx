@@ -22,6 +22,7 @@ import ScriptPicker from "./ScriptPicker";
 import ScriptLogClearButton from "./ScriptLogClearButton";
 import ScriptOutputTitle from "./ScriptOutputTitle";
 import ScriptPromptSlot from "./ScriptPromptSlot";
+import ScriptStatusText from "./ScriptStatusText";
 import ScriptStopButton from "./ScriptStopButton";
 import ScriptRunStatus from "./ScriptRunStatus";
 import ScriptStatusBadge from "./ScriptStatusBadge";
@@ -239,14 +240,15 @@ export default function ScriptsPanel({
             onClick={output.toggle}
           >
             {output.expanded ? (
-              <LuMinimize2 className="size-4" />
+              <LuMinimize2 className="size-5" />
             ) : (
-              <LuMaximize2 className="size-4" />
+              <LuMaximize2 className="size-5" />
             )}
           </IconButton>
         </SectionHeader>
 
         <ScriptRunStatus />
+        <ScriptStatusText />
 
         <ScriptLog />
       </div>

@@ -13,6 +13,8 @@ export default create((set) => ({
   status: SCRIPT_STATUS.IDLE,
   /** The message of the last failure */
   error: null,
+  /** The script's status line, or null */
+  statusText: null,
   /** The progress the script reported */
   progress: NO_PROGRESS,
   /** The folder name of the script whose output is shown, or null */

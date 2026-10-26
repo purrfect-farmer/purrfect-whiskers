@@ -4,8 +4,10 @@ import {
   SCRIPT_API,
   SCRIPT_EVENT,
   SCRIPT_HOST_MESSAGE,
+  SCRIPT_STORAGE_API,
 } from "../../shared/constants/ipc";
 
+import { ScriptStorage } from "../libs/scriptStorage";
 import { checkPathValues } from "../libs/scriptPaths";
 import { checkRequest } from "../libs/scriptRuns";
 
@@ -24,6 +26,21 @@ export class ScriptRequests {
   constructor(run, emit) {
     this.run = run;
     this.emit = emit;
+    this.storage = new ScriptStorage(run.name);
+  }
+
+  /** Answers a storage request from the script's storage */
+  async answerStorage({ id, method, args }) {
+    try {
+      const result =
+        method === SCRIPT_API.STORAGE_GET
+          ? await this.storage.get(args[0])
+          : await this.storage.set(args[0], args[1]);
+
+      this.reply(id, { result });
+    } catch (error) {
+      this.reply(id, { error: error.message });
+    }
   }
 
   /** Sends a script's request to the renderer, or answers it with an error */
@@ -39,6 +56,11 @@ export class ScriptRequests {
 
     if (this.run.stopping && request.method === SCRIPT_API.PROMPT) {
       this.reply(request.id, { result: null });
+      return;
+    }
+
+    if (SCRIPT_STORAGE_API.includes(request.method)) {
+      this.answerStorage(request);
       return;
     }
 
@@ -70,6 +92,14 @@ export class ScriptRequests {
     clearTimeout(this.promptTimers.get(id));
     this.promptTimers.delete(id);
     this.clearNotification();
+
+    if (
+      !error &&
+      request.method === SCRIPT_API.ADD_ACCOUNT &&
+      typeof result?.partition === "string"
+    ) {
+      this.run.partitions.add(result.partition);
+    }
 
     if (error) {
       this.reply(id, { error });
