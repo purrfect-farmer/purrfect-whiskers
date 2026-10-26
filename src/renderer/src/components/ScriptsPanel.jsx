@@ -1,4 +1,5 @@
-import { LuCircleStop, LuPlay, LuTrash2 } from "react-icons/lu";
+import { LuCircleStop, LuPlay, LuSkull, LuTrash2 } from "react-icons/lu";
+import ScriptOptions, { SCRIPT_OPTIONS_FORM_ID } from "./ScriptOptions";
 import { useCallback, useMemo, useState } from "react";
 
 import AccountsPicker from "./AccountsPicker";
@@ -11,6 +12,7 @@ import { SCRIPT_STATUS } from "../lib/constants";
 import ScriptDetails from "./ScriptDetails";
 import ScriptLog from "./ScriptLog";
 import ScriptPicker from "./ScriptPicker";
+import ScriptPrompt from "./ScriptPrompt";
 import IconButton from "./IconButton";
 import ScriptRunStatus from "./ScriptRunStatus";
 import ScriptStatusBadge from "./ScriptStatusBadge";
@@ -28,7 +30,7 @@ export default function ScriptsPanel({
 }) {
   const { folder, isDefault } = useScriptsFolder();
   const { selectedAccounts } = selector;
-  const { status, start, stop } = runner;
+  const { status, start, stop, api } = runner;
 
   /** The scripts in the folder and their install action */
   const packages = useScriptPackages(folder, setChosenScript);
@@ -43,9 +45,15 @@ export default function ScriptsPanel({
   /** The controls pane, whose scrollbar the account list uses */
   const [controlsElement, setControlsElement] = useState(null);
 
-  /** Whether a run is reading sessions or running */
+  /** Whether a run is going or stopping */
   const isBusy =
-    status === SCRIPT_STATUS.READING || status === SCRIPT_STATUS.RUNNING;
+    status === SCRIPT_STATUS.RUNNING || status === SCRIPT_STATUS.STOPPING;
+
+  /** The key resetting the options form when the script or its fields change */
+  const optionsKey = useMemo(
+    () => (script ? `${script.name}:${JSON.stringify(script.options)}` : null),
+    [script],
+  );
 
   /** The handler for opening a script's folder */
   const openScriptFolder = useCallback(
@@ -54,9 +62,9 @@ export default function ScriptsPanel({
     [folder],
   );
 
-  /** The handler for running the script */
+  /** The handler for running the script with its options */
   const runScript = useCallback(
-    () => start(folder, script.name, selectedAccounts),
+    (options) => start(folder, script.name, selectedAccounts, options),
     [start, folder, script, selectedAccounts],
   );
 
@@ -113,11 +121,17 @@ export default function ScriptsPanel({
               <LuCircleStop className="size-5 text-red-500" />
               Stop
             </PrimaryButton>
+          ) : status === SCRIPT_STATUS.STOPPING ? (
+            <PrimaryButton variant="neutral" className="min-w-0" onClick={stop}>
+              <LuSkull className="size-5 text-red-500" />
+              Kill Now
+            </PrimaryButton>
           ) : (
             <PrimaryButton
-              disabled={isBusy || !script || selectedAccounts.length === 0}
+              type="submit"
+              form={SCRIPT_OPTIONS_FORM_ID}
+              disabled={!script || selectedAccounts.length === 0}
               className="min-w-0"
-              onClick={runScript}
             >
               <LuPlay className="size-5" />
               Run ({selectedAccounts.length})
@@ -136,7 +150,34 @@ export default function ScriptsPanel({
 
       {/* Output */}
       <div className="flex flex-col gap-2 min-w-0 min-h-0">
-        <ScriptDetails script={script} onOpenFolder={openScriptFolder} />
+        {/* Script, prompt and options, scrolling above the output */}
+        <div
+          className={cn(
+            "flex flex-col gap-2 min-w-0 min-h-0 shrink",
+            "overflow-x-hidden overflow-y-auto",
+            "-mx-2 px-2",
+          )}
+        >
+          {api.prompt ? (
+            <ScriptPrompt
+              key={api.prompt.id}
+              prompt={api.prompt}
+              waiting={api.waiting}
+              onAnswer={api.answerPrompt}
+            />
+          ) : null}
+
+          <ScriptDetails script={script} onOpenFolder={openScriptFolder} />
+
+          {script ? (
+            <ScriptOptions
+              key={optionsKey}
+              script={script}
+              disabled={isBusy}
+              onRun={runScript}
+            />
+          ) : null}
+        </div>
 
         <SectionHeader
           title="Output"
@@ -154,11 +195,10 @@ export default function ScriptsPanel({
         <ScriptRunStatus
           status={status}
           error={runner.error}
-          target={runner.target}
           progress={runner.progress}
         />
 
-        <ScriptLog lines={runner.log.lines} />
+        <ScriptLog lines={runner.log.lines} isCompact={api.prompt !== null} />
       </div>
     </div>
   );

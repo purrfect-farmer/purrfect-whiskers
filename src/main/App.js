@@ -152,6 +152,8 @@ class App {
       [IPC.INSTALL_SCRIPT]: withoutEvent(installScript),
       [IPC.GET_SCRIPT_RUN]: (event) => this.scriptRunner.attach(event.sender),
       [IPC.OPEN_SCRIPT_FOLDER]: withoutEvent(openScriptFolder),
+      [IPC.SCRIPT_RESPONSE]: (_event, { id, result, error } = {}) =>
+        this.scriptRunner.respond(id, { result, error }),
     };
 
     for (const [channel, handler] of Object.entries(handlers)) {

@@ -67,6 +67,7 @@ export default memo(function FormNumberField({
   label,
   min = 1,
   max = Infinity,
+  description,
   disabled,
 }) {
   return (
@@ -81,6 +82,11 @@ export default memo(function FormNumberField({
             max={max}
             disabled={disabled}
           />
+          {description ? (
+            <p className="text-neutral-500 dark:text-neutral-400">
+              {description}
+            </p>
+          ) : null}
           {fieldState.error ? (
             <p className="text-red-500">{fieldState.error.message}</p>
           ) : null}

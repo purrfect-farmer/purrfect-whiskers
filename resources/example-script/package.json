@@ -1,12 +1,36 @@
 {
   "name": "example",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Summarizes the selected accounts and saves the summary to outputs/",
   "author": "Purrfect Whiskers",
   "type": "module",
   "main": "index.js",
   "whiskers": {
     "displayName": "Example",
-    "icon": "icon.svg"
+    "icon": "icon.svg",
+    "options": [
+      {
+        "key": "concurrency",
+        "type": "number",
+        "label": "Accounts at a time",
+        "description": "How many accounts are handled at the same time",
+        "min": 1,
+        "max": 10,
+        "default": 3
+      },
+      {
+        "key": "readSessions",
+        "type": "boolean",
+        "label": "Read Telegram sessions",
+        "description": "Reads each account's session, which opens it in the background once",
+        "default": true
+      },
+      {
+        "key": "note",
+        "type": "text",
+        "label": "Note",
+        "placeholder": "Saved with the summary"
+      }
+    ]
   }
 }

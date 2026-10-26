@@ -36,11 +36,17 @@ export const FARMER_STORAGE_KEY = Object.freeze({
 /** The states of a script run */
 export const SCRIPT_STATUS = Object.freeze({
   IDLE: "idle",
-  READING: "reading",
   RUNNING: "running",
+  STOPPING: "stopping",
   DONE: "done",
   FAILED: "failed",
   STOPPED: "stopped",
+});
+
+/** Where an account's Telegram session came from */
+export const SESSION_SOURCE = Object.freeze({
+  LOCAL: "local",
+  WEB: "web",
 });
 
 /** The most log lines a script run keeps */

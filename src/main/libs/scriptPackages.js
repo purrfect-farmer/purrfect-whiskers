@@ -1,4 +1,5 @@
 import AdmZip from "adm-zip";
+import { normalizeFields } from "../../shared/lib/scriptFields";
 import fs from "fs/promises";
 import os from "os";
 import path from "path";
@@ -120,6 +121,7 @@ export async function readManifest(scriptDir) {
         ? path.join(scriptDir, SCRIPT_ENTRY)
         : resolveInside(scriptDir, data.main),
     iconPath: resolveInside(scriptDir, appFields.icon),
+    options: normalizeFields(appFields.options),
   };
 }
 
@@ -172,13 +174,14 @@ export async function listScripts(folder) {
       version: manifest.version,
       author: manifest.author,
       icon: await readIcon(manifest.iconPath),
+      options: manifest.options,
     });
   }
 
   return scripts.sort((a, b) => a.displayName.localeCompare(b.displayName));
 }
 
-/** The folder and entry file of the script `name`, refusing other paths */
+/** The folder, entry and options of the script `name`, refusing other paths */
 export async function resolveScript(folder, name) {
   if (!isText(folder) || !isPlainName(name)) {
     throw new Error("Invalid script");
@@ -187,13 +190,13 @@ export async function resolveScript(folder, name) {
   /** The script's folder */
   const scriptDir = path.join(folder, name);
 
-  const { entry } = await readManifest(scriptDir);
+  const { entry, options } = await readManifest(scriptDir);
 
   if (!entry || !(await isFile(entry))) {
     throw new Error(`Script not found: ${name}`);
   }
 
-  return { scriptDir, entry };
+  return { scriptDir, entry, options };
 }
 
 /** A script folder name from a package name, or "" */

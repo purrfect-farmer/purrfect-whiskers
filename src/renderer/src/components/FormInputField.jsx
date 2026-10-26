@@ -9,6 +9,8 @@ export default memo(function FormInputField({
   name,
   label,
   placeholder = label,
+  description,
+  type = "text",
   className,
   disabled,
   children,
@@ -21,6 +23,7 @@ export default memo(function FormInputField({
         const input = (
           <Input
             {...safeField(field)}
+            type={type}
             autoComplete="off"
             placeholder={placeholder}
             disabled={disabled}
@@ -30,6 +33,7 @@ export default memo(function FormInputField({
         return (
           <FormField
             label={label}
+            description={description}
             error={fieldState.error?.message}
             className={className}
           >

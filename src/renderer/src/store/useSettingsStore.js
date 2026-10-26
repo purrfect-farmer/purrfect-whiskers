@@ -32,6 +32,8 @@ export default create(
         rows: 1,
         /** The folder holding the user scripts */
         scriptsFolder: "",
+        /** The last options used for each script, without secrets */
+        scriptOptions: {},
       },
       (set) => ({
         setColumns: (columns) => set({ columns }),
@@ -39,6 +41,14 @@ export default create(
         setTheme: (theme) => set({ theme }),
         setExtensionPath: (extensionPath) => set({ extensionPath }),
         setScriptsFolder: (scriptsFolder) => set({ scriptsFolder }),
+        setScriptOptions: (name, values) =>
+          set((state) => {
+            const { [name]: _previous, ...others } = state.scriptOptions;
+
+            return {
+              scriptOptions: values ? { ...others, [name]: values } : others,
+            };
+          }),
         setAutoUpdateExtension: (autoUpdateExtension) =>
           set({ autoUpdateExtension }),
         setAllowProxies: (allowProxies) => set({ allowProxies }),

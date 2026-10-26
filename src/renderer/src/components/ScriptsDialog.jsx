@@ -16,11 +16,11 @@ export default function ScriptsDialog() {
   /** The selection of accounts to run the script on */
   const selector = useAccountsSelector(accounts, SELECTOR_OPTIONS);
 
-  /** The runner of the script, kept while the dialog is closed */
-  const runner = useScriptRunner();
-
   /** The chosen script */
   const [chosenScript, setChosenScript] = useState(null);
+
+  /** The runner of the script, kept while the dialog is closed */
+  const runner = useScriptRunner(setChosenScript);
 
   return (
     <AppDialogContent

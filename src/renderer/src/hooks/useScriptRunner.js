@@ -3,45 +3,69 @@ import {
   SCRIPT_CHANNEL,
   SCRIPT_EVENT,
 } from "../../../shared/constants/ipc";
-import { cacheSessions, getCachedSession } from "../lib/accountSessions";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { SCRIPT_STATUS } from "../lib/constants";
 import { getErrorMessage } from "../lib/utils";
-import { getOrRestoreAccountBackup } from "../lib/accountBackup";
+import { holdPartitions } from "../lib/busyPartitions";
 import useAppStore from "../store/useAppStore";
-import useBatchRunner from "./useBatchRunner";
+import useScriptApi from "./useScriptApi";
 import useScriptLog from "./useScriptLog";
 
-/** The backup of an account, or none when it can't be read */
-async function readAccountBackup(account) {
-  try {
-    return { account, backup: await getOrRestoreAccountBackup(account) };
-  } catch {
-    return { account, backup: null };
-  }
-}
+/** The progress of a run before the script reports any */
+const NO_PROGRESS = Object.freeze({ done: 0, total: 0 });
 
-/** A hook for running a script on accounts and following its output */
-export default function useScriptRunner() {
+/**
+ * A hook for running a script on accounts and following its output;
+ * `onRestore` gets the name of a run restored after a reload
+ */
+export default function useScriptRunner(onRestore) {
   /** The state of the current run */
   const [status, setStatus] = useState(SCRIPT_STATUS.IDLE);
 
   /** The message of the last failure */
   const [error, setError] = useState(null);
 
+  /** The progress the script reported */
+  const [progress, setProgress] = useState(NO_PROGRESS);
+
+  /** The release of the run's accounts */
+  const releaseRef = useRef(null);
+
   const log = useScriptLog();
+  const api = useScriptApi();
   const { append, end, clear } = log;
-  const { target, progress, run } = useBatchRunner();
+  const { setPartitions, handleRequest, removePrompt, resetPrompts } = api;
+
+  /** Holds the run's accounts so nothing else opens them */
+  const holdAccounts = useCallback(
+    (partitions) => {
+      releaseRef.current?.();
+      releaseRef.current = holdPartitions(partitions);
+      setPartitions(partitions);
+    },
+    [setPartitions],
+  );
+
+  /** The end of a run, freeing its accounts */
+  const finish = useCallback(
+    (nextStatus) => {
+      end();
+      resetPrompts();
+      releaseRef.current?.();
+      releaseRef.current = null;
+      setStatus(nextStatus);
+    },
+    [end, resetPrompts],
+  );
 
   /** The end of a run with a failure */
   const fail = useCallback(
     (message) => {
-      end();
       setError(message);
-      setStatus(SCRIPT_STATUS.FAILED);
+      finish(SCRIPT_STATUS.FAILED);
     },
-    [end],
+    [finish],
   );
 
   /** The subscription to the run events of the main process */
@@ -52,9 +76,20 @@ export default function useScriptRunner() {
         case SCRIPT_EVENT.OUTPUT:
           append(message.text);
           break;
+        case SCRIPT_EVENT.REQUEST:
+          handleRequest(message);
+          break;
+        case SCRIPT_EVENT.PROGRESS:
+          setProgress({ done: message.done, total: message.total });
+          break;
+        case SCRIPT_EVENT.PROMPT_CLOSED:
+          removePrompt(message.id);
+          break;
+        case SCRIPT_EVENT.STOPPING:
+          setStatus(SCRIPT_STATUS.STOPPING);
+          break;
         case SCRIPT_EVENT.DONE:
-          end();
-          setStatus(SCRIPT_STATUS.DONE);
+          finish(SCRIPT_STATUS.DONE);
           break;
         case SCRIPT_EVENT.ERROR:
           append(`${message.stack ?? message.message}\n`);
@@ -62,15 +97,13 @@ export default function useScriptRunner() {
           break;
         case SCRIPT_EVENT.EXIT:
           if (message.code === 0) {
-            end();
-            setStatus(SCRIPT_STATUS.DONE);
+            finish(SCRIPT_STATUS.DONE);
           } else {
             fail(`The script exited with code ${message.code}`);
           }
           break;
         case SCRIPT_EVENT.STOPPED:
-          end();
-          setStatus(SCRIPT_STATUS.STOPPED);
+          finish(SCRIPT_STATUS.STOPPED);
           break;
       }
     };
@@ -80,7 +113,7 @@ export default function useScriptRunner() {
     return () => {
       window.electron.ipcRenderer.removeListener(SCRIPT_CHANNEL, listener);
     };
-  }, [append, end, fail]);
+  }, [append, handleRequest, removePrompt, finish, fail]);
 
   /** The restore of a run that kept going while the window reloaded */
   useEffect(() => {
@@ -88,85 +121,51 @@ export default function useScriptRunner() {
       if (!run) return;
 
       clear();
+      onRestore(run.name);
+      holdAccounts(run.partitions);
       append(`Running ${run.name} (restored after reload)\n`);
       append(run.output);
-      setStatus(SCRIPT_STATUS.RUNNING);
+      setStatus(run.stopping ? SCRIPT_STATUS.STOPPING : SCRIPT_STATUS.RUNNING);
     });
-  }, [append, clear]);
+  }, [append, clear, holdAccounts, onRestore]);
 
-  /** The run of a script on the accounts with a Telegram session */
+  /** The run of a script on the accounts with the options */
   const start = useCallback(
-    async (folder, name, accounts) => {
+    async (folder, name, accounts, options) => {
+      /** The partitions of the accounts */
+      const partitions = accounts.map((account) => account.partition);
+
       clear();
       setError(null);
+      setProgress(NO_PROGRESS);
+      setStatus(SCRIPT_STATUS.RUNNING);
       append(`Running ${name} on ${accounts.length} account(s)\n`);
 
+      useAppStore.getState().closeAccounts(partitions);
+      holdAccounts(partitions);
+
       try {
-        /** The accounts whose session isn't cached yet */
-        const missing = accounts.filter(
-          (account) => !getCachedSession(account.partition),
-        );
-
-        if (missing.length > 0) {
-          setStatus(SCRIPT_STATUS.READING);
-          useAppStore.getState().closeAllAccounts();
-
-          cacheSessions(
-            await run(missing, readAccountBackup, {
-              partitions: missing.map((account) => account.partition),
-            }),
-          );
-        }
-
-        /** The accounts with their sessions */
-        const profiles = [];
-
-        /** The titles of the accounts without a session */
-        const skipped = [];
-
-        for (const account of accounts) {
-          /** The session of the account */
-          const session = getCachedSession(account.partition);
-
-          if (session) {
-            profiles.push({ account, session });
-          } else {
-            skipped.push(account.title);
-          }
-        }
-
-        if (skipped.length > 0) {
-          append(
-            `Skipped ${skipped.length} account(s) without a Telegram session: ${skipped.join(", ")}\n`,
-          );
-        }
-
-        if (profiles.length === 0) {
-          throw new Error("None of the accounts has a Telegram session");
-        }
-
-        setStatus(SCRIPT_STATUS.RUNNING);
-
         await window.electron.ipcRenderer.invoke(IPC.RUN_SCRIPT, {
           folder,
           name,
-          profiles,
+          accounts,
+          options,
         });
       } catch (startError) {
         fail(getErrorMessage(startError));
       }
     },
-    [append, clear, fail, run],
+    [append, clear, fail, holdAccounts],
   );
 
-  /** The stop of the running script */
+  /** The stop of the running script; a second stop kills it at once */
   const stop = useCallback(
     () => window.electron.ipcRenderer.invoke(IPC.STOP_SCRIPT),
     [],
   );
 
   return useMemo(
-    () => ({ status, error, log, target, progress, start, stop }),
-    [status, error, log, target, progress, start, stop],
+    () => ({ status, error, log, api, progress, start, stop }),
+    [status, error, log, api, progress, start, stop],
   );
 }

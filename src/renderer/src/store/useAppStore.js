@@ -208,6 +208,12 @@ export default create(
             accounts: setRunning(get().accounts, new Set([partition]), false),
           }),
 
+        /** Closes the accounts in `partitions` */
+        closeAccounts: (partitions) =>
+          set({
+            accounts: setRunning(get().accounts, new Set(partitions), false),
+          }),
+
         /** Opens the accounts of a set of partitions */
         openAccounts: (partitions) =>
           set({ accounts: setRunning(get().accounts, partitions, true) }),

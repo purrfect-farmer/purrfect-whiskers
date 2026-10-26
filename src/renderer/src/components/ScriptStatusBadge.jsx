@@ -4,12 +4,8 @@ import { memo } from "react";
 
 /** The tone, text and pulse of each run state's badge */
 const STATUS_BADGES = {
-  [SCRIPT_STATUS.READING]: {
-    tone: "amber",
-    text: "Reading sessions",
-    pulse: true,
-  },
   [SCRIPT_STATUS.RUNNING]: { tone: "orange", text: "Running", pulse: true },
+  [SCRIPT_STATUS.STOPPING]: { tone: "amber", text: "Stopping", pulse: true },
   [SCRIPT_STATUS.DONE]: { tone: "green", text: "Finished" },
   [SCRIPT_STATUS.FAILED]: { tone: "red", text: "Failed" },
   [SCRIPT_STATUS.STOPPED]: { tone: "neutral", text: "Stopped" },

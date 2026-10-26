@@ -14,11 +14,12 @@ const itemContent = (_, line) => (
 );
 
 /** The terminal-style output of a script run, following new lines */
-export default memo(function ScriptLog({ lines }) {
+export default memo(function ScriptLog({ lines, isCompact = false }) {
   return (
     <div
       className={cn(
-        "relative grow min-h-64 rounded-xl",
+        "relative grow rounded-xl",
+        isCompact ? "min-h-32" : "min-h-64",
         "bg-black text-neutral-100",
       )}
     >

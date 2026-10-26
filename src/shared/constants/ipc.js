@@ -26,18 +26,42 @@ export const IPC = Object.freeze({
   INSTALL_SCRIPT: "install-script",
   GET_SCRIPT_RUN: "get-script-run",
   OPEN_SCRIPT_FOLDER: "open-script-folder",
+  SCRIPT_RESPONSE: "script-response",
 });
 
 /** The channel carrying script run events from the main process */
 export const SCRIPT_CHANNEL = "script-event";
 
-/** The events of a script run */
+/** The events of a script run, sent to the renderer */
 export const SCRIPT_EVENT = Object.freeze({
   OUTPUT: "output",
+  REQUEST: "request",
+  PROMPT_CLOSED: "prompt-closed",
+  PROGRESS: "progress",
+  STOPPING: "stopping",
   DONE: "done",
   ERROR: "error",
   EXIT: "exit",
   STOPPED: "stopped",
+});
+
+/** The messages between the main process and a script's process */
+export const SCRIPT_HOST_MESSAGE = Object.freeze({
+  START: "start",
+  RESPONSE: "response",
+  ABORT: "abort",
+  REQUEST: "request",
+  PROGRESS: "progress",
+  DONE: "done",
+  ERROR: "error",
+});
+
+/** The requests a script can make to the app */
+export const SCRIPT_API = Object.freeze({
+  GET_SESSION: "getSession",
+  GET_BACKUP: "getBackup",
+  GET_TAGS: "getTags",
+  PROMPT: "prompt",
 });
 
 /** Channels between the host page and its webviews */
