@@ -2,6 +2,21 @@ import { useCallback, useMemo, useState } from "react";
 
 import { FIELD_TYPE } from "../../../shared/lib/scriptFields";
 import { IPC } from "../../../shared/constants/ipc";
+import { hasAllowedExtension } from "../../../shared/lib/scriptPathFields";
+import toast from "react-hot-toast";
+
+/** The last part of a path */
+const getBaseName = (path) => path.split(/[\\/]/).pop();
+
+/** The allowed extensions of a field, as ".csv, .json or .txt" */
+const listExtensions = (extensions) => {
+  /** The extensions with their dots */
+  const names = extensions.map((ext) => `.${ext}`);
+
+  return names.length > 1
+    ? `${names.slice(0, -1).join(", ")} or ${names.at(-1)}`
+    : names[0];
+};
 
 /** The paths of the files dropped in a drag event */
 const getDroppedPaths = (event) =>
@@ -66,11 +81,30 @@ export default function useScriptPathField(field, value, onChange) {
             onDrop: (event) => {
               event.preventDefault();
               setIsDragging(false);
-              setPaths(getDroppedPaths(event));
+
+              /** The dropped paths */
+              const paths = getDroppedPaths(event);
+              /** The dropped paths with an allowed extension */
+              const accepted = paths.filter((path) =>
+                hasAllowedExtension(field, path),
+              );
+              /** The names of the dropped files that were refused */
+              const refused = paths
+                .filter((path) => !accepted.includes(path))
+                .map(getBaseName);
+
+              if (refused.length > 0) {
+                toast.error(
+                  `${refused.join(", ")} isn't a ` +
+                    `${listExtensions(field.extensions)} file`,
+                );
+              }
+
+              setPaths(accepted);
             },
           }
         : {},
-    [acceptsDrops, setPaths],
+    [acceptsDrops, field, setPaths],
   );
 
   return { browse, remove, dropProps, isDragging, acceptsDrops };

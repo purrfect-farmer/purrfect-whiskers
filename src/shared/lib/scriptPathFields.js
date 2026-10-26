@@ -80,7 +80,7 @@ const isFullPath = (value) =>
   value.length <= MAX_PATH_LENGTH && isAbsolutePath(value);
 
 /** Whether a path has one of the field's extensions, or any if none */
-const hasAllowedExtension = (field, value) =>
+export const hasAllowedExtension = (field, value) =>
   field.extensions.length === 0 ||
   field.extensions.includes(getExtension(value));
 
