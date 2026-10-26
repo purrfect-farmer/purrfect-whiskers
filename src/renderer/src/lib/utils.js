@@ -86,11 +86,6 @@ export function getTelegramUserFullName(user) {
   return [user["first_name"], user["last_name"]].filter(Boolean).join(" ");
 }
 
-/** Whether a value includes the search, ignoring case */
-export function searchIncludes(value, search) {
-  return value.toString().toLowerCase().includes(search.toLowerCase());
-}
-
 /** Parses an init data string with its user */
 export function extractInitDataUnsafe(initData) {
   const parsedInitData = Object.fromEntries(
@@ -135,11 +130,17 @@ export function matchesSearch(search, item) {
   const username = user?.["username"] || "";
   const userId = user?.["id"] || "";
 
+  /** The search in lower case */
+  const query = search.toLowerCase();
+
+  /** Whether a value includes the search, ignoring case */
+  const includes = (value) => value.toString().toLowerCase().includes(query);
+
   return (
-    searchIncludes(item.title, search) ||
-    searchIncludes(fullName, search) ||
-    searchIncludes(username, search) ||
-    searchIncludes(userId, search)
+    includes(item.title) ||
+    includes(fullName) ||
+    includes(username) ||
+    includes(userId)
   );
 }
 

@@ -8,6 +8,11 @@ import {
   clearScriptLog,
   endScriptLog,
 } from "../lib/scriptLog";
+import {
+  clearScriptProgress,
+  flushScriptProgress,
+  queueScriptProgress,
+} from "../lib/scriptProgress";
 import useScriptRunStore, { NO_PROGRESS } from "../store/useScriptRunStore";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
@@ -42,6 +47,7 @@ export default function useScriptRunner(onRestore) {
   const finish = useCallback(
     (status) => {
       endScriptLog();
+      flushScriptProgress();
       resetPrompts();
       releaseRef.current?.();
       releaseRef.current = null;
@@ -71,9 +77,7 @@ export default function useScriptRunner(onRestore) {
           handleRequest(message);
           break;
         case SCRIPT_EVENT.PROGRESS:
-          setRunState({
-            progress: { done: message.done, total: message.total },
-          });
+          queueScriptProgress(message.done, message.total);
           break;
         case SCRIPT_EVENT.SHOW_PROMPT:
           useScriptRunStore.getState().setDialogOpen(true);
@@ -136,6 +140,7 @@ export default function useScriptRunner(onRestore) {
       const partitions = accounts.map((account) => account.partition);
 
       clearScriptLog();
+      clearScriptProgress();
       setRunState({
         runName: name,
         error: null,

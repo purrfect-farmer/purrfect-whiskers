@@ -6,7 +6,7 @@ import {
   LuSkull,
 } from "react-icons/lu";
 import ScriptOptions, { SCRIPT_OPTIONS_FORM_ID } from "./ScriptOptions";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import AccountsPicker from "./AccountsPicker";
 import CachedSessionsButton from "./CachedSessionsButton";
@@ -94,10 +94,19 @@ export default function ScriptsPanel({
     [folder],
   );
 
+  /** The selected accounts, read when Run is pressed */
+  const selectedAccountsRef = useRef(selectedAccounts);
+
+  /** Keeps the selected accounts read by Run up to date */
+  useLayoutEffect(() => {
+    selectedAccountsRef.current = selectedAccounts;
+  }, [selectedAccounts]);
+
   /** The handler for running the script with its options */
   const runScript = useCallback(
-    (options) => start(folder, script.name, selectedAccounts, options),
-    [start, folder, script, selectedAccounts],
+    (options) =>
+      start(folder, script.name, selectedAccountsRef.current, options),
+    [start, folder, script],
   );
 
   return (
