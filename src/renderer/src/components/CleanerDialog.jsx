@@ -3,11 +3,14 @@ import AccountsPicker from "./AccountsPicker";
 import Alert from "./Alert";
 import AppDialogContent from "./AppDialogContent";
 import CleanerAccountItem from "./CleanerAccountItem";
+import CleanerTagsTab from "./CleanerTagsTab";
 import { LuEraser } from "react-icons/lu";
 import PrimaryButton from "./PrimaryButton";
 import { Progress } from "./Progress";
+import Tabs from "./Tabs";
 import { useCleaner } from "./CleanerProvider";
 import { useCallback } from "react";
+import useTabs from "../hooks/useTabs";
 
 /** Progress label for each task */
 const TASK_LABELS = {
@@ -28,6 +31,7 @@ export default function CleanerDialog() {
     launchAccount,
   } = useCleaner();
 
+  const tabs = useTabs(["accounts", "tags"], "accounts");
   const isProcessing = task !== null;
   const { accounts: listedAccounts, selectedAccounts } = selector;
 
@@ -43,50 +47,61 @@ export default function CleanerDialog() {
   return (
     <AppDialogContent
       title={"Cleaner"}
-      description={"Find and remove accounts that are signed out"}
+      description={"Remove signed-out accounts and stale tags"}
       icon={LuEraser}
     >
-      <Alert variant={"warning"} className="text-center">
-        Every account is opened without its proxy to check its Telegram session.
-        Cleaning backs up the selected accounts before removing them.
-      </Alert>
-
-      <PrimaryButton
-        variant={hasScanned ? "neutral" : "solid"}
-        disabled={isProcessing}
-        onClick={scan}
-      >
-        {hasScanned ? "Scan Again" : "Scan Accounts"}
-      </PrimaryButton>
-
-      {isProcessing ? (
-        <>
-          <p className="text-center">{TASK_LABELS[task]}</p>
-          <Progress current={progress} max={target} />
-        </>
-      ) : null}
-
-      {listedAccounts.length > 0 ? (
-        <>
-          <AccountsPicker
-            {...selector}
-            itemComponent={CleanerAccountItem}
-            getItemProps={getItemProps}
-            disabled={isProcessing}
-          />
+      <Tabs tabs={tabs} disabled={isProcessing}>
+        {/* Accounts */}
+        <Tabs.Content value="accounts" className="flex flex-col gap-2">
+          <Alert variant={"warning"} className="text-center">
+            Every account is opened without its proxy to check its Telegram
+            session. Cleaning backs up the selected accounts before removing
+            them.
+          </Alert>
 
           <PrimaryButton
-            disabled={isProcessing || selectedAccounts.length === 0}
-            onClick={clean}
+            variant={hasScanned ? "neutral" : "solid"}
+            disabled={isProcessing}
+            onClick={scan}
           >
-            Back up and Remove ({selectedAccounts.length})
+            {hasScanned ? "Scan Again" : "Scan Accounts"}
           </PrimaryButton>
-        </>
-      ) : hasScanned && !isProcessing ? (
-        <p className="text-center text-neutral-500 dark:text-neutral-400">
-          Every account is signed in.
-        </p>
-      ) : null}
+
+          {isProcessing ? (
+            <>
+              <p className="text-center">{TASK_LABELS[task]}</p>
+              <Progress current={progress} max={target} />
+            </>
+          ) : null}
+
+          {listedAccounts.length > 0 ? (
+            <>
+              <AccountsPicker
+                {...selector}
+                itemComponent={CleanerAccountItem}
+                getItemProps={getItemProps}
+                disabled={isProcessing}
+              />
+
+              <PrimaryButton
+                disabled={isProcessing || selectedAccounts.length === 0}
+                onClick={clean}
+              >
+                Back up and Remove ({selectedAccounts.length})
+              </PrimaryButton>
+            </>
+          ) : hasScanned && !isProcessing ? (
+            <p className="text-center text-neutral-500 dark:text-neutral-400">
+              Every account is signed in.
+            </p>
+          ) : null}
+        </Tabs.Content>
+
+        {/* Tags */}
+        <Tabs.Content value="tags" className="flex flex-col gap-2">
+          <CleanerTagsTab />
+        </Tabs.Content>
+      </Tabs>
     </AppDialogContent>
   );
 }

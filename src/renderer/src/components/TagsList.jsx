@@ -1,26 +1,9 @@
 import { HiTag } from "react-icons/hi2";
 import { LuFilterX } from "react-icons/lu";
 import { TbTagOff } from "react-icons/tb";
-import { UNTAGGED_TAG } from "../lib/tags";
+import { UNTAGGED_TAG, countTagUsage } from "../lib/tags";
 import { cn } from "../lib/utils";
 import { memo, useMemo } from "react";
-
-/** Counts the accounts carrying each tag, and those without any */
-function countTags(accounts) {
-  const counts = new Map([[UNTAGGED_TAG.id, 0]]);
-
-  for (const account of accounts) {
-    if (!account.tags?.length) {
-      counts.set(UNTAGGED_TAG.id, counts.get(UNTAGGED_TAG.id) + 1);
-    }
-
-    for (const tagId of account.tags || []) {
-      counts.set(tagId, (counts.get(tagId) || 0) + 1);
-    }
-  }
-
-  return counts;
-}
 
 /**
  * Tag filter chips. The active chip has a button that switches it
@@ -35,7 +18,7 @@ export default memo(function TagsList({
   toggleExcluded,
   disabled,
 }) {
-  const counts = useMemo(() => countTags(accounts), [accounts]);
+  const counts = useMemo(() => countTagUsage(accounts), [accounts]);
 
   return (
     <div className="flex flex-wrap gap-1 empty:hidden">

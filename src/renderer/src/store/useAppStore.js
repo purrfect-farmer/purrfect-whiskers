@@ -270,18 +270,32 @@ export default create(
 
         /** Tags */
         addTag: (tag) => set({ tags: [...get().tags, tag] }),
-        removeTag: (id) =>
+        removeTag: (id) => get().removeTags([id]),
+
+        /**
+         * Removes the tags with `ids` from the tag list and every account.
+         * Returns how many accounts changed.
+         */
+        removeTags: (ids) => {
+          const removed = new Set(ids);
+          let changed = 0;
+
+          const accounts = get().accounts.map((item) => {
+            const tags = applyTagChanges(item.tags, [], ids);
+
+            if (tags === item.tags) return item;
+
+            changed++;
+            return { ...item, tags };
+          });
+
           set({
-            tags: get().tags.filter((item) => item.id !== id),
-            accounts: get().accounts.map((account) =>
-              account.tags?.includes(id)
-                ? {
-                    ...account,
-                    tags: account.tags.filter((tagId) => tagId !== id),
-                  }
-                : account,
-            ),
-          }),
+            tags: get().tags.filter((item) => !removed.has(item.id)),
+            accounts,
+          });
+
+          return changed;
+        },
         updateTag: (id, name) =>
           set({
             tags: get().tags.map((item) =>

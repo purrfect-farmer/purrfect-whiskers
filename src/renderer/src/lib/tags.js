@@ -51,3 +51,42 @@ export function applyTagChanges(tags, add, remove) {
 
   return changed ? next : tags;
 }
+
+/** Counts the accounts carrying each tag id, and those without any tag */
+export function countTagUsage(accounts) {
+  const counts = new Map([[UNTAGGED_TAG.id, 0]]);
+
+  for (const account of accounts) {
+    if (!account.tags?.length) {
+      counts.set(UNTAGGED_TAG.id, counts.get(UNTAGGED_TAG.id) + 1);
+    }
+
+    for (const tagId of account.tags || []) {
+      counts.set(tagId, (counts.get(tagId) || 0) + 1);
+    }
+  }
+
+  return counts;
+}
+
+/**
+ * Tags no account carries (`unused`), and ids accounts carry that are not
+ * in `tags` (`unknown`, with how many accounts carry each)
+ */
+export function findTagIssues(tags, usage) {
+  const known = new Set(tags.map((tag) => tag.id));
+
+  const unused = tags.filter((tag) => !usage.get(tag.id));
+
+  const unknown = [];
+
+  for (const [id, count] of usage) {
+    if (id !== UNTAGGED_TAG.id && !known.has(id)) {
+      unknown.push({ id, count });
+    }
+  }
+
+  unknown.sort((a, b) => a.id.localeCompare(b.id));
+
+  return { unused, unknown };
+}
