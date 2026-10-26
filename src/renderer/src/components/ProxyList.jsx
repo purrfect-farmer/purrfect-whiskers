@@ -3,7 +3,10 @@ import { useCallback, useState } from "react";
 import Input from "./Input";
 import ProxyCountryFilter from "./ProxyCountryFilter";
 import ProxyListItem from "./ProxyListItem";
+import SectionBadge from "./SectionBadge";
+import SectionHeader from "./SectionHeader";
 import { Virtuoso } from "react-virtuoso";
+import { formatNumber } from "../lib/utils";
 import useProxiesFilter from "../hooks/useProxiesFilter";
 
 /** The maximum height of the list */
@@ -71,14 +74,19 @@ export default function ProxyList({ proxies }) {
   return (
     <div className="flex flex-col gap-2">
       {/* Heading */}
-      <div className="flex items-center justify-center gap-2">
-        <h4 className="font-bold">Proxies ({proxies.length})</h4>
-        {validCount > 0 ? (
-          <span className="text-xs font-bold text-green-500">
-            {validCount} valid
-          </span>
-        ) : null}
-      </div>
+      <SectionHeader
+        title="Proxies"
+        badge={
+          <>
+            <SectionBadge>{formatNumber(proxies.length)}</SectionBadge>
+            {validCount > 0 ? (
+              <SectionBadge tone="green">
+                {formatNumber(validCount)} valid
+              </SectionBadge>
+            ) : null}
+          </>
+        }
+      />
 
       {proxies.length > 0 ? (
         <>

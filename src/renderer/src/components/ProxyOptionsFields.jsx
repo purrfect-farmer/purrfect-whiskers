@@ -3,7 +3,7 @@ import { Controller, useFormContext } from "react-hook-form";
 import FormInputField from "./FormInputField";
 import { HiXMark } from "react-icons/hi2";
 import LabelToggle from "./LabelToggle";
-import SectionLabel from "./SectionLabel";
+import SectionHeader from "./SectionHeader";
 import { cn } from "../lib/utils";
 import { memo } from "react";
 
@@ -41,8 +41,7 @@ export default memo(function ProxyOptionsFields() {
 
   return (
     <>
-      <div className="flex items-center justify-between gap-2 mt-2">
-        <SectionLabel className="mt-0">Proxy Options</SectionLabel>
+      <SectionHeader title="Proxy Options">
         <button
           type="button"
           onClick={clearProxy}
@@ -54,7 +53,7 @@ export default memo(function ProxyOptionsFields() {
           <HiXMark className="size-4" />
           Clear Proxy
         </button>
-      </div>
+      </SectionHeader>
 
       {/* Enable Proxy */}
       <Controller

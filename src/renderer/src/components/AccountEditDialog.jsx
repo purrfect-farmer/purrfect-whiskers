@@ -19,6 +19,8 @@ export const AccountEditDialog = ({ account }) => {
       onOpenChange={setOpenEditAccountDialog}
     >
       <Dialog.Trigger
+        title="Edit Account"
+        aria-label={`Edit ${account.title}`}
         className={cn(
           "bg-neutral-100 dark:bg-neutral-700",
           "hover:bg-orange-100 hover:text-orange-700",

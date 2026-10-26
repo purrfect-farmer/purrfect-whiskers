@@ -13,7 +13,9 @@ import { LuTags } from "react-icons/lu";
 import { MdAdd } from "react-icons/md";
 import { Reorder } from "motion/react";
 import ReorderItem from "./ReorderItem";
-import { cn } from "../lib/utils";
+import { cn, formatNumber } from "../lib/utils";
+import SectionBadge from "./SectionBadge";
+import SectionHeader from "./SectionHeader";
 import toast from "react-hot-toast";
 import useAppStore from "../store/useAppStore";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -160,7 +162,10 @@ export default function TagsDialog() {
       </form>
 
       {/* Total Tags */}
-      <h3 className="font-bold text-center">Total Tags: {tags.length}</h3>
+      <SectionHeader
+        title="Tags"
+        badge={<SectionBadge>{formatNumber(tags.length)}</SectionBadge>}
+      />
 
       {/* Alert */}
       {tags.length === 0 ? (

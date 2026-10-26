@@ -9,7 +9,7 @@ import IconButton from "./IconButton";
 import Input from "./Input";
 import LabelToggle from "./LabelToggle";
 import { NumberInput } from "./NumberInput";
-import SectionLabel from "./SectionLabel";
+import SectionHeader from "./SectionHeader";
 import SegmentedControl from "./SegmentedControl";
 import { THEME } from "../lib/constants";
 import { useCallback } from "react";
@@ -79,14 +79,14 @@ export default function SettingsDialog() {
       description={"Configure Settings"}
       icon={HiOutlineCog6Tooth}
     >
-      <SectionLabel>Preferred Theme</SectionLabel>
+      <SectionHeader title="Preferred Theme" />
       <SegmentedControl
         options={THEME_OPTIONS}
         value={settings.theme}
         onChange={setTheme}
       />
 
-      <SectionLabel>Webview Options</SectionLabel>
+      <SectionHeader title="Webview Options" />
       <LabelToggle
         onChange={(ev) => setShowWebviewToolbar(ev.target.checked)}
         checked={settings.showWebviewToolbar}
@@ -106,7 +106,7 @@ export default function SettingsDialog() {
         enabled they won&apos;t be used.
       </p>
 
-      <SectionLabel>Accounts</SectionLabel>
+      <SectionHeader title="Accounts" />
 
       <LabelToggle
         onChange={(ev) => setShowAccountDetails(ev.target.checked)}
@@ -137,10 +137,7 @@ export default function SettingsDialog() {
         />
       </div>
 
-      <SectionLabel>Extension Path</SectionLabel>
-      <div className="flex gap-2 min-w-0">
-        <Input readOnly value={extensionPath} />
-
+      <SectionHeader title="Extension Path">
         <IconButton title="Open Extension Folder" onClick={openExtensionPath}>
           <AiOutlineFolder className="size-4" />
         </IconButton>
@@ -148,7 +145,8 @@ export default function SettingsDialog() {
         <IconButton title="Pick Extension Folder" onClick={pickExtensionPath}>
           <AiOutlineSelect className="size-4" />
         </IconButton>
-      </div>
+      </SectionHeader>
+      <Input readOnly title={extensionPath} value={extensionPath} />
 
       <LabelToggle
         onChange={(ev) => setAutoUpdateExtension(ev.target.checked)}

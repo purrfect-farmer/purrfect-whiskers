@@ -130,7 +130,6 @@ export default function ScriptsPanel({
         <AccountsPicker
           {...selector}
           scrollParent={controlsElement}
-          sectionHeader
           defaultTagsShown={false}
           disabled={isBusy}
         />

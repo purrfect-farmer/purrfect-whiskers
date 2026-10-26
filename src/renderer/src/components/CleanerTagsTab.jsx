@@ -5,15 +5,20 @@ import { memo, useMemo } from "react";
 import Alert from "./Alert";
 import CleanerTagItem from "./CleanerTagItem";
 import SubmitButton from "./SubmitButton";
-import { cn } from "../lib/utils";
+import { cn, formatNumber } from "../lib/utils";
+import SectionBadge from "./SectionBadge";
+import SectionHeader from "./SectionHeader";
 import useTagsCleaner from "../hooks/useTagsCleaner";
 
-/** A titled group of found tags */
-const TagSection = ({ title, hint, children }) => (
+/** A titled group of found tags, with their count and a hint */
+const TagSection = ({ title, count, hint, children }) => (
   <section className="flex flex-col gap-2 min-w-0">
     <div className="flex flex-col">
-      <h4 className="font-bold">{title}</h4>
-      <p className="text-sm text-neutral-500 dark:text-neutral-400">{hint}</p>
+      <SectionHeader
+        title={title}
+        badge={<SectionBadge tone="amber">{formatNumber(count)}</SectionBadge>}
+      />
+      <p className="text-neutral-500 dark:text-neutral-400">{hint}</p>
     </div>
     {children}
   </section>
@@ -44,7 +49,8 @@ const FoundTags = memo(function FoundTags({
       >
         {unused.length > 0 ? (
           <TagSection
-            title={`Unused Tags (${unused.length})`}
+            title="Unused Tags"
+            count={unused.length}
             hint="Not on any account"
           >
             {unused.map((tag) => (
@@ -62,7 +68,8 @@ const FoundTags = memo(function FoundTags({
 
         {unknown.length > 0 ? (
           <TagSection
-            title={`Unknown Tags (${unknown.length})`}
+            title="Unknown Tags"
+            count={unknown.length}
             hint="On accounts but not in your tag list"
           >
             {unknown.map((tag) => (
