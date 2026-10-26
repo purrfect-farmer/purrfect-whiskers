@@ -58,7 +58,6 @@ class App {
         preload: join(__dirname, "../preload/index.js"),
         sandbox: false,
         webviewTag: true,
-        webSecurity: false,
       },
     });
 

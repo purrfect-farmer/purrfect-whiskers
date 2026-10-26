@@ -135,8 +135,6 @@ export default memo(function FarmerWebview({ account, pinned, togglePinned }) {
         allowpopups="true"
         className="grow"
         partition={partition}
-        disablewebsecurity={"true"}
-        webpreferences="webSecurity=no"
         ref={ref}
       />
 
