@@ -1,6 +1,4 @@
 import AnsiText from "./AnsiText";
-import IconButton from "./IconButton";
-import { LuTrash2 } from "react-icons/lu";
 import { Virtuoso } from "react-virtuoso";
 import { cn } from "../lib/utils";
 import { memo } from "react";
@@ -16,37 +14,22 @@ const itemContent = (_, line) => (
 );
 
 /** The output of a script run, filling its column and following new lines */
-export default memo(function ScriptLog({ lines, onClear, disabled }) {
+export default memo(function ScriptLog({ lines }) {
   return (
-    <div className="flex flex-col gap-2 min-w-0 grow">
-      <div className="flex items-center gap-2">
-        <label className="grow min-w-0 text-neutral-500">
-          Log ({lines.length})
-        </label>
-        <IconButton
-          title="Clear Log"
-          disabled={disabled || lines.length === 0}
-          onClick={onClear}
-        >
-          <LuTrash2 className="size-4" />
-        </IconButton>
-      </div>
-
-      <div
-        className={cn(
-          "relative grow min-h-64 rounded-xl",
-          "bg-neutral-100 dark:bg-neutral-900",
-        )}
-      >
-        <div className="absolute inset-0 py-2">
-          <Virtuoso
-            style={{ height: "100%" }}
-            data={lines}
-            followOutput="auto"
-            computeItemKey={computeItemKey}
-            itemContent={itemContent}
-          />
-        </div>
+    <div
+      className={cn(
+        "relative grow min-h-64 rounded-xl",
+        "bg-neutral-100 dark:bg-neutral-900",
+      )}
+    >
+      <div className="absolute inset-0 py-2">
+        <Virtuoso
+          style={{ height: "100%" }}
+          data={lines}
+          followOutput="auto"
+          computeItemKey={computeItemKey}
+          itemContent={itemContent}
+        />
       </div>
     </div>
   );

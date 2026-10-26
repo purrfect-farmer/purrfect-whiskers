@@ -6,6 +6,9 @@ import Input from "./Input";
 import TagsList from "./TagsList";
 import TagsToggleButton from "./TagsToggleButton";
 import ScrollAwareVirtuoso from "./ScrollAwareVirtuoso";
+import SectionBadge from "./SectionBadge";
+import SectionHeader from "./SectionHeader";
+import { formatNumber } from "../lib/utils";
 import useAccountsFilter from "../hooks/useAccountsFilter";
 
 /** The max height of the list, in pixels */
@@ -22,6 +25,7 @@ export default function AccountsPicker({
   disabled,
   showTags = true,
   defaultTagsShown = true,
+  sectionHeader = false,
   scrollParent,
   selected,
   selectedAccounts,
@@ -66,9 +70,21 @@ export default function AccountsPicker({
   return (
     <div className="flex flex-col gap-2">
       {/* Account List Heading */}
-      <h4 className="px-4 text-center">
-        Accounts ({selectedAccounts.length} / {accounts.length})
-      </h4>
+      {sectionHeader ? (
+        <SectionHeader
+          title="Accounts"
+          badge={
+            <SectionBadge tone={selectedAccounts.length ? "orange" : "neutral"}>
+              {formatNumber(selectedAccounts.length)} of{" "}
+              {formatNumber(accounts.length)}
+            </SectionBadge>
+          }
+        />
+      ) : (
+        <h4 className="px-4 text-center">
+          Accounts ({selectedAccounts.length} / {accounts.length})
+        </h4>
+      )}
 
       <div className="flex gap-2 min-w-0">
         {/* Search Input */}

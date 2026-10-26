@@ -140,3 +140,11 @@ const IPC_ERROR_PREFIX = /^Error invoking remote method '[^']+': (Error: )?/;
 export function getErrorMessage(error) {
   return String(error?.message ?? error).replace(IPC_ERROR_PREFIX, "");
 }
+
+/** The formatter of counts, with thousands separators */
+const NUMBER_FORMAT = new Intl.NumberFormat();
+
+/** A count with thousands separators */
+export function formatNumber(value) {
+  return NUMBER_FORMAT.format(value);
+}

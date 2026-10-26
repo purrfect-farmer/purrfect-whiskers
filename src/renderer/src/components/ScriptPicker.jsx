@@ -1,23 +1,12 @@
-import { LuPackagePlus, LuRefreshCw, LuSquareTerminal } from "react-icons/lu";
+import { LuPackagePlus, LuRefreshCw } from "react-icons/lu";
 
 import { AiOutlineFolder } from "react-icons/ai";
 import IconButton from "./IconButton";
-import { cn } from "../lib/utils";
+import ScriptIcon from "./ScriptIcon";
+import { cn, formatNumber } from "../lib/utils";
+import SectionBadge from "./SectionBadge";
+import SectionHeader from "./SectionHeader";
 import { memo } from "react";
-
-/** A script's icon, or the default terminal icon */
-const ScriptIcon = memo(function ScriptIcon({ icon, active }) {
-  return icon ? (
-    <img src={icon} alt="" className="size-5 shrink-0 rounded object-cover" />
-  ) : (
-    <LuSquareTerminal
-      className={cn(
-        "size-5 shrink-0",
-        active ? "text-white" : "text-orange-500",
-      )}
-    />
-  );
-});
 
 /** A row showing a script's icon, display name and version */
 const ScriptRow = memo(function ScriptRow({
@@ -85,10 +74,10 @@ export default memo(function ScriptPicker({
 }) {
   return (
     <div className="flex flex-col gap-2 min-w-0">
-      <div className="flex items-center gap-2">
-        <label className="grow min-w-0 text-neutral-500">
-          Scripts ({scripts.length})
-        </label>
+      <SectionHeader
+        title="Scripts"
+        badge={<SectionBadge>{formatNumber(scripts.length)}</SectionBadge>}
+      >
         <IconButton
           title="Install Script"
           disabled={disabled || isInstalling}
@@ -103,7 +92,7 @@ export default memo(function ScriptPicker({
         >
           <LuRefreshCw className={cn("size-4", isLoading && "animate-spin")} />
         </IconButton>
-      </div>
+      </SectionHeader>
 
       {scripts.length === 0 ? (
         <p className="text-center text-neutral-500 dark:text-neutral-400">
@@ -123,14 +112,6 @@ export default memo(function ScriptPicker({
           ))}
         </div>
       )}
-
-      {selected?.description || selected?.author ? (
-        <p className="text-neutral-500 dark:text-neutral-400">
-          {selected.description}
-          {selected.description && selected.author ? " · " : null}
-          {selected.author ? `by ${selected.author}` : null}
-        </p>
-      ) : null}
     </div>
   );
 });

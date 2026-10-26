@@ -1,4 +1,4 @@
-import { LuCircleStop, LuPlay } from "react-icons/lu";
+import { LuCircleStop, LuPlay, LuTrash2 } from "react-icons/lu";
 import { useCallback, useMemo, useState } from "react";
 
 import AccountsPicker from "./AccountsPicker";
@@ -8,9 +8,13 @@ import { cn } from "../lib/utils";
 import PrimaryButton from "./PrimaryButton";
 import { IPC } from "../../../shared/constants/ipc";
 import { SCRIPT_STATUS } from "../lib/constants";
+import ScriptDetails from "./ScriptDetails";
 import ScriptLog from "./ScriptLog";
 import ScriptPicker from "./ScriptPicker";
+import IconButton from "./IconButton";
 import ScriptRunStatus from "./ScriptRunStatus";
+import ScriptStatusBadge from "./ScriptStatusBadge";
+import SectionHeader from "./SectionHeader";
 import ScriptsFolderField from "./ScriptsFolderField";
 import useScriptPackages from "../hooks/useScriptPackages";
 import useScriptsFolder from "../hooks/useScriptsFolder";
@@ -126,6 +130,7 @@ export default function ScriptsPanel({
         <AccountsPicker
           {...selector}
           scrollParent={controlsElement}
+          sectionHeader
           defaultTagsShown={false}
           disabled={isBusy}
         />
@@ -133,6 +138,21 @@ export default function ScriptsPanel({
 
       {/* Output */}
       <div className="flex flex-col gap-2 min-w-0 min-h-0">
+        <ScriptDetails script={script} onOpenFolder={openScriptFolder} />
+
+        <SectionHeader
+          title="Output"
+          badge={<ScriptStatusBadge status={status} />}
+        >
+          <IconButton
+            title="Clear Output"
+            disabled={isBusy || runner.log.lines.length === 0}
+            onClick={runner.log.clear}
+          >
+            <LuTrash2 className="size-4" />
+          </IconButton>
+        </SectionHeader>
+
         <ScriptRunStatus
           status={status}
           error={runner.error}
@@ -140,11 +160,7 @@ export default function ScriptsPanel({
           progress={runner.progress}
         />
 
-        <ScriptLog
-          lines={runner.log.lines}
-          onClear={runner.log.clear}
-          disabled={isBusy}
-        />
+        <ScriptLog lines={runner.log.lines} />
       </div>
     </div>
   );

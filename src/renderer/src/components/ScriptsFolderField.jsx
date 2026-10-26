@@ -4,6 +4,8 @@ import { memo, useCallback } from "react";
 import { IPC } from "../../../shared/constants/ipc";
 import IconButton from "./IconButton";
 import Input from "./Input";
+import SectionBadge from "./SectionBadge";
+import SectionHeader from "./SectionHeader";
 import { LuRotateCcw } from "react-icons/lu";
 import useSettingsStore from "../store/useSettingsStore";
 
@@ -41,18 +43,10 @@ export default memo(function ScriptsFolderField({
 
   return (
     <div className="flex flex-col gap-2 min-w-0">
-      <label className="text-neutral-500">
-        Scripts Folder {isDefault ? "(Default)" : null}
-      </label>
-
-      <div className="flex gap-2 min-w-0">
-        <Input
-          readOnly
-          title={folder}
-          value={folder}
-          placeholder="Loading..."
-        />
-
+      <SectionHeader
+        title="Scripts Folder"
+        badge={isDefault ? <SectionBadge>Default</SectionBadge> : null}
+      >
         <IconButton
           title="Open Scripts Folder"
           disabled={!folder}
@@ -78,7 +72,9 @@ export default memo(function ScriptsFolderField({
             <LuRotateCcw className="size-4" />
           </IconButton>
         ) : null}
-      </div>
+      </SectionHeader>
+
+      <Input readOnly title={folder} value={folder} placeholder="Loading..." />
     </div>
   );
 });
