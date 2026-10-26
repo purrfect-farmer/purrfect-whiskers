@@ -77,7 +77,7 @@ console.log(answer.values.code); // answer.action === "submit"
 | --- | --- |
 | `title`, `description` | What the user is asked. |
 | `partition` | The account the prompt is about; its title is shown. |
-| `image` | A PNG, JPEG, WebP or GIF, as a data URL or plain base64, up to about 1.5 MB. |
+| `image` | A PNG, JPEG, WebP or GIF as a data URL or plain base64, or an SVG as a data URL (base64 or URL-encoded), up to 2 million characters. |
 | `fields` | The inputs, in the option format below. |
 | `actions` | Up to 3 extra buttons, as strings or `{ value, label }`. They answer without checking the fields. |
 | `timeout` | Seconds (5–3600) before the prompt closes by itself with `null`. |

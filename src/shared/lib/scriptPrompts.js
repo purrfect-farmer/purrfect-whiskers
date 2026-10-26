@@ -15,14 +15,18 @@ const MAX_ACTIONS = 3;
 const MIN_TIMEOUT = 5;
 const MAX_TIMEOUT = 3600;
 
-/** The longest image accepted, in base64 characters */
+/** The longest image accepted, in characters */
 const MAX_IMAGE_LENGTH = 2_000_000;
 
 /** The image types a prompt can show */
-const IMAGE_TYPES = new Set(["png", "jpeg", "webp", "gif"]);
+const IMAGE_TYPES = new Set(["png", "jpeg", "webp", "gif", "svg+xml"]);
 
-/** The pattern of an image data URL */
-const DATA_URL_PATTERN = /^data:image\/([a-z]+);base64,([A-Za-z0-9+/]+=*)$/;
+/** The pattern of a base64 image data URL */
+const DATA_URL_PATTERN = /^data:image\/([a-z+]+);base64,[A-Za-z0-9+/]+=*$/;
+
+/** The pattern of a URL-encoded SVG data URL */
+const SVG_TEXT_DATA_URL_PATTERN =
+  /^data:image\/svg\+xml(;charset=utf-8)?,%3Csvg/i;
 
 /** The pattern of plain base64 text */
 const BASE64_PATTERN = /^[A-Za-z0-9+/]+=*$/;
@@ -42,6 +46,8 @@ function toImage(raw) {
   const match = raw.match(DATA_URL_PATTERN);
 
   if (match) return IMAGE_TYPES.has(match[1]) ? raw : null;
+
+  if (SVG_TEXT_DATA_URL_PATTERN.test(raw)) return raw;
 
   if (!BASE64_PATTERN.test(raw)) return null;
 
