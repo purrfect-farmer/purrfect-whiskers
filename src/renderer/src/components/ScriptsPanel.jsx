@@ -1,4 +1,4 @@
-import { LuCircleStop, LuPlay, LuSkull, LuTrash2 } from "react-icons/lu";
+import { LuCircleStop, LuPlay, LuSkull } from "react-icons/lu";
 import ScriptOptions, { SCRIPT_OPTIONS_FORM_ID } from "./ScriptOptions";
 import { useCallback, useMemo, useState } from "react";
 
@@ -12,13 +12,14 @@ import { SCRIPT_STATUS } from "../lib/constants";
 import ScriptDetails from "./ScriptDetails";
 import ScriptLog from "./ScriptLog";
 import ScriptPicker from "./ScriptPicker";
-import ScriptPrompt from "./ScriptPrompt";
-import IconButton from "./IconButton";
+import ScriptLogClearButton from "./ScriptLogClearButton";
+import ScriptPromptSlot from "./ScriptPromptSlot";
 import ScriptRunStatus from "./ScriptRunStatus";
 import ScriptStatusBadge from "./ScriptStatusBadge";
 import SectionHeader from "./SectionHeader";
 import ScriptsFolderField from "./ScriptsFolderField";
 import useScriptPackages from "../hooks/useScriptPackages";
+import useScriptRunStore from "../store/useScriptRunStore";
 import useScriptsFolder from "../hooks/useScriptsFolder";
 
 /** The content of the Scripts dialog: controls beside the output */
@@ -30,7 +31,8 @@ export default function ScriptsPanel({
 }) {
   const { folder, isDefault } = useScriptsFolder();
   const { selectedAccounts } = selector;
-  const { status, start, stop, api } = runner;
+  const { start, stop, answerPrompt } = runner;
+  const status = useScriptRunStore((state) => state.status);
 
   /** The scripts in the folder and their install action */
   const packages = useScriptPackages(folder, setChosenScript);
@@ -158,14 +160,7 @@ export default function ScriptsPanel({
             "-mx-2 px-2",
           )}
         >
-          {api.prompt ? (
-            <ScriptPrompt
-              key={api.prompt.id}
-              prompt={api.prompt}
-              waiting={api.waiting}
-              onAnswer={api.answerPrompt}
-            />
-          ) : null}
+          <ScriptPromptSlot onAnswer={answerPrompt} />
 
           <ScriptDetails script={script} onOpenFolder={openScriptFolder} />
 
@@ -179,28 +174,13 @@ export default function ScriptsPanel({
           ) : null}
         </div>
 
-        <SectionHeader
-          title="Output"
-          badge={
-            <ScriptStatusBadge status={status} startedAt={runner.startedAt} />
-          }
-        >
-          <IconButton
-            title="Clear Output"
-            disabled={isBusy || runner.log.lines.length === 0}
-            onClick={runner.log.clear}
-          >
-            <LuTrash2 className="size-4" />
-          </IconButton>
+        <SectionHeader title="Output" badge={<ScriptStatusBadge />}>
+          <ScriptLogClearButton />
         </SectionHeader>
 
-        <ScriptRunStatus
-          status={status}
-          error={runner.error}
-          progress={runner.progress}
-        />
+        <ScriptRunStatus />
 
-        <ScriptLog lines={runner.log.lines} isCompact={api.prompt !== null} />
+        <ScriptLog />
       </div>
     </div>
   );

@@ -1,4 +1,7 @@
-import useScriptRunStore, { selectIsRunning } from "../store/useScriptRunStore";
+import useScriptRunStore, {
+  selectIsRunning,
+  selectWaiting,
+} from "../store/useScriptRunStore";
 
 import { LuLoaderCircle } from "react-icons/lu";
 import { cn } from "../lib/utils";
@@ -7,7 +10,7 @@ import { memo } from "react";
 /** The Scripts button badge: waiting prompts, or a spinner while running */
 export default memo(function ScriptRunBadge() {
   const isRunning = useScriptRunStore(selectIsRunning);
-  const waiting = useScriptRunStore((state) => state.waiting);
+  const waiting = useScriptRunStore(selectWaiting);
 
   if (waiting > 0) {
     return (

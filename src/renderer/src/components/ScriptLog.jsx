@@ -1,6 +1,8 @@
 import AnsiText from "./AnsiText";
 import { Virtuoso } from "react-virtuoso";
 import { cn } from "../lib/utils";
+import useScriptRunStore, { selectPrompt } from "../store/useScriptRunStore";
+
 import { memo } from "react";
 
 /** The key of a log line */
@@ -13,8 +15,14 @@ const itemContent = (_, line) => (
   </div>
 );
 
-/** The terminal-style output of a script run, following new lines */
-export default memo(function ScriptLog({ lines, isCompact = false }) {
+/** Whether a prompt is open, which makes the log compact */
+const selectIsCompact = (state) => selectPrompt(state) !== null;
+
+/** The terminal-style output of the script run, following new lines */
+export default memo(function ScriptLog() {
+  const lines = useScriptRunStore((state) => state.lines);
+  const isCompact = useScriptRunStore(selectIsCompact);
+
   return (
     <div
       className={cn(

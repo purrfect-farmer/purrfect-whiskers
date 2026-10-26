@@ -1,5 +1,6 @@
 import useScriptRunStore, {
   selectSetDialogOpen,
+  selectWaiting,
 } from "../store/useScriptRunStore";
 
 import { LuMessageCircleQuestion } from "react-icons/lu";
@@ -41,8 +42,8 @@ function PromptToastContent({ title, waiting, onOpen }) {
 
 /** A toast shown while prompts wait and the Scripts dialog is closed */
 export default function ScriptPromptToast() {
-  const waiting = useScriptRunStore((state) => state.waiting);
-  const title = useScriptRunStore((state) => state.promptTitle);
+  const waiting = useScriptRunStore(selectWaiting);
+  const title = useScriptRunStore((state) => state.prompts[0]?.title ?? null);
   const isDialogOpen = useScriptRunStore((state) => state.isDialogOpen);
   const setDialogOpen = useScriptRunStore(selectSetDialogOpen);
 

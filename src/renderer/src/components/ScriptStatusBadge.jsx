@@ -2,6 +2,7 @@ import { SCRIPT_STATUS } from "../lib/constants";
 import ElapsedTime from "./ElapsedTime";
 import SectionBadge from "./SectionBadge";
 import { memo } from "react";
+import useScriptRunStore from "../store/useScriptRunStore";
 
 /** The tone and text of each run state's badge */
 const STATUS_BADGES = {
@@ -12,8 +13,11 @@ const STATUS_BADGES = {
   [SCRIPT_STATUS.STOPPED]: { tone: "neutral", text: "Stopped" },
 };
 
-/** A badge showing the state of a script run, with its time while running */
-export default memo(function ScriptStatusBadge({ status, startedAt }) {
+/** A badge showing the state of the script run, with its time while running */
+export default memo(function ScriptStatusBadge() {
+  const status = useScriptRunStore((state) => state.status);
+  const startedAt = useScriptRunStore((state) => state.startedAt);
+
   /** The badge of the state */
   const badge = STATUS_BADGES[status];
 

@@ -1,10 +1,11 @@
 import { IPC, SCRIPT_API } from "../../../shared/constants/ipc";
 import { getAccountSession, readAccountBackup } from "../lib/accountSessions";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef } from "react";
 
 import { getErrorMessage } from "../lib/utils";
 import { normalizePrompt } from "../../../shared/lib/scriptPrompts";
 import useAppStore from "../store/useAppStore";
+import useScriptRunStore from "../store/useScriptRunStore";
 
 /** Sends the answer of a script's request to the main process */
 const respond = (id, payload) =>
@@ -50,22 +51,17 @@ async function readRequest(method, partition) {
   }
 }
 
+/** The prompts waiting for an answer */
+const getPrompts = () => useScriptRunStore.getState().prompts;
+
+/** Replaces the prompts waiting for an answer */
+const setPrompts = (prompts) =>
+  useScriptRunStore.getState().setRunState({ prompts });
+
 /** A hook for answering a running script's requests and its prompts */
 export default function useScriptApi() {
   /** The partitions of the run's accounts */
   const partitionsRef = useRef(new Set());
-
-  /** The prompts waiting for an answer, oldest first */
-  const [prompts, setPromptsState] = useState([]);
-
-  /** The latest prompts, read by the handlers */
-  const promptsRef = useRef(prompts);
-
-  /** Replaces the open prompts */
-  const setPrompts = useCallback((next) => {
-    promptsRef.current = next;
-    setPromptsState(next);
-  }, []);
 
   /** Sets the partitions the run may read */
   const setPartitions = useCallback((partitions) => {
@@ -73,51 +69,48 @@ export default function useScriptApi() {
   }, []);
 
   /** The handler of a script's request */
-  const handleRequest = useCallback(
-    async ({ id, method, args, expiresAt }) => {
-      if (method === SCRIPT_API.PROMPT) {
-        /** The prompt with only valid properties */
-        const prompt = normalizePrompt(args[0]);
+  const handleRequest = useCallback(async ({ id, method, args, expiresAt }) => {
+    if (method === SCRIPT_API.PROMPT) {
+      /** The prompt with only valid properties */
+      const prompt = normalizePrompt(args[0]);
 
-        /** The title of the account the prompt is about */
-        const accountTitle = prompt.partition
-          ? (findAccountOrNull(prompt.partition)?.title ?? null)
-          : null;
+      /** The title of the account the prompt is about */
+      const accountTitle = prompt.partition
+        ? (findAccountOrNull(prompt.partition)?.title ?? null)
+        : null;
 
-        /** The open prompts */
-        const current = promptsRef.current;
+      /** The open prompts */
+      const current = getPrompts();
 
-        if (!current.some((item) => item.id === id)) {
-          setPrompts([
-            ...current,
-            { id, ...prompt, accountTitle, expiresAt: expiresAt ?? null },
-          ]);
+      if (!current.some((item) => item.id === id)) {
+        setPrompts([
+          ...current,
+          { id, ...prompt, accountTitle, expiresAt: expiresAt ?? null },
+        ]);
+      }
+      return;
+    }
+
+    /** The partition the request reads */
+    const partition = args[0];
+
+    try {
+      if (method !== SCRIPT_API.GET_TAGS) {
+        if (!partitionsRef.current.has(partition)) {
+          throw new Error("The account is not part of this run");
         }
-        return;
       }
 
-      /** The partition the request reads */
-      const partition = args[0];
-
-      try {
-        if (method !== SCRIPT_API.GET_TAGS) {
-          if (!partitionsRef.current.has(partition)) {
-            throw new Error("The account is not part of this run");
-          }
-        }
-
-        respond(id, { result: await readRequest(method, partition) });
-      } catch (error) {
-        respond(id, { error: getErrorMessage(error) });
-      }
-    },
-    [setPrompts],
-  );
+      respond(id, { result: await readRequest(method, partition) });
+    } catch (error) {
+      respond(id, { error: getErrorMessage(error) });
+    }
+  }, []);
 
   /** Removes an open prompt */
   const removePrompt = useCallback(
-    (id) => setPrompts(promptsRef.current.filter((item) => item.id !== id)),
-    [setPrompts],
+    (id) => setPrompts(getPrompts().filter((item) => item.id !== id)),
+    [],
   );
 
   /** Answers a prompt with `{ action, values }`, or null when cancelled */
@@ -130,25 +123,16 @@ export default function useScriptApi() {
   );
 
   /** Forgets the prompts of a run that ended */
-  const resetPrompts = useCallback(() => setPrompts([]), [setPrompts]);
+  const resetPrompts = useCallback(() => setPrompts([]), []);
 
   return useMemo(
     () => ({
-      prompt: prompts[0] ?? null,
-      waiting: prompts.length,
       setPartitions,
       handleRequest,
       answerPrompt,
       removePrompt,
       resetPrompts,
     }),
-    [
-      prompts,
-      setPartitions,
-      handleRequest,
-      answerPrompt,
-      removePrompt,
-      resetPrompts,
-    ],
+    [setPartitions, handleRequest, answerPrompt, removePrompt, resetPrompts],
   );
 }

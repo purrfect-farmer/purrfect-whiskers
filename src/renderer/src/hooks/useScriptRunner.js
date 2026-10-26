@@ -3,42 +3,32 @@ import {
   SCRIPT_CHANNEL,
   SCRIPT_EVENT,
 } from "../../../shared/constants/ipc";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  appendScriptLog,
+  clearScriptLog,
+  endScriptLog,
+} from "../lib/scriptLog";
+import useScriptRunStore, { NO_PROGRESS } from "../store/useScriptRunStore";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { SCRIPT_STATUS } from "../lib/constants";
 import { getErrorMessage } from "../lib/utils";
 import { holdPartitions } from "../lib/busyPartitions";
 import useAppStore from "../store/useAppStore";
 import useScriptApi from "./useScriptApi";
-import useScriptLog from "./useScriptLog";
-import useScriptRunStore from "../store/useScriptRunStore";
 
-/** The progress of a run before the script reports any */
-const NO_PROGRESS = Object.freeze({ done: 0, total: 0 });
+/** Merges changes into the run state */
+const setRunState = (state) => useScriptRunStore.getState().setRunState(state);
 
 /**
- * A hook for running a script on accounts and following its output;
- * `onRestore` gets the name of a run restored after a reload
+ * A hook for running a script on accounts and following its output in the
+ * run store; `onRestore` gets the name of a run restored after a reload
  */
 export default function useScriptRunner(onRestore) {
-  /** The state of the current run */
-  const [status, setStatus] = useState(SCRIPT_STATUS.IDLE);
-
-  /** The message of the last failure */
-  const [error, setError] = useState(null);
-
-  /** The progress the script reported */
-  const [progress, setProgress] = useState(NO_PROGRESS);
-
-  /** The time the current run started, or null */
-  const [startedAt, setStartedAt] = useState(null);
-
   /** The release of the run's accounts */
   const releaseRef = useRef(null);
 
-  const log = useScriptLog();
   const api = useScriptApi();
-  const { append, end, clear } = log;
   const { setPartitions, handleRequest, removePrompt, resetPrompts } = api;
 
   /** Holds the run's accounts so nothing else opens them */
@@ -53,20 +43,20 @@ export default function useScriptRunner(onRestore) {
 
   /** The end of a run, freeing its accounts */
   const finish = useCallback(
-    (nextStatus) => {
-      end();
+    (status) => {
+      endScriptLog();
       resetPrompts();
       releaseRef.current?.();
       releaseRef.current = null;
-      setStatus(nextStatus);
+      setRunState({ status });
     },
-    [end, resetPrompts],
+    [resetPrompts],
   );
 
   /** The end of a run with a failure */
   const fail = useCallback(
     (message) => {
-      setError(message);
+      setRunState({ error: message });
       finish(SCRIPT_STATUS.FAILED);
     },
     [finish],
@@ -78,13 +68,15 @@ export default function useScriptRunner(onRestore) {
     const listener = (_event, message) => {
       switch (message.type) {
         case SCRIPT_EVENT.OUTPUT:
-          append(message.text);
+          appendScriptLog(message.text);
           break;
         case SCRIPT_EVENT.REQUEST:
           handleRequest(message);
           break;
         case SCRIPT_EVENT.PROGRESS:
-          setProgress({ done: message.done, total: message.total });
+          setRunState({
+            progress: { done: message.done, total: message.total },
+          });
           break;
         case SCRIPT_EVENT.SHOW_PROMPT:
           useScriptRunStore.getState().setDialogOpen(true);
@@ -93,13 +85,13 @@ export default function useScriptRunner(onRestore) {
           removePrompt(message.id);
           break;
         case SCRIPT_EVENT.STOPPING:
-          setStatus(SCRIPT_STATUS.STOPPING);
+          setRunState({ status: SCRIPT_STATUS.STOPPING });
           break;
         case SCRIPT_EVENT.DONE:
           finish(SCRIPT_STATUS.DONE);
           break;
         case SCRIPT_EVENT.ERROR:
-          append(`${message.stack ?? message.message}\n`);
+          appendScriptLog(`${message.stack ?? message.message}\n`);
           fail(message.message);
           break;
         case SCRIPT_EVENT.EXIT:
@@ -120,31 +112,24 @@ export default function useScriptRunner(onRestore) {
     return () => {
       window.electron.ipcRenderer.removeListener(SCRIPT_CHANNEL, listener);
     };
-  }, [append, handleRequest, removePrompt, finish, fail]);
-
-  /** The run state shared with the side menu */
-  useEffect(() => {
-    useScriptRunStore.getState().setRunState({
-      status,
-      waiting: api.waiting,
-      promptTitle: api.prompt?.title ?? null,
-    });
-  }, [status, api.waiting, api.prompt]);
+  }, [handleRequest, removePrompt, finish, fail]);
 
   /** The restore of a run that kept going while the window reloaded */
   useEffect(() => {
     window.electron.ipcRenderer.invoke(IPC.GET_SCRIPT_RUN).then((run) => {
       if (!run) return;
 
-      clear();
+      clearScriptLog();
       onRestore(run.name);
       holdAccounts(run.partitions);
-      setStartedAt(run.startedAt);
-      append(`Running ${run.name} (restored after reload)\n`);
-      append(run.output);
-      setStatus(run.stopping ? SCRIPT_STATUS.STOPPING : SCRIPT_STATUS.RUNNING);
+      appendScriptLog(`Running ${run.name} (restored after reload)\n`);
+      appendScriptLog(run.output);
+      setRunState({
+        startedAt: run.startedAt,
+        status: run.stopping ? SCRIPT_STATUS.STOPPING : SCRIPT_STATUS.RUNNING,
+      });
     });
-  }, [append, clear, holdAccounts, onRestore]);
+  }, [holdAccounts, onRestore]);
 
   /** The run of a script on the accounts with the options */
   const start = useCallback(
@@ -152,12 +137,14 @@ export default function useScriptRunner(onRestore) {
       /** The partitions of the accounts */
       const partitions = accounts.map((account) => account.partition);
 
-      clear();
-      setError(null);
-      setProgress(NO_PROGRESS);
-      setStartedAt(Date.now());
-      setStatus(SCRIPT_STATUS.RUNNING);
-      append(`Running ${name} on ${accounts.length} account(s)\n`);
+      clearScriptLog();
+      setRunState({
+        error: null,
+        progress: NO_PROGRESS,
+        startedAt: Date.now(),
+        status: SCRIPT_STATUS.RUNNING,
+      });
+      appendScriptLog(`Running ${name} on ${accounts.length} account(s)\n`);
 
       useAppStore.getState().closeAccounts(partitions);
       holdAccounts(partitions);
@@ -173,7 +160,7 @@ export default function useScriptRunner(onRestore) {
         fail(getErrorMessage(startError));
       }
     },
-    [append, clear, fail, holdAccounts],
+    [fail, holdAccounts],
   );
 
   /** The stop of the running script; a second stop kills it at once */
@@ -183,7 +170,7 @@ export default function useScriptRunner(onRestore) {
   );
 
   return useMemo(
-    () => ({ status, error, log, api, progress, startedAt, start, stop }),
-    [status, error, log, api, progress, startedAt, start, stop],
+    () => ({ start, stop, answerPrompt: api.answerPrompt }),
+    [start, stop, api.answerPrompt],
   );
 }
