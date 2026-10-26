@@ -4,8 +4,8 @@ import {
   SESSION_SOURCE,
 } from "./constants";
 
-import { createConcurrencyLimit } from "./concurrencyLimit";
 import { getOrRestoreAccountBackup } from "./accountBackup";
+import pLimit from "p-limit";
 import { sessionFromTelegramWeb } from "./telegramWebSession";
 
 /** The Telegram session of each account and where it came from, by partition */
@@ -15,7 +15,7 @@ const sessions = new Map();
 const listeners = new Set();
 
 /** The limit on hidden webviews reading account backups at once */
-const limitBackupReads = createConcurrencyLimit(MAX_CONCURRENT_WEBVIEWS);
+const limitBackupReads = pLimit(MAX_CONCURRENT_WEBVIEWS);
 
 /** Tells every listener that the cache changed */
 function notify() {

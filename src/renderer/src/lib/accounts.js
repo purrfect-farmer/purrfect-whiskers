@@ -1,5 +1,5 @@
 import { IPC } from "../../../shared/constants/ipc";
-import { createConcurrencyLimit } from "./concurrencyLimit";
+import pLimit from "p-limit";
 import useAppStore from "../store/useAppStore";
 
 /** Close the running accounts and open them again on the next frame */
@@ -40,7 +40,7 @@ export async function deleteAccounts(partitions) {
   useAppStore.getState().closeAccounts(partitions);
 
   /** The limit on sessions wiped at once */
-  const limitWipes = createConcurrencyLimit(MAX_CONCURRENT_WIPES);
+  const limitWipes = pLimit(MAX_CONCURRENT_WIPES);
 
   /** The partitions wiped */
   const removed = [];
