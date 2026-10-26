@@ -268,8 +268,17 @@ export default create(
         launchAccounts: (partitions) => {
           /** The partitions to open */
           const targets = new Set(partitions);
-          /** The number of busy accounts */
-          const busyCount = partitions.filter(isPartitionBusy).length;
+          /** The partitions that are already open */
+          const openPartitions = new Set(
+            get()
+              .accounts.filter((item) => item.running)
+              .map((item) => item.partition),
+          );
+          /** The number of accounts left closed because they are busy */
+          const busyCount = partitions.filter(
+            (partition) =>
+              isPartitionBusy(partition) && !openPartitions.has(partition),
+          ).length;
 
           const accounts = setRunning(get().accounts, targets, true);
           /** The running accounts */

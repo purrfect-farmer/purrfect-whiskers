@@ -5,7 +5,10 @@ export function withoutTags(account) {
   return rest;
 }
 
-/** A parser for the items of an accounts file, returning null when invalid */
+/**
+ * A parser for the items of an accounts file, each partition kept once,
+ * returning null when invalid
+ */
 export function parseAccountsFile(data) {
   const items = data?.accounts;
 
@@ -16,5 +19,16 @@ export function parseAccountsFile(data) {
     (item) => typeof item?.account?.partition === "string",
   );
 
-  return valid ? items : null;
+  if (!valid) return null;
+
+  /** The partitions already kept */
+  const seen = new Set();
+
+  return items.filter(({ account }) => {
+    if (seen.has(account.partition)) return false;
+
+    seen.add(account.partition);
+
+    return true;
+  });
 }

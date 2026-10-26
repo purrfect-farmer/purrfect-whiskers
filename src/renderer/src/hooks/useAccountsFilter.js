@@ -25,14 +25,16 @@ export default function useAccountsFilter(accounts) {
   const activeTag = useMemo(
     () =>
       selectedTag === UNTAGGED_TAG.id
-        ? UNTAGGED_TAG
+        ? tags.length > 0
+          ? UNTAGGED_TAG
+          : null
         : selectedTag
           ? (tags.find((item) => item.id === selectedTag) ?? null)
           : null,
     [tags, selectedTag],
   );
 
-  /** The reset of a selected tag that no longer exists */
+  /** The reset of a selected tag that is no longer offered */
   if (selectedTag && !activeTag) {
     setSelectedTag(null);
     setExcluded(false);

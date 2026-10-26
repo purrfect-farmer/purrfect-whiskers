@@ -17,13 +17,21 @@ const NumberFieldControl = memo(function NumberFieldControl({
   /** The text typed while the input has focus */
   const [draft, setDraft] = useState(null);
 
-  /** The handler for typed text */
+  /** The handler for typed text, showing the clamped value when out of range */
   const handleChange = (text) => {
-    setDraft(text);
+    /** The typed number */
+    const typed = parseInt(text);
 
-    if (!Number.isNaN(parseInt(text))) {
-      field.onChange(toClampedInteger(text, min, max));
+    if (Number.isNaN(typed)) {
+      setDraft(text);
+      return;
     }
+
+    /** The typed number within `min`–`max` */
+    const value = toClampedInteger(text, min, max);
+
+    setDraft(value === typed ? text : null);
+    field.onChange(value);
   };
 
   /** The handler for the step buttons */
