@@ -2,6 +2,7 @@ import { CLEANER_TASK } from "../hooks/useCleanerCore";
 import AccountsPicker from "./AccountsPicker";
 import Alert from "./Alert";
 import AppDialogContent from "./AppDialogContent";
+import { CLEANER_TAB } from "../lib/constants";
 import CleanerAccountItem from "./CleanerAccountItem";
 import CleanerTagsTab from "./CleanerTagsTab";
 import { LuEraser } from "react-icons/lu";
@@ -31,7 +32,7 @@ export default function CleanerDialog() {
     launchAccount,
   } = useCleaner();
 
-  const tabs = useTabs(["accounts", "tags"], "accounts");
+  const tabs = useTabs(Object.values(CLEANER_TAB), CLEANER_TAB.ACCOUNTS);
   const isProcessing = task !== null;
   const { accounts: listedAccounts, selectedAccounts } = selector;
 
@@ -52,7 +53,10 @@ export default function CleanerDialog() {
     >
       <Tabs tabs={tabs} disabled={isProcessing}>
         {/* Accounts */}
-        <Tabs.Content value="accounts" className="flex flex-col gap-2">
+        <Tabs.Content
+          value={CLEANER_TAB.ACCOUNTS}
+          className="flex flex-col gap-2"
+        >
           <Alert variant={"warning"} className="text-center">
             Every account is opened without its proxy to check its Telegram
             session. Cleaning backs up the selected accounts before removing
@@ -98,7 +102,7 @@ export default function CleanerDialog() {
         </Tabs.Content>
 
         {/* Tags */}
-        <Tabs.Content value="tags" className="flex flex-col gap-2">
+        <Tabs.Content value={CLEANER_TAB.TAGS} className="flex flex-col gap-2">
           <CleanerTagsTab />
         </Tabs.Content>
       </Tabs>
