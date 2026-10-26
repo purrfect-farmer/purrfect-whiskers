@@ -1,6 +1,7 @@
 import { IPC } from "../../../shared/constants/ipc";
 import { clsx } from "clsx";
 import { formatDate } from "date-fns";
+import pMap from "p-map";
 import toast from "react-hot-toast";
 import { twMerge } from "tailwind-merge";
 export { v4 as uuid } from "uuid";
@@ -10,32 +11,43 @@ export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-/** Yields an array in chunks of `size` */
-export function* chunkArrayGenerator(arr, size) {
-  for (let i = 0; i < arr.length; i += size) {
-    yield arr.slice(i, i + size);
-  }
-}
-
 /**
- * Runs `task` on every item, `size` items at a time
+ * Runs `task` on every item, at most `limit` at a time, starting the next
+ * item as soon as one finishes. `onBatch` gets finished results in groups of
+ * up to `limit`. Resolves with the results in the items' order.
  * @template T, R
  * @param {T[]} items
- * @param {number} size
+ * @param {number} limit
  * @param {(item: T) => Promise<R>} task
- * @param {(results: R[]) => void} [onChunk] Called after each chunk
+ * @param {(results: R[]) => void} [onBatch]
  * @returns {Promise<R[]>}
  */
-export async function runInChunks(items, size, task, onChunk) {
-  const results = [];
+export async function runWithLimit(items, limit, task, onBatch) {
+  /** The finished results not yet passed to `onBatch` */
+  let batch = [];
 
-  for (const chunk of chunkArrayGenerator(items, size)) {
-    /** The results of the chunk */
-    const chunkResults = await Promise.all(chunk.map(task));
+  /** The results passed to `onBatch` */
+  const flush = () => {
+    if (batch.length === 0) return;
 
-    onChunk?.(chunkResults);
-    results.push(...chunkResults);
-  }
+    onBatch?.(batch);
+    batch = [];
+  };
+
+  const results = await pMap(
+    items,
+    async (item) => {
+      const result = await task(item);
+
+      batch.push(result);
+      if (batch.length >= limit) flush();
+
+      return result;
+    },
+    { concurrency: limit },
+  );
+
+  flush();
 
   return results;
 }

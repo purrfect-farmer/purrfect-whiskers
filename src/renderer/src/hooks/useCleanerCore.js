@@ -105,7 +105,7 @@ export default function useCleanerCore({ onLaunch }) {
         ],
         {
           partitions: toPartitions(accounts),
-          onChunk: applyStatuses,
+          onBatch: applyStatuses,
         },
       );
 
