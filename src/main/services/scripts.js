@@ -5,7 +5,14 @@ import {
   SCRIPT_HOST_MESSAGE,
 } from "../../shared/constants/ipc";
 import { checkRequest, toCount, toRunAccounts } from "../libs/scriptRuns";
-import { app, dialog, shell, utilityProcess } from "electron";
+import {
+  BrowserWindow,
+  Notification,
+  app,
+  dialog,
+  shell,
+  utilityProcess,
+} from "electron";
 
 import {
   exists,
@@ -112,6 +119,7 @@ export class ScriptRunner {
     const {
       scriptDir,
       entry,
+      displayName,
       options: fields,
     } = await resolveScript(folder, name);
 
@@ -134,6 +142,8 @@ export class ScriptRunner {
     /** The run of this script */
     const run = {
       name,
+      displayName,
+      notification: null,
       child,
       receiver,
       partitions: new Set(runAccounts.map((account) => account.partition)),
@@ -245,6 +255,10 @@ export class ScriptRunner {
     run.pending.set(request.id, request);
     this.emit(run, SCRIPT_EVENT.REQUEST, request);
 
+    if (request.method === SCRIPT_API.PROMPT) {
+      this.notifyPrompt(run, request.args[0]);
+    }
+
     if (request.expiresAt) {
       run.promptTimers.set(
         request.id,
@@ -256,6 +270,40 @@ export class ScriptRunner {
     }
   }
 
+  /** Shows a system notification for a prompt while the window is unfocused */
+  notifyPrompt(run, prompt) {
+    /** The window showing the run */
+    const window = BrowserWindow.fromWebContents(run.receiver);
+
+    if (!window || window.isFocused() || !Notification.isSupported()) return;
+
+    run.notification?.close();
+    run.notification = new Notification({
+      title: `${run.displayName} needs your input`,
+      body: prompt.title,
+    });
+
+    run.notification.on("click", () => {
+      window.show();
+      window.focus();
+      this.emit(run, SCRIPT_EVENT.SHOW_PROMPT);
+    });
+    run.notification.show();
+  }
+
+  /** Closes the prompt notification once no prompt is waiting */
+  clearNotification(run) {
+    /** Whether a prompt is still waiting */
+    const isPromptWaiting = [...run.pending.values()].some(
+      (request) => request.method === SCRIPT_API.PROMPT,
+    );
+
+    if (isPromptWaiting) return;
+
+    run.notification?.close();
+    run.notification = null;
+  }
+
   /** Closes an open prompt with no answer */
   closePrompt(run, id) {
     clearTimeout(run.promptTimers.get(id));
@@ -265,6 +313,7 @@ export class ScriptRunner {
 
     this.reply(run, id, { result: null });
     this.emit(run, SCRIPT_EVENT.PROMPT_CLOSED, { id });
+    this.clearNotification(run);
   }
 
   /** Answers a pending request with the renderer's result or error */
@@ -277,6 +326,7 @@ export class ScriptRunner {
     run.pending.delete(id);
     clearTimeout(run.promptTimers.get(id));
     run.promptTimers.delete(id);
+    this.clearNotification(run);
 
     if (error) {
       this.reply(run, id, { error: String(error) });
@@ -376,6 +426,7 @@ export class ScriptRunner {
 
     run.ended = true;
     run.pending.clear();
+    this.clearNotification(run);
 
     for (const timer of run.promptTimers.values()) clearTimeout(timer);
 

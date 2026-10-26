@@ -37,6 +37,7 @@ export const SCRIPT_EVENT = Object.freeze({
   OUTPUT: "output",
   REQUEST: "request",
   PROMPT_CLOSED: "prompt-closed",
+  SHOW_PROMPT: "show-prompt",
   PROGRESS: "progress",
   STOPPING: "stopping",
   DONE: "done",

@@ -181,7 +181,7 @@ export async function listScripts(folder) {
   return scripts.sort((a, b) => a.displayName.localeCompare(b.displayName));
 }
 
-/** The folder, entry and options of the script `name`, refusing other paths */
+/** The folder, details and options of script `name`, refusing other paths */
 export async function resolveScript(folder, name) {
   if (!isText(folder) || !isPlainName(name)) {
     throw new Error("Invalid script");
@@ -190,13 +190,13 @@ export async function resolveScript(folder, name) {
   /** The script's folder */
   const scriptDir = path.join(folder, name);
 
-  const { entry, options } = await readManifest(scriptDir);
+  const { entry, displayName, options } = await readManifest(scriptDir);
 
   if (!entry || !(await isFile(entry))) {
     throw new Error(`Script not found: ${name}`);
   }
 
-  return { scriptDir, entry, options };
+  return { scriptDir, entry, displayName, options };
 }
 
 /** A script folder name from a package name, or "" */

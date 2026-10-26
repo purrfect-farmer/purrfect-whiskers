@@ -11,6 +11,7 @@ import { holdPartitions } from "../lib/busyPartitions";
 import useAppStore from "../store/useAppStore";
 import useScriptApi from "./useScriptApi";
 import useScriptLog from "./useScriptLog";
+import useScriptRunStore from "../store/useScriptRunStore";
 
 /** The progress of a run before the script reports any */
 const NO_PROGRESS = Object.freeze({ done: 0, total: 0 });
@@ -82,6 +83,9 @@ export default function useScriptRunner(onRestore) {
         case SCRIPT_EVENT.PROGRESS:
           setProgress({ done: message.done, total: message.total });
           break;
+        case SCRIPT_EVENT.SHOW_PROMPT:
+          useScriptRunStore.getState().setDialogOpen(true);
+          break;
         case SCRIPT_EVENT.PROMPT_CLOSED:
           removePrompt(message.id);
           break;
@@ -114,6 +118,15 @@ export default function useScriptRunner(onRestore) {
       window.electron.ipcRenderer.removeListener(SCRIPT_CHANNEL, listener);
     };
   }, [append, handleRequest, removePrompt, finish, fail]);
+
+  /** The run state shared with the side menu */
+  useEffect(() => {
+    useScriptRunStore.getState().setRunState({
+      status,
+      waiting: api.waiting,
+      promptTitle: api.prompt?.title ?? null,
+    });
+  }, [status, api.waiting, api.prompt]);
 
   /** The restore of a run that kept going while the window reloaded */
   useEffect(() => {

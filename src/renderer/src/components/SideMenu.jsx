@@ -29,6 +29,8 @@ import LoaderDialog from "./LoaderDialog";
 import { MdOutlineBrowserUpdated } from "react-icons/md";
 import ProxiesDialog from "./ProxiesDialog";
 import SettingsDialog from "./SettingsDialog";
+import ScriptPromptToast from "./ScriptPromptToast";
+import ScriptRunBadge from "./ScriptRunBadge";
 import ScriptsDialog from "./ScriptsDialog";
 import SideMenuDialog from "./SideMenuDialog";
 import SpiderDialog from "./SpiderDialog";
@@ -40,6 +42,9 @@ import useExtensionStore, {
   selectIsUpdating,
 } from "../store/useExtensionStore";
 import useDialogState from "../hooks/useDialogState";
+import useScriptRunStore, {
+  selectSetDialogOpen,
+} from "../store/useScriptRunStore";
 
 /** The handler for toggling fullscreen */
 const toggleFullScreen = () => {
@@ -63,6 +68,9 @@ const EXTENSION_UPDATING_BADGE = (
   </span>
 );
 
+/** The badge of the Scripts button */
+const SCRIPT_RUN_BADGE = <ScriptRunBadge />;
+
 /** The handler for reloading the app */
 const reloadApp = () => window.location.reload();
 
@@ -76,6 +84,9 @@ export default function SideMenu() {
   const spiderDialog = useDialogState();
   /** The open state of the Cleaner dialog */
   const cleanerDialog = useDialogState();
+  /** Whether the Scripts dialog is open */
+  const isScriptsOpen = useScriptRunStore((state) => state.isDialogOpen);
+  const setScriptsOpen = useScriptRunStore(selectSetDialogOpen);
 
   return (
     <div
@@ -97,9 +108,16 @@ export default function SideMenu() {
         <BulkEditDialog />
       </SideMenuDialog>
 
-      <SideMenuDialog title="Scripts" icon={LuSquareTerminal}>
+      <SideMenuDialog
+        title="Scripts"
+        icon={LuSquareTerminal}
+        open={isScriptsOpen}
+        onOpenChange={setScriptsOpen}
+        badge={SCRIPT_RUN_BADGE}
+      >
         <ScriptsDialog />
       </SideMenuDialog>
+      <ScriptPromptToast />
 
       <SideMenuDialog
         title="Settings"
