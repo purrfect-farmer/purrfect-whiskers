@@ -59,7 +59,7 @@ export default function AccountListDialog() {
     list,
   } = useAccountsFilter(accounts);
 
-  const { selecting, toggleSelecting, selector, onSubmit } =
+  const { selecting, toggleSelecting, selector, launchSelected } =
     useAccountsLauncher(accounts);
   const { selected, selectedAccounts, toggleAccount, toggleAllAccounts } =
     selector;
@@ -234,15 +234,15 @@ export default function AccountListDialog() {
 
         {/* Launch Selected */}
         {selecting ? (
-          <form onSubmit={onSubmit} className="p-4 flex flex-col">
+          <div className="p-4 flex flex-col">
             <PrimaryButton
-              type="submit"
               disabled={selectedAccounts.length === 0}
+              onClick={launchSelected}
             >
               <LuRocket className="size-5" />
               Launch ({selectedAccounts.length})
             </PrimaryButton>
-          </form>
+          </div>
         ) : null}
       </Dialog.Content>
     </Dialog.Portal>

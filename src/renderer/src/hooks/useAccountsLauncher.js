@@ -21,24 +21,19 @@ export default function useAccountsLauncher(accounts) {
     setSelected(new Set());
   }, [setSelected]);
 
-  /** The submit handler that launches the selected accounts */
-  const onSubmit = useCallback(
-    (ev) => {
-      ev.preventDefault();
+  /** The launch of the selected accounts */
+  const launchSelected = useCallback(() => {
+    const busyCount = useAppStore
+      .getState()
+      .launchAccounts(selectedAccounts.map((account) => account.partition));
 
-      const busyCount = useAppStore
-        .getState()
-        .launchAccounts(selectedAccounts.map((account) => account.partition));
-
-      if (busyCount > 0) {
-        toast.error(`${busyCount} account(s) are busy with a background task.`);
-      }
-    },
-    [selectedAccounts],
-  );
+    if (busyCount > 0) {
+      toast.error(`${busyCount} account(s) are busy with a background task.`);
+    }
+  }, [selectedAccounts]);
 
   return useMemo(
-    () => ({ selecting, toggleSelecting, selector, onSubmit }),
-    [selecting, toggleSelecting, selector, onSubmit],
+    () => ({ selecting, toggleSelecting, selector, launchSelected }),
+    [selecting, toggleSelecting, selector, launchSelected],
   );
 }
