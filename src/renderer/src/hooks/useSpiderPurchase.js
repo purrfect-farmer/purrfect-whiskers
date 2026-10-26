@@ -8,6 +8,7 @@ import { useCallback, useRef } from "react";
 import { NUMBERED_TITLE_DEFAULTS } from "../lib/titleSchema";
 import Spider from "../lib/Spider";
 import { getOrRestoreAccountBackup } from "../lib/accountBackup";
+import pMap from "p-map";
 import socket from "../lib/mirror";
 import toast from "react-hot-toast";
 import useAppStore from "../store/useAppStore";
@@ -79,9 +80,9 @@ export default function useSpiderPurchase(country) {
 
       /** Buys and sets up the account at position `index` */
       const purchaseAt = async (index) => {
-        try {
-          if (controller.signal.aborted) return;
+        if (controller.signal.aborted) return;
 
+        try {
           /** The purchase response */
           const purchase = await spider.purchaseAccount({
             countryCode: country.code,
@@ -114,16 +115,11 @@ export default function useSpiderPurchase(country) {
         }
       };
 
-      for (let i = 0; i < count; i += batch) {
-        if (controller.signal.aborted) break;
-
-        /** The number of accounts in this batch */
-        const size = Math.min(batch, count - i);
-
-        await Promise.allSettled(
-          Array.from({ length: size }, (_, j) => purchaseAt(i + j)),
-        );
-      }
+      await pMap(
+        Array.from({ length: count }, (_, index) => index),
+        purchaseAt,
+        { concurrency: batch },
+      );
 
       return results;
     },
