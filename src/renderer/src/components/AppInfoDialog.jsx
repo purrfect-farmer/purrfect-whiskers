@@ -1,9 +1,8 @@
 import { BADGE_TONE } from "../lib/constants";
 import { Dialog } from "radix-ui";
 
-import AppConnect from "./AppConnect";
-import AppDonate from "./AppDonate";
-import AppLinks from "./AppLinks";
+import AppActions from "./AppActions";
+import AppLinkGrid from "./AppLinkGrid";
 import AppUpdateCard from "./AppUpdateCard";
 import BaseDialogContent from "./BaseDialogContent";
 import Icon from "../assets/images/icon.png";
@@ -11,15 +10,18 @@ import SectionBadge from "./SectionBadge";
 import { cn } from "../lib/utils";
 import useAppVersion from "../hooks/useAppVersion";
 
-/** A dialog with the app's version, update status and links */
+/** A dialog with the app's version, update, links and support */
 export default function AppInfoDialog() {
-  const { currentVersion, latestVersion, hasUpdate } = useAppVersion();
+  const { currentVersion, latestRelease, hasUpdate } = useAppVersion();
+
+  /** Whether the installed version is the latest release */
+  const isLatest = Boolean(currentVersion && latestRelease && !hasUpdate);
 
   return (
     <BaseDialogContent className="gap-4">
       {/* Header */}
       <div className="flex flex-col items-center gap-2 min-w-0">
-        <img src={Icon} alt="" className="size-20 shrink-0" />
+        <img src={Icon} alt="" className="size-14 shrink-0" />
 
         <Dialog.Title
           className={cn(
@@ -30,53 +32,63 @@ export default function AppInfoDialog() {
           Purrfect Whiskers
         </Dialog.Title>
 
-        {/* Version */}
-        <div className="flex items-center gap-2">
-          {currentVersion ? (
-            <SectionBadge tone={BADGE_TONE.NEUTRAL}>
-              {currentVersion}
-            </SectionBadge>
-          ) : null}
-          {hasUpdate ? (
-            <SectionBadge tone={BADGE_TONE.BLUE}>Update available</SectionBadge>
-          ) : latestVersion ? (
-            <SectionBadge tone={BADGE_TONE.GREEN}>Latest</SectionBadge>
-          ) : null}
-        </div>
-
         <Dialog.Description
           className={cn(
             "text-center text-balance",
             "text-neutral-500 dark:text-neutral-400",
           )}
         >
-          Efficiently manage multiple instances of the Purrfect Farmer
+          The desktop app for running many accounts side by side
         </Dialog.Description>
+
+        {/* Version */}
+        {currentVersion ? (
+          <div className="flex items-center gap-2">
+            <SectionBadge tone={BADGE_TONE.NEUTRAL}>
+              {currentVersion}
+            </SectionBadge>
+            {isLatest ? (
+              <SectionBadge tone={BADGE_TONE.GREEN}>Up to date</SectionBadge>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       {hasUpdate ? (
         <AppUpdateCard
           currentVersion={currentVersion}
-          latestVersion={latestVersion}
+          release={latestRelease}
         />
       ) : null}
 
-      <AppLinks />
-      <AppConnect />
-      <AppDonate />
+      <AppLinkGrid />
+      <AppActions currentVersion={currentVersion} />
 
-      {/* Copyright */}
-      <a
-        target="_blank"
-        href={import.meta.env.VITE_APP_WEBSITE_URL}
+      {/* Credits */}
+      <div
         className={cn(
-          "self-center",
-          "text-neutral-500 dark:text-neutral-400",
-          "hover:text-orange-500",
+          "flex flex-col items-center gap-1",
+          "text-center text-neutral-500 dark:text-neutral-400",
         )}
       >
-        &copy; Purrfect Farmer
-      </a>
+        <p>
+          Made with care by{" "}
+          <a
+            target="_blank"
+            href={import.meta.env.VITE_APP_DEV_PORTFOLIO}
+            className="font-bold text-orange-500"
+          >
+            {import.meta.env.VITE_APP_DEV_NAME}
+          </a>
+        </p>
+        <a
+          target="_blank"
+          href={import.meta.env.VITE_APP_WEBSITE_URL}
+          className="hover:text-orange-500"
+        >
+          &copy; Purrfect Farmer
+        </a>
+      </div>
     </BaseDialogContent>
   );
 }

@@ -2,6 +2,7 @@ import { IPC } from "../../../shared/constants/ipc";
 import axios from "axios";
 import { getGithubHeaders } from "../../../shared/lib/github";
 import semver from "semver";
+import { toAppRelease } from "../lib/appRelease";
 import { useQuery } from "@tanstack/react-query";
 
 /** A hook for the installed version and the latest release */
@@ -24,15 +25,17 @@ export default function useAppVersion() {
         .get(import.meta.env.VITE_APP_RELEASE_API_URL, {
           headers: getGithubHeaders(),
         })
-        .then((res) => res.data["tag_name"]),
+        .then((res) => toAppRelease(res.data)),
     staleTime: Infinity,
     retry: false,
   });
 
   /** The installed version */
   const currentVersion = currentQuery.data ?? null;
+  /** The latest release */
+  const latestRelease = latestQuery.data ?? null;
   /** The latest release version */
-  const latestVersion = latestQuery.data ?? null;
+  const latestVersion = latestRelease?.version ?? null;
 
   /** Whether a newer release is available */
   const hasUpdate = Boolean(
@@ -41,5 +44,5 @@ export default function useAppVersion() {
     semver.gt(latestVersion, currentVersion),
   );
 
-  return { currentVersion, latestVersion, hasUpdate };
+  return { currentVersion, latestRelease, hasUpdate };
 }

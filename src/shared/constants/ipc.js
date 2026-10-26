@@ -1,6 +1,7 @@
 /** Channels handled by the main process (`ipcMain.handle`) */
 export const IPC = Object.freeze({
   GET_APP_VERSION: "get-app-version",
+  GET_SYSTEM_INFO: "get-system-info",
   GET_SESSION_COOKIE: "get-session-cookie",
   SET_SESSION_COOKIE: "set-session-cookie",
   UPDATE_DECLARATIVE_NET_RULES: "update-declarative-net-rules",

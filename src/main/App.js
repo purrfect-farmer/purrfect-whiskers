@@ -35,6 +35,7 @@ import { startMirrorServer, stopMirrorServer } from "./server";
 import { Conf } from "electron-conf/main";
 import { IPC } from "../shared/constants/ipc";
 import ProfileRegistry from "./ProfileRegistry";
+import { getSystemInfo } from "./libs/systemInfo";
 import { pickScriptPath } from "./libs/scriptPaths";
 import { buildChromeContextMenu } from "electron-chrome-context-menu";
 import fs from "fs/promises";
@@ -130,6 +131,7 @@ class App {
         this.installLatestExtension(path),
       ),
       [IPC.GET_EXTENSION_VERSION]: withoutEvent(getExtensionVersion),
+      [IPC.GET_SYSTEM_INFO]: withoutEvent(getSystemInfo),
       [IPC.GET_DEFAULT_EXTENSION_PATH]: withoutEvent(getDefaultExtensionPath),
       [IPC.PICK_EXTENSION_PATH]: withoutEvent(pickExtensionPath),
       [IPC.CONFIGURE_PROXY]: withoutEvent((partition, options) =>
