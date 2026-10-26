@@ -1,16 +1,21 @@
+import { HiOutlineCheckBadge, HiOutlinePlus, HiTag } from "react-icons/hi2";
+import { LuArrowUpDown, LuListChecks, LuRocket } from "react-icons/lu";
+
 import { AccountItem } from "./AccountItem";
+import AccountsPickerItem from "./AccountsPickerItem";
 import AccountsReorderDialog from "./AccountsReorderDialog";
+import AccountsToggleAll from "./AccountsToggleAll";
 import AddAccountDialog from "./AddAccountDialog";
 import { Dialog } from "radix-ui";
-import { HiOutlinePlus, HiTag } from "react-icons/hi2";
 import IconButton from "./IconButton";
 import Input from "./Input";
-import { LuArrowUpDown } from "react-icons/lu";
+import PrimaryButton from "./PrimaryButton";
 import TagsList from "./TagsList";
 import { Virtuoso } from "react-virtuoso";
 import { cn } from "../lib/utils";
 import { useCallback } from "react";
 import useAccountsFilter from "../hooks/useAccountsFilter";
+import useAccountsLauncher from "../hooks/useAccountsLauncher";
 import useAppStore from "../store/useAppStore";
 import useDialogState from "../hooks/useDialogState";
 import useSettingsStore from "../store/useSettingsStore";
@@ -25,6 +30,14 @@ const TRIGGER_BUTTON_CLASS = cn(
 );
 
 const computeItemKey = (_, item) => item.partition;
+
+const ACTIVE_BUTTON_CLASS =
+  "bg-orange-100 text-orange-700 dark:bg-orange-200 dark:text-orange-500";
+
+/** The badge of a running account */
+const RUNNING_BADGE = (
+  <HiOutlineCheckBadge className="shrink-0 text-orange-500 size-4" />
+);
 
 export default function AccountListDialog() {
   const accounts = useAppStore((state) => state.accounts);
@@ -46,6 +59,11 @@ export default function AccountListDialog() {
     list,
   } = useAccountsFilter(accounts);
 
+  const { selecting, toggleSelecting, selector, onSubmit } =
+    useAccountsLauncher(accounts);
+  const { selected, selectedAccounts, toggleAccount, toggleAllAccounts } =
+    selector;
+
   const {
     opened: openAddAccountDialog,
     setOpened: setOpenAddAccountDialog,
@@ -55,13 +73,24 @@ export default function AccountListDialog() {
   const { opened: openReorderDialog, setOpened: setOpenReorderDialog } =
     useDialogState();
 
+  /** The row of an account, a toggle while selecting */
   const itemContent = useCallback(
     (_, item) => (
       <div className="pb-2 px-4">
-        <AccountItem account={item} onLaunch={launchAccount} />
+        {selecting ? (
+          <AccountsPickerItem
+            account={item}
+            checked={selected.has(item.partition)}
+            onToggle={toggleAccount}
+          >
+            {item.running ? RUNNING_BADGE : null}
+          </AccountsPickerItem>
+        ) : (
+          <AccountItem account={item} onLaunch={launchAccount} />
+        )}
       </div>
     ),
-    [launchAccount],
+    [selecting, selected, toggleAccount, launchAccount],
   );
 
   return (
@@ -91,7 +120,7 @@ export default function AccountListDialog() {
 
               {/* Description */}
               <Dialog.Description className="text-neutral-500 dark:text-neutral-400 leading-none">
-                Select an account
+                {selecting ? "Select accounts to launch" : "Select an account"}
               </Dialog.Description>
             </div>
 
@@ -143,8 +172,7 @@ export default function AccountListDialog() {
                 onClick={() => setShowAccountTags(!showAccountTags)}
                 className={cn(
                   "gap-1 font-bold",
-                  showAccountTags &&
-                    "bg-orange-100 text-orange-700 dark:bg-orange-200 dark:text-orange-500",
+                  showAccountTags && ACTIVE_BUTTON_CLASS,
                 )}
               >
                 <HiTag
@@ -156,6 +184,21 @@ export default function AccountListDialog() {
                 <span className="leading-none">{tags.length}</span>
               </IconButton>
             ) : null}
+
+            {/* Toggle Select Mode */}
+            <IconButton
+              title={selecting ? "Done Selecting" : "Select Accounts"}
+              aria-pressed={selecting}
+              onClick={toggleSelecting}
+              className={cn(selecting && ACTIVE_BUTTON_CLASS)}
+            >
+              <LuListChecks
+                className={cn(
+                  "size-5",
+                  selecting ? "text-orange-500" : "text-neutral-500",
+                )}
+              />
+            </IconButton>
           </div>
 
           {/* Tags (keep the active tag visible when hidden) */}
@@ -169,6 +212,14 @@ export default function AccountListDialog() {
               toggleExcluded={toggleExcluded}
             />
           ) : null}
+
+          {selecting ? (
+            <AccountsToggleAll
+              list={list}
+              selected={selected}
+              toggleAllAccounts={toggleAllAccounts}
+            />
+          ) : null}
         </div>
 
         {/* Account List */}
@@ -180,6 +231,19 @@ export default function AccountListDialog() {
             itemContent={itemContent}
           />
         </div>
+
+        {/* Launch Selected */}
+        {selecting ? (
+          <form onSubmit={onSubmit} className="p-4 flex flex-col">
+            <PrimaryButton
+              type="submit"
+              disabled={selectedAccounts.length === 0}
+            >
+              <LuRocket className="size-5" />
+              Launch ({selectedAccounts.length})
+            </PrimaryButton>
+          </form>
+        ) : null}
       </Dialog.Content>
     </Dialog.Portal>
   );

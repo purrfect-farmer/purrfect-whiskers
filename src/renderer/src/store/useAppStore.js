@@ -231,6 +231,29 @@ export default create(
           useFlashStore.getState().flash(partition);
         },
 
+        /** Opens many accounts and shows the first one, returning how many were busy */
+        launchAccounts: (partitions) => {
+          const targets = new Set(partitions);
+          const busyCount = partitions.filter(isPartitionBusy).length;
+
+          const accounts = setRunning(get().accounts, targets, true);
+          const running = accounts.filter((item) => item.running);
+          const index = running.findIndex((item) =>
+            targets.has(item.partition),
+          );
+
+          if (index >= 0) {
+            set({
+              accounts,
+              page: Math.floor(index / getItemsPerPage()),
+            });
+
+            useFlashStore.getState().flash(running[index].partition);
+          }
+
+          return busyCount;
+        },
+
         /** Launch an account by partition or telegram user id */
         launchAccountByRequest: (request) => {
           const { partition, telegramUserId } = request || {};

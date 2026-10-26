@@ -7,6 +7,7 @@ export default memo(function AccountsPickerItem({
   checked,
   disabled,
   onToggle,
+  children,
 }) {
   return (
     <AccountSummary
@@ -15,6 +16,7 @@ export default memo(function AccountsPickerItem({
       account={account}
       className="relative cursor-pointer has-[input:disabled]:opacity-60"
     >
+      {children}
       <Toggle
         checked={checked}
         disabled={disabled}

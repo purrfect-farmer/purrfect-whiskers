@@ -1,8 +1,8 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 
 import AccountsPickerItem from "./AccountsPickerItem";
+import AccountsToggleAll from "./AccountsToggleAll";
 import Input from "./Input";
-import LabelToggle from "./LabelToggle";
 import TagsList from "./TagsList";
 import { Virtuoso } from "react-virtuoso";
 import useAccountsFilter from "../hooks/useAccountsFilter";
@@ -38,14 +38,6 @@ export default function AccountsPicker({
     toggleExcluded,
     list,
   } = useAccountsFilter(accounts);
-
-  /** Reflects the visible list, not every account */
-  const allSelected = useMemo(
-    () =>
-      list.length > 0 &&
-      list.every((account) => selected.has(account.partition)),
-    [list, selected],
-  );
 
   const itemContent = useCallback(
     (_, account) => (
@@ -92,13 +84,12 @@ export default function AccountsPicker({
         />
       ) : null}
 
-      <LabelToggle
+      <AccountsToggleAll
+        list={list}
+        selected={selected}
+        toggleAllAccounts={toggleAllAccounts}
         disabled={disabled}
-        checked={allSelected}
-        onChange={(ev) => toggleAllAccounts(ev.target.checked, list)}
-      >
-        Toggle Accounts
-      </LabelToggle>
+      />
 
       <div
         className="min-h-px -mx-2"
