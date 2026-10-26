@@ -7,7 +7,12 @@ import { cn, copyText } from "../lib/utils";
 /** A card with a network's donation address, QR code and copy button */
 export default function DonateNetworkCard({ network }) {
   return (
-    <div className="flex gap-3 p-3 rounded-xl bg-neutral-100 dark:bg-neutral-700">
+    <div
+      className={cn(
+        "flex gap-3 p-3 rounded-xl",
+        "bg-neutral-100 dark:bg-neutral-700",
+      )}
+    >
       {/* QR Code */}
       <QRCodeSVG
         value={network.address}
@@ -28,7 +33,7 @@ export default function DonateNetworkCard({ network }) {
 
       <div className="flex flex-col min-w-0 gap-1 grow">
         <div className="flex items-center gap-2">
-          <img src={network.icon} className="size-5 shrink-0" />
+          <img src={network.icon} alt="" className="size-5 shrink-0" />
           <h4 className="font-bold text-sm grow">{network.name}</h4>
 
           {/* Copy Button */}
@@ -45,7 +50,12 @@ export default function DonateNetworkCard({ network }) {
             <HiOutlineClipboard className="size-4" />
           </button>
         </div>
-        <p className="break-all text-xs font-mono text-neutral-500 dark:text-neutral-300">
+        <p
+          className={cn(
+            "break-all text-xs font-mono",
+            "text-neutral-500 dark:text-neutral-300",
+          )}
+        >
           {network.address}
         </p>
       </div>

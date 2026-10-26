@@ -1,7 +1,8 @@
 import { FaGithub } from "react-icons/fa";
 import { HiOutlineGlobeAlt } from "react-icons/hi2";
 
-import { cn } from "../lib/utils";
+import AppLinkButton from "./AppLinkButton";
+import SectionHeader from "./SectionHeader";
 
 /** The app's website and repository links */
 const links = [
@@ -17,26 +18,19 @@ const links = [
   },
 ];
 
-/** A grid of links to the app's website and repository */
+/** A section with links to the app's website and repository */
 export default function AppLinks() {
   return (
-    <div className="grid grid-cols-2 gap-2">
-      {links.map((link) => (
-        <a
-          key={link.title}
-          target="_blank"
-          href={link.href}
-          className={cn(
-            "flex items-center justify-center gap-2",
-            "px-4 py-2 rounded-xl",
-            "bg-neutral-100 dark:bg-neutral-700",
-            "hover:bg-orange-500 hover:text-white",
-          )}
-        >
-          <link.icon className="size-4" />
-          {link.title}
-        </a>
-      ))}
+    <div className="flex flex-col gap-2 min-w-0">
+      <SectionHeader title="Links" />
+
+      <div className="grid grid-cols-2 gap-2">
+        {links.map((link) => (
+          <AppLinkButton key={link.title} href={link.href} icon={link.icon}>
+            {link.title}
+          </AppLinkButton>
+        ))}
+      </div>
     </div>
   );
 }
