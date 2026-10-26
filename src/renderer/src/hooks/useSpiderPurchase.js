@@ -5,6 +5,7 @@ import {
 } from "../lib/spiderAccount";
 import { useCallback, useRef } from "react";
 
+import { NUMBERED_TITLE_DEFAULTS } from "../lib/titleSchema";
 import Spider from "../lib/Spider";
 import { getOrRestoreAccountBackup } from "../lib/accountBackup";
 import socket from "../lib/mirror";
@@ -58,8 +59,7 @@ export default function useSpiderPurchase(country) {
       batch = 1,
       twoFA = "",
       enableLocalTelegramSession = true,
-      titlePrefix = "",
-      startNumber = 1,
+      title = NUMBERED_TITLE_DEFAULTS,
       tags = [],
     }) => {
       const controller = new AbortController();
@@ -90,8 +90,7 @@ export default function useSpiderPurchase(country) {
           const account = buildSpiderAccount({
             purchase,
             index,
-            titlePrefix,
-            startNumber,
+            title,
             tags,
           });
 

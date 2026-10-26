@@ -10,12 +10,14 @@ import {
   LuDatabaseBackup,
   LuEraser,
   LuGlobeLock,
+  LuListChecks,
   LuTags,
 } from "react-icons/lu";
 
 import AccountListDialog from "./AccountListDialog";
 import AppInfoDialog from "./AppInfoDialog";
 import BackupAndRestoreDialog from "./BackupAndRestoreDialog";
+import BulkEditDialog from "./BulkEditDialog";
 import CleanerDialog from "./CleanerDialog";
 import { CleanerProvider } from "./CleanerProvider";
 import { Dialog } from "radix-ui";
@@ -76,6 +78,10 @@ export default function SideMenu() {
 
       <SideMenuDialog title="Tags" icon={LuTags}>
         <TagsDialog />
+      </SideMenuDialog>
+
+      <SideMenuDialog title="Bulk Edit" icon={LuListChecks}>
+        <BulkEditDialog />
       </SideMenuDialog>
 
       <SideMenuDialog

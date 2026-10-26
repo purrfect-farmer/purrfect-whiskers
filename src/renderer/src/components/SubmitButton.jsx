@@ -7,11 +7,16 @@ export default memo(function SubmitButton({
   children = "Save",
   pendingText = "Saving...",
   className,
+  disabled,
 }) {
   const { isSubmitting } = useFormState();
 
   return (
-    <PrimaryButton type="submit" className={className} disabled={isSubmitting}>
+    <PrimaryButton
+      type="submit"
+      className={className}
+      disabled={disabled || isSubmitting}
+    >
       {isSubmitting ? pendingText : children}
     </PrimaryButton>
   );

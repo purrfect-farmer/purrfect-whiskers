@@ -13,6 +13,7 @@ export default memo(function FormInputField({
   label,
   placeholder = label,
   className,
+  disabled,
   children,
 }) {
   return (
@@ -24,6 +25,7 @@ export default memo(function FormInputField({
             {...safeField(field)}
             autoComplete="off"
             placeholder={placeholder}
+            disabled={disabled}
           />
         );
 

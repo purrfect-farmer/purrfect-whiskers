@@ -1,4 +1,5 @@
 import { LAUNCH_ERROR, PROXY_PROVIDER } from "../lib/constants";
+import { applyTagChanges } from "../lib/tags";
 import { combine, createJSONStorage, persist } from "zustand/middleware";
 
 import { create } from "zustand";
@@ -132,6 +133,51 @@ export default create(
               item.partition === data.partition ? { ...item, ...data } : item,
             ),
           }),
+        /**
+         * Sets the titles of many accounts from `[partition, title]` pairs.
+         * Returns how many accounts changed.
+         */
+        renameAccounts: (entries) => {
+          const titles = new Map(entries);
+          let changed = 0;
+
+          const accounts = get().accounts.map((item) => {
+            const title = titles.get(item.partition);
+
+            if (title === undefined || title === item.title) return item;
+
+            changed++;
+            return { ...item, title };
+          });
+
+          if (changed > 0) set({ accounts });
+
+          return changed;
+        },
+
+        /**
+         * Adds and removes tags on the accounts in `partitions`.
+         * Returns how many accounts changed.
+         */
+        updateAccountsTags: (partitions, add, remove) => {
+          const targets = new Set(partitions);
+          let changed = 0;
+
+          const accounts = get().accounts.map((item) => {
+            if (!targets.has(item.partition)) return item;
+
+            const tags = applyTagChanges(item.tags, add, remove);
+
+            if (tags === item.tags) return item;
+
+            changed++;
+            return { ...item, tags };
+          });
+
+          if (changed > 0) set({ accounts });
+
+          return changed;
+        },
         removeAccount: (partition) =>
           set({
             accounts: get().accounts.filter(

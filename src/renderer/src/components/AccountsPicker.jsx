@@ -27,8 +27,16 @@ export default function AccountsPicker({
   toggleAllAccounts,
 }) {
   const [listHeight, setListHeight] = useState(0);
-  const { tags, search, setSearch, activeTag, selectTag, list } =
-    useAccountsFilter(accounts);
+  const {
+    filterTags,
+    search,
+    setSearch,
+    activeTag,
+    selectTag,
+    excluded,
+    toggleExcluded,
+    list,
+  } = useAccountsFilter(accounts);
 
   /** Reflects the visible list, not every account */
   const allSelected = useMemo(
@@ -73,10 +81,12 @@ export default function AccountsPicker({
       {/* Tags */}
       <TagsList
         accounts={accounts}
-        tags={tags}
+        tags={filterTags}
         disabled={disabled}
         activeTag={activeTag}
         selectTag={selectTag}
+        excluded={excluded}
+        toggleExcluded={toggleExcluded}
       />
 
       <LabelToggle

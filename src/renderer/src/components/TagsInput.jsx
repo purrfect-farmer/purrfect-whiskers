@@ -35,7 +35,17 @@ const TagOption = (props) => (
   </ComboboxOption>
 );
 
-export default memo(function TagsInput({ value, onChange, disabled = false }) {
+/**
+ * Picks tags from the store. With `allowCreate`, typed names that match
+ * no tag are offered and added to the store.
+ */
+export default memo(function TagsInput({
+  value,
+  onChange,
+  disabled = false,
+  allowCreate = true,
+  placeholder = "Add Tag",
+}) {
   const selectedTags = value || NO_TAGS;
 
   const tags = useAppStore((state) => state.tags);
@@ -68,6 +78,8 @@ export default memo(function TagsInput({ value, onChange, disabled = false }) {
 
     /* Add new tags to the store */
     if (!tagNames.has(newTag.id)) {
+      if (!allowCreate) return;
+
       addTag(newTag);
     }
 
@@ -123,7 +135,7 @@ export default memo(function TagsInput({ value, onChange, disabled = false }) {
             aria-label="Tag"
             displayValue={(tag) => tag?.name}
             className={cn("p-1 outline-0 min-w-0")}
-            placeholder="Add Tag"
+            placeholder={placeholder}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
@@ -151,12 +163,14 @@ export default memo(function TagsInput({ value, onChange, disabled = false }) {
               {filteredTags.length})
             </h3>
             <p className="text-neutral-500 dark:text-neutral-400 text-center text-xs">
-              Select a tag or create a new one
+              {allowCreate
+                ? "Select a tag or create a new one"
+                : "Select a tag"}
             </p>
           </div>
 
           <div className="flex flex-col gap-1">
-            {query.length > 0 && (
+            {allowCreate && query.length > 0 && (
               <TagOption value={{ id: null, name: query }}>
                 Create <span className="font-bold">&quot;{query}&quot;</span>
               </TagOption>

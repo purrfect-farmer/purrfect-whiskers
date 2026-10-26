@@ -34,8 +34,17 @@ export default function AccountListDialog() {
     (state) => state.setShowAccountTags,
   );
 
-  const { tags, search, setSearch, activeTag, selectTag, list } =
-    useAccountsFilter(accounts);
+  const {
+    tags,
+    filterTags,
+    search,
+    setSearch,
+    activeTag,
+    selectTag,
+    excluded,
+    toggleExcluded,
+    list,
+  } = useAccountsFilter(accounts);
 
   const {
     opened: openAddAccountDialog,
@@ -153,9 +162,11 @@ export default function AccountListDialog() {
           {showAccountTags || activeTag ? (
             <TagsList
               accounts={accounts}
-              tags={showAccountTags ? tags : [activeTag]}
+              tags={showAccountTags ? filterTags : [activeTag]}
               activeTag={activeTag}
               selectTag={selectTag}
+              excluded={excluded}
+              toggleExcluded={toggleExcluded}
             />
           ) : null}
         </div>

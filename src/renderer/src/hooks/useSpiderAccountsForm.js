@@ -1,70 +1,120 @@
-import { useCallback, useMemo } from "react";
+import * as yup from "yup";
+
+import {
+  NUMBERED_TITLE_DEFAULTS,
+  numberedTitleFields,
+} from "../lib/titleSchema";
+import { useCallback, useEffect, useMemo } from "react";
 
 import { saveJsonFile } from "../lib/utils";
 import toast from "react-hot-toast";
-import useSpiderFormState from "./useSpiderFormState";
+import { useForm } from "react-hook-form";
 import useSpiderPurchase from "./useSpiderPurchase";
+import { yupResolver } from "@hookform/resolvers/yup";
 
+/** Most accounts bought at once */
+export const MAX_SPIDER_BATCH = 3;
+
+const schema = yup
+  .object({
+    count: yup.number().integer().min(1).required().label("Number of Accounts"),
+    batch: yup
+      .number()
+      .integer()
+      .min(1)
+      .max(MAX_SPIDER_BATCH)
+      .required()
+      .label("Batch"),
+    password: yup.string().default("").label("2FA"),
+    ...numberedTitleFields,
+    tags: yup.array().of(yup.string()).required().default([]),
+    enableLocalTelegramSession: yup.bool().required(),
+  })
+  .required();
+
+const DEFAULT_VALUES = {
+  count: 1,
+  batch: 1,
+  password: "",
+  ...NUMBERED_TITLE_DEFAULTS,
+  tags: [],
+  enableLocalTelegramSession: true,
+};
+
+/**
+ * The Spider purchase form. It lives above the dialog with the purchase,
+ * so its values survive closing the dialog.
+ */
 const useSpiderAccountsForm = ({ core }) => {
   const country = core.selectedCountry;
-  const state = useSpiderFormState();
   const { mutation, progress, cancelPurchase } = useSpiderPurchase(country);
+
+  const methods = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: DEFAULT_VALUES,
+  });
 
   /** Maximum purchasable accounts (available stock) */
   const maxCount = country?.quantity ?? 0;
 
-  /** Calculate Total Price */
-  const totalPrice = country ? (state.count * country.price).toFixed(2) : 0;
+  /** Keeps the count within the stock of the selected country */
+  useEffect(() => {
+    if (methods.getValues("count") > maxCount) {
+      methods.setValue("count", Math.max(1, maxCount));
+    }
+  }, [methods, maxCount]);
 
   /** Purchase Accounts */
-  const purchaseAccounts = useCallback(async () => {
-    /* Prevent purchasing above available quantity */
-    if (state.count > maxCount) {
-      toast.error(`Only ${maxCount} account(s) available for this country.`);
-      return;
-    }
+  const purchaseAccounts = useCallback(
+    async (values) => {
+      /* Prevent purchasing above available quantity */
+      if (values.count > maxCount) {
+        toast.error(`Only ${maxCount} account(s) available for this country.`);
+        return;
+      }
 
-    try {
-      const results = await mutation.mutateAsync({
-        count: state.count,
-        batch: state.batch,
-        twoFA: state.password,
-        enableLocalTelegramSession: state.enableLocalTelegramSession,
-        titlePrefix: state.titlePrefix,
-        startNumber: state.startNumber,
-        tags: state.tags,
-      });
+      try {
+        const results = await mutation.mutateAsync({
+          count: values.count,
+          batch: values.batch,
+          twoFA: values.password,
+          enableLocalTelegramSession: values.enableLocalTelegramSession,
+          title: {
+            prefix: values.prefix,
+            suffix: values.suffix,
+            startNumber: values.startNumber,
+            padding: values.padding,
+          },
+          tags: values.tags,
+        });
 
-      await saveJsonFile("spider-purchase-results", results);
+        await saveJsonFile("spider-purchase-results", results);
 
-      toast.success("Account purchase process completed.");
-    } catch (error) {
-      console.error("Account purchase failed:", error);
-      toast.error(`Account purchase failed: ${error.message}`);
-    }
-  }, [state, maxCount, mutation]);
+        toast.success("Account purchase process completed.");
+      } catch (error) {
+        console.error("Account purchase failed:", error);
+        toast.error(`Account purchase failed: ${error.message}`);
+      }
+    },
+    [maxCount, mutation],
+  );
+
+  const onSubmit = useMemo(
+    () => methods.handleSubmit(purchaseAccounts),
+    [methods, purchaseAccounts],
+  );
 
   return useMemo(
     () => ({
-      ...state,
-      totalPrice,
+      methods,
+      onSubmit,
       maxCount,
       country,
       mutation,
       progress,
-      purchaseAccounts,
       cancelPurchase,
     }),
-    [
-      state,
-      totalPrice,
-      maxCount,
-      country,
-      mutation,
-      progress,
-      purchaseAccounts,
-      cancelPurchase,
-    ],
+    [methods, onSubmit, maxCount, country, mutation, progress, cancelPurchase],
   );
 };
 

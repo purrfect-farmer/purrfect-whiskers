@@ -1,9 +1,16 @@
 import { useCallback, useMemo, useState } from "react";
 
-/** Selection over a list of accounts, starting with all of them selected */
-export default function useAccountsSelector(accounts) {
+/**
+ * Selection over a list of accounts, starting with all of them selected,
+ * or none with `initiallySelected: false`
+ */
+export default function useAccountsSelector(
+  accounts,
+  { initiallySelected = true } = {},
+) {
   const [selected, setSelected] = useState(
-    () => new Set(accounts.map((item) => item.partition)),
+    () =>
+      new Set(initiallySelected ? accounts.map((item) => item.partition) : []),
   );
 
   const selectedAccounts = useMemo(

@@ -1,0 +1,98 @@
+import { Controller, FormProvider, useWatch } from "react-hook-form";
+import { HiArrowLongRight } from "react-icons/hi2";
+import { RENAME_MODE, buildTitle } from "../lib/titles";
+import { memo } from "react";
+
+import NumberedTitleFields from "./NumberedTitleFields";
+import SegmentedControl from "./SegmentedControl";
+import SubmitButton from "./SubmitButton";
+import useBulkRenameForm from "../hooks/useBulkRenameForm";
+
+const MODE_OPTIONS = [
+  { value: RENAME_MODE.NUMBERED, label: "Numbered" },
+  { value: RENAME_MODE.AFFIX, label: "Prefix / Suffix" },
+];
+
+const PREVIEW_FIELDS = ["mode", "prefix", "suffix", "startNumber", "padding"];
+
+/** A current title and the title it gets */
+const PreviewRow = ({ from, to }) => (
+  <li className="flex items-center gap-2 min-w-0">
+    <span className="truncate min-w-0 basis-1/2 text-right">{from}</span>
+    <HiArrowLongRight className="size-4 shrink-0 text-orange-500" />
+    <span className="truncate min-w-0 basis-1/2 font-bold">{to}</span>
+  </li>
+);
+
+/** The first and last renamed account */
+const RenamePreview = memo(function RenamePreview({ accounts }) {
+  const [mode, prefix, suffix, startNumber, padding] = useWatch({
+    name: PREVIEW_FIELDS,
+  });
+
+  if (accounts.length === 0) {
+    return (
+      <p className="text-center text-neutral-500 dark:text-neutral-400">
+        Select the accounts to rename.
+      </p>
+    );
+  }
+
+  const values = { mode, prefix, suffix, startNumber, padding };
+  const lastIndex = accounts.length - 1;
+  const first = accounts[0];
+  const last = accounts[lastIndex];
+
+  return (
+    <ul className="flex flex-col gap-1 p-2 rounded-xl bg-neutral-100 dark:bg-neutral-700">
+      <PreviewRow from={first.title} to={buildTitle(first, 0, values)} />
+      {lastIndex > 1 ? <li className="text-center">…</li> : null}
+      {lastIndex > 0 ? (
+        <PreviewRow
+          from={last.title}
+          to={buildTitle(last, lastIndex, values)}
+        />
+      ) : null}
+    </ul>
+  );
+});
+
+/** Title fields of the chosen mode */
+const RenameFields = memo(function RenameFields() {
+  const mode = useWatch({ name: "mode" });
+
+  return <NumberedTitleFields numbered={mode === RENAME_MODE.NUMBERED} />;
+});
+
+/** Renames the selected accounts at once */
+export default memo(function BulkRenameForm({ selectedAccounts }) {
+  const { methods, onSubmit } = useBulkRenameForm(selectedAccounts);
+
+  return (
+    <FormProvider {...methods}>
+      <form onSubmit={onSubmit} className="flex flex-col gap-2 min-w-0">
+        <Controller
+          name="mode"
+          render={({ field }) => (
+            <SegmentedControl
+              options={MODE_OPTIONS}
+              value={field.value}
+              onChange={field.onChange}
+            />
+          )}
+        />
+
+        <RenameFields />
+
+        <RenamePreview accounts={selectedAccounts} />
+
+        <SubmitButton
+          pendingText="Renaming..."
+          disabled={selectedAccounts.length === 0}
+        >
+          Rename ({selectedAccounts.length})
+        </SubmitButton>
+      </form>
+    </FormProvider>
+  );
+});
