@@ -10,32 +10,14 @@ import SubmitButton from "./SubmitButton";
 import TagsInput from "./TagsInput";
 import UserAgentField from "./UserAgentField";
 import useAppStore from "../store/useAppStore";
-import { withWhiskerChromeVersion } from "../lib/userAgent";
+import { accountFieldRules } from "../../../shared/lib/accountFields";
 import { yupResolver } from "@hookform/resolvers/yup";
-
-/** Optional text, trimmed, with empty stored as null */
-const optionalText = () =>
-  yup
-    .string()
-    .trim()
-    .nullable()
-    .transform((value) => value || null);
 
 /** The schema of the account form */
 const schema = yup
   .object({
     partition: yup.string().nullable(),
-    telegramInitData: yup.string().nullable(),
-    title: yup.string().trim().required().label("Title"),
-    userAgent: optionalText()
-      .transform(withWhiskerChromeVersion)
-      .label("User-Agent"),
-    proxyEnabled: yup.bool().required(),
-    proxyHost: optionalText(),
-    proxyPort: optionalText(),
-    proxyUsername: optionalText(),
-    proxyPassword: optionalText(),
-    tags: yup.array().of(yup.string()).required().default([]),
+    ...accountFieldRules(window.electron.process.versions.chrome),
   })
   .required();
 

@@ -3,6 +3,7 @@ import * as yup from "yup";
 
 import { Controller, useForm } from "react-hook-form";
 import { HiOutlineTrash, HiTag } from "react-icons/hi2";
+import { checkTagName, tagNameSchema } from "../../../shared/lib/tagNames";
 import { createTag, isTagIdTaken } from "../lib/tags";
 import { memo, useState } from "react";
 
@@ -24,7 +25,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 /** The schema of the add tag form */
 const schema = yup
   .object({
-    name: yup.string().trim().required().label("Tag Name"),
+    name: tagNameSchema(),
   })
   .required();
 
@@ -41,8 +42,11 @@ const TagItem = memo(function TagItem({ tag }) {
 
     const { id, name } = createTag(value);
 
-    if (name === "") {
-      toast.error("Tag name cannot be empty");
+    /** The problem with the new name, or null */
+    const nameError = checkTagName(value);
+
+    if (nameError) {
+      toast.error(nameError);
     } else if (isTagIdTaken(useAppStore.getState().tags, id, tag.id)) {
       toast.error("Tag with this name already exists");
     } else if (name !== tag.name) {

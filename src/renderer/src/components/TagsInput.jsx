@@ -76,7 +76,7 @@ export default memo(function TagsInput({
 
     const newTag = createTag(tag.name);
 
-    if (newTag.name.length === 0) return;
+    if (newTag.id === "") return;
 
     /* Add new tags to the store */
     if (!tagNames.has(newTag.id)) {
@@ -144,7 +144,12 @@ export default memo(function TagsInput({
 
           {/* Dropdown Button */}
           <ComboboxButton className="group p-1 shrink-0">
-            <HiChevronDown className="size-4 group-data-open:rotate-180 transition duration-500" />
+            <HiChevronDown
+              className={cn(
+                "size-4 transition duration-500",
+                "group-data-open:rotate-180",
+              )}
+            />
           </ComboboxButton>
         </div>
 
@@ -160,11 +165,21 @@ export default memo(function TagsInput({
           )}
         >
           <div className="flex flex-col">
-            <h3 className="font-bold text-xs text-center flex items-center justify-center gap-2">
+            <h3
+              className={cn(
+                "flex items-center justify-center gap-2",
+                "font-bold text-xs text-center",
+              )}
+            >
               <MdLightbulb className="size-4" /> Suggestions (
               {filteredTags.length})
             </h3>
-            <p className="text-neutral-500 dark:text-neutral-400 text-center text-xs">
+            <p
+              className={cn(
+                "text-center text-xs",
+                "text-neutral-500 dark:text-neutral-400",
+              )}
+            >
               {allowCreate
                 ? "Select a tag or create a new one"
                 : "Select a tag"}
