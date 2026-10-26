@@ -13,13 +13,13 @@ const itemContent = (_, line) => (
   </div>
 );
 
-/** The output of a script run, filling its column and following new lines */
+/** The terminal-style output of a script run, following new lines */
 export default memo(function ScriptLog({ lines }) {
   return (
     <div
       className={cn(
         "relative grow min-h-64 rounded-xl",
-        "bg-neutral-100 dark:bg-neutral-900",
+        "bg-black text-neutral-100",
       )}
     >
       <div className="absolute inset-0 py-2">

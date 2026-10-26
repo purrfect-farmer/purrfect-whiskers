@@ -49,6 +49,7 @@ export default memo(function ScriptDetails({ script, onOpenFolder }) {
       <IconButton
         title="Open Script Folder"
         onClick={() => onOpenFolder(script.name)}
+        className="bg-white"
       >
         <AiOutlineFolder className="size-4" />
       </IconButton>

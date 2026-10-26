@@ -4,7 +4,7 @@ import { memo } from "react";
 /** The colours of each badge tone */
 const TONE_CLASSES = {
   neutral:
-    "bg-neutral-100 text-neutral-600 dark:bg-neutral-700 dark:text-neutral-300",
+    "bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300",
   orange:
     "bg-orange-100 text-orange-700 dark:bg-orange-200 dark:text-orange-800",
   green: "bg-green-100 text-green-700 dark:bg-green-200 dark:text-green-800",
