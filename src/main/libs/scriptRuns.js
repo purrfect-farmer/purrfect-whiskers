@@ -26,15 +26,25 @@ export function toRunAccounts(raw) {
   return raw;
 }
 
+/** The renderer's answer to a request from untrusted input, or null */
+export function toResponse(raw) {
+  if (!raw || typeof raw !== "object" || !Number.isInteger(raw.id)) {
+    return null;
+  }
+
+  return {
+    id: raw.id,
+    result: raw.result,
+    error: typeof raw.error === "string" ? raw.error : undefined,
+  };
+}
+
 /** A whole, non-negative count from untrusted input */
 export function toCount(value) {
   return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
 }
 
-/**
- * A script's request made safe to forward, or the error to answer it with.
- * Account reads must name one of the run's `partitions`.
- */
+/** A script's request made safe to forward, or the error to answer it with */
 export function checkRequest({ id, method, args }, partitions) {
   if (!API_METHODS.has(method)) {
     return { error: `Unknown request: ${String(method)}` };

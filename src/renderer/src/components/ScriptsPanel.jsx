@@ -8,7 +8,7 @@ import Alert from "./Alert";
 import { cn } from "../lib/utils";
 import PrimaryButton from "./PrimaryButton";
 import { IPC } from "../../../shared/constants/ipc";
-import { SCRIPT_STATUS } from "../lib/constants";
+import { ALERT_VARIANT, SCRIPT_STATUS } from "../lib/constants";
 import ScriptDetails from "./ScriptDetails";
 import ScriptLog from "./ScriptLog";
 import ScriptPicker from "./ScriptPicker";
@@ -87,7 +87,7 @@ export default function ScriptsPanel({
           "-mx-2 px-2",
         )}
       >
-        <Alert variant={"warning"}>
+        <Alert variant={ALERT_VARIANT.WARNING}>
           Scripts run with full access to your accounts and computer. Only run
           scripts you trust.
         </Alert>

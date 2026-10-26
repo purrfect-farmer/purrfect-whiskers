@@ -1,3 +1,4 @@
+import { ALERT_VARIANT } from "../lib/constants";
 import Alert from "./Alert";
 import ApiKeyInput from "./ApiKeyInput";
 import AppDialogContent from "./AppDialogContent";
@@ -80,7 +81,7 @@ export default function ProxiesDialog() {
 
       {/* Allow Proxies Warning */}
       {!allowProxies ? (
-        <Alert variant={"warning"}>
+        <Alert variant={ALERT_VARIANT.WARNING}>
           Proxies won&apos;t take effect until Allow Proxies is enabled in
           Settings.
         </Alert>

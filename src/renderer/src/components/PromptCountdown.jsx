@@ -1,3 +1,4 @@
+import { BADGE_TONE } from "../lib/constants";
 import { memo, useState } from "react";
 
 import SectionBadge from "./SectionBadge";
@@ -23,7 +24,9 @@ export default memo(function PromptCountdown({ expiresAt }) {
   );
 
   return (
-    <SectionBadge tone={seconds <= URGENT_SECONDS ? "red" : "amber"}>
+    <SectionBadge
+      tone={seconds <= URGENT_SECONDS ? BADGE_TONE.RED : BADGE_TONE.PURPLE}
+    >
       {formatDuration(seconds)}
     </SectionBadge>
   );

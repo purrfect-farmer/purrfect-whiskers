@@ -1,3 +1,4 @@
+import { BADGE_TONE } from "../lib/constants";
 import { useCallback, useState } from "react";
 
 import Input from "./Input";
@@ -80,7 +81,7 @@ export default function ProxyList({ proxies }) {
           <>
             <SectionBadge>{formatNumber(proxies.length)}</SectionBadge>
             {validCount > 0 ? (
-              <SectionBadge tone="green">
+              <SectionBadge tone={BADGE_TONE.GREEN}>
                 {formatNumber(validCount)} valid
               </SectionBadge>
             ) : null}

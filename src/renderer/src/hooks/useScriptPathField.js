@@ -24,10 +24,7 @@ const getDroppedPaths = (event) =>
     .map((file) => window.electron.webUtils.getPathForFile(file))
     .filter(Boolean);
 
-/**
- * A hook for picking a path field's value with the system dialog or by
- * dropping files, merging new files into a multiple field's list
- */
+/** A hook for choosing a path field's value by dialog or by dropping files */
 export default function useScriptPathField(field, value, onChange) {
   /** Whether files are dragged over the field */
   const [isDragging, setIsDragging] = useState(false);
@@ -107,5 +104,5 @@ export default function useScriptPathField(field, value, onChange) {
     [acceptsDrops, field, setPaths],
   );
 
-  return { browse, remove, dropProps, isDragging, acceptsDrops };
+  return { browse, remove, dropProps, isDragging };
 }

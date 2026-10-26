@@ -81,10 +81,7 @@ export function normalizePrompt(raw) {
   };
 }
 
-/**
- * The answer to a prompt from untrusted input as `{ action, values }`, or
- * the error to refuse it with. Only Submit needs valid values.
- */
+/** A prompt's answer from untrusted input, or the error to refuse it with */
 export function validateAnswer(prompt, answer) {
   /** The button the user pressed */
   const action = answer?.action;

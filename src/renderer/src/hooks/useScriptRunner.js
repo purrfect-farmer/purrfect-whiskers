@@ -20,10 +20,7 @@ import useScriptApi from "./useScriptApi";
 /** Merges changes into the run state */
 const setRunState = (state) => useScriptRunStore.getState().setRunState(state);
 
-/**
- * A hook for running a script on accounts and following its output in the
- * run store; `onRestore` gets the name of a run restored after a reload
- */
+/** A hook for running a script on accounts and following it in the store */
 export default function useScriptRunner(onRestore) {
   /** The release of the run's accounts */
   const releaseRef = useRef(null);

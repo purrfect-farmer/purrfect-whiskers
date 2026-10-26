@@ -12,9 +12,7 @@ export function cn(...inputs) {
 }
 
 /**
- * Runs `task` on every item, at most `limit` at a time, starting the next
- * item as soon as one finishes. `onBatch` gets finished results in groups of
- * up to `limit`. Resolves with the results in the items' order.
+ * Runs `task` on every item, at most `limit` at a time, in order
  * @template T, R
  * @param {T[]} items
  * @param {number} limit
@@ -26,7 +24,7 @@ export async function runWithLimit(items, limit, task, onBatch) {
   /** The finished results not yet passed to `onBatch` */
   let batch = [];
 
-  /** The results passed to `onBatch` */
+  /** Passes the finished results to `onBatch` */
   const flush = () => {
     if (batch.length === 0) return;
 

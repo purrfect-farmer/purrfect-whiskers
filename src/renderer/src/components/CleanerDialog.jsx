@@ -2,7 +2,7 @@ import { CLEANER_TASK } from "../hooks/useCleanerCore";
 import AccountsPicker from "./AccountsPicker";
 import Alert from "./Alert";
 import AppDialogContent from "./AppDialogContent";
-import { CLEANER_TAB } from "../lib/constants";
+import { ALERT_VARIANT, CLEANER_TAB } from "../lib/constants";
 import CleanerAccountItem from "./CleanerAccountItem";
 import CleanerTagsTab from "./CleanerTagsTab";
 import LabelToggle from "./LabelToggle";
@@ -81,7 +81,7 @@ export default function CleanerDialog() {
           value={CLEANER_TAB.ACCOUNTS}
           className="flex flex-col gap-2"
         >
-          <Alert variant={"warning"} className="text-center">
+          <Alert variant={ALERT_VARIANT.WARNING} className="text-center">
             Every account is opened without its proxy to check its Telegram
             session. Cleaning checks the selected accounts again and keeps any
             that are signed in.

@@ -1,4 +1,4 @@
-import { memo, useId, useState } from "react";
+import { memo, useCallback, useId, useState } from "react";
 
 import { HiOutlineChevronDown } from "react-icons/hi2";
 import Toggle from "./Toggle";
@@ -47,6 +47,15 @@ export default memo(function CleanerTagItem({
   /** Whether the accounts are shown */
   const [expanded, setExpanded] = useState(false);
 
+  /** The handler for showing or hiding the accounts */
+  const toggleExpanded = useCallback(() => setExpanded((value) => !value), []);
+
+  /** The handler for the toggle */
+  const toggle = useCallback(
+    (ev) => onToggle(id, ev.target.checked),
+    [id, onToggle],
+  );
+
   return (
     <div
       className={cn(
@@ -77,7 +86,7 @@ export default memo(function CleanerTagItem({
             type="button"
             title={expanded ? "Hide accounts" : "Show accounts"}
             aria-expanded={expanded}
-            onClick={() => setExpanded((value) => !value)}
+            onClick={toggleExpanded}
             className={cn(
               "shrink-0 p-1.5 rounded-lg",
               "hover:bg-neutral-200 dark:hover:bg-neutral-600",
@@ -93,11 +102,7 @@ export default memo(function CleanerTagItem({
         ) : null}
 
         <label className="flex shrink-0 cursor-pointer">
-          <Toggle
-            id={inputId}
-            checked={checked}
-            onChange={(ev) => onToggle(id, ev.target.checked)}
-          />
+          <Toggle id={inputId} checked={checked} onChange={toggle} />
         </label>
       </div>
 

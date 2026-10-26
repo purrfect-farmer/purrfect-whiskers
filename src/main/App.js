@@ -17,13 +17,13 @@ import {
   pickExtensionPath,
 } from "./services/extension";
 import {
-  ScriptRunner,
   getDefaultScriptsFolder,
   installScript,
   listScripts,
   openScriptFolder,
   pickScriptsFolder,
-} from "./services/scripts";
+} from "./services/scriptFolders";
+import { ScriptRunner } from "./services/scripts";
 import { generateUserAgent, syncUserAgents } from "./services/userAgents";
 import {
   registerWebRequest,
@@ -155,8 +155,8 @@ class App {
       [IPC.OPEN_SCRIPT_FOLDER]: withoutEvent(openScriptFolder),
       [IPC.PICK_SCRIPT_PATH]: (event, request) =>
         pickScriptPath(BrowserWindow.fromWebContents(event.sender), request),
-      [IPC.SCRIPT_RESPONSE]: (_event, { id, result, error } = {}) =>
-        this.scriptRunner.respond(id, { result, error }),
+      [IPC.SCRIPT_RESPONSE]: (_event, payload) =>
+        this.scriptRunner.respond(payload),
     };
 
     for (const [channel, handler] of Object.entries(handlers)) {
@@ -206,7 +206,7 @@ class App {
     return result;
   }
 
-  /** Install the latest extension, then sync the User-Agent catalog to its version */
+  /** Installs the latest extension and syncs the User-Agent catalog */
   async installLatestExtension(path) {
     const result = await installLatestExtension(path);
     await syncUserAgents(path);

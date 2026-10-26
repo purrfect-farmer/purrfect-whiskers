@@ -107,10 +107,7 @@ export function findTagIssues(tags, usage) {
   return { unused, unknown };
 }
 
-/**
- * What removing the checked tags does, or did once `done`: unused tags
- * leave the tag list and unknown tags leave the accounts carrying them
- */
+/** The summary of removing the checked tags, in past tense once `done` */
 export function summarizeTagRemoval({
   unused,
   unknown,

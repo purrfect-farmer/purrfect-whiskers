@@ -32,10 +32,7 @@ export async function deleteAccount(partition) {
 /** The number of sessions wiped at the same time */
 const MAX_CONCURRENT_WIPES = 4;
 
-/**
- * Close accounts, wipe their session data a few at a time, then remove the
- * wiped ones at once, resolving with the partitions removed
- */
+/** Deletes accounts with their session data, resolving with those removed */
 export async function deleteAccounts(partitions) {
   useAppStore.getState().closeAccounts(partitions);
 

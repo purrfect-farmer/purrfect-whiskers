@@ -113,14 +113,13 @@ function normalizeField(raw) {
         (choice) => choice.value === String(raw.default),
       );
 
+      /** The default when none of the choices is given */
+      const fallback = field.required ? choices[0].value : "";
+
       return {
         ...field,
         choices,
-        default: hasDefault
-          ? String(raw.default)
-          : field.required
-            ? choices[0].value
-            : "",
+        default: hasDefault ? String(raw.default) : fallback,
       };
     }
 
@@ -251,10 +250,7 @@ export function buildFieldsSchema(fields) {
 /** The options of a full check that keeps only the fields' keys */
 const CHECK_OPTIONS = { abortEarly: false, stripUnknown: true };
 
-/**
- * The values of the fields from untrusted input, and the first error
- * message of each invalid field, by key
- */
+/** The fields' values from untrusted input, and each field's first error */
 export function validateValues(fields, input) {
   /** The schema of the fields */
   const schema = buildFieldsSchema(fields);

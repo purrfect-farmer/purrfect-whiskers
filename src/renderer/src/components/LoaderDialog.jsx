@@ -4,7 +4,7 @@ import Dropzone from "./Dropzone";
 import { HiOutlinePuzzlePiece } from "react-icons/hi2";
 import { IPC } from "../../../shared/constants/ipc";
 import toast from "react-hot-toast";
-import { EXTENSION_UPDATE_STATUS } from "../lib/constants";
+import { ALERT_VARIANT, EXTENSION_UPDATE_STATUS } from "../lib/constants";
 import useAppStore from "../store/useAppStore";
 import useExtensionStore from "../store/useExtensionStore";
 import useSettingsStore from "../store/useSettingsStore";
@@ -52,7 +52,7 @@ export default function LoaderDialog() {
       description={"Install the extension from a zip file"}
       icon={HiOutlinePuzzlePiece}
     >
-      <Alert variant={"warning"} className="text-center">
+      <Alert variant={ALERT_VARIANT.WARNING} className="text-center">
         You are about to install the extension manually. This will disable
         auto-updates and replace the currently installed version.
       </Alert>

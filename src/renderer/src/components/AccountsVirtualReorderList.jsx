@@ -1,3 +1,4 @@
+import { ALERT_VARIANT } from "../lib/constants";
 import {
   HiOutlineArrowDown,
   HiOutlineArrowUp,
@@ -255,7 +256,7 @@ export default function AccountsVirtualReorderList({ accounts }) {
         </div>
       ) : (
         /* Info Alert */
-        <Alert variant={"info"}>
+        <Alert variant={ALERT_VARIANT.INFO}>
           Use the arrows to nudge an account, or move it to any position. Search
           to jump to an account. The order is saved automatically.
         </Alert>

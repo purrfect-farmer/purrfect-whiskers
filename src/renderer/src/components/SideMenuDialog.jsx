@@ -1,4 +1,5 @@
 import { Dialog } from "radix-ui";
+import { cn } from "../lib/utils";
 import { memo } from "react";
 
 /** Side menu icon that opens a dialog */
@@ -12,7 +13,11 @@ export default memo(function SideMenuDialog({
 }) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Trigger title={title} aria-label={title} className="p-2 relative rounded-xl">
+      <Dialog.Trigger
+        title={title}
+        aria-label={title}
+        className={cn("p-2 relative", "rounded-xl")}
+      >
         <Icon className="size-5 text-orange-500" />
         {badge}
       </Dialog.Trigger>

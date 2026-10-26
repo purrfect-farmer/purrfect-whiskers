@@ -1,3 +1,4 @@
+import { ALERT_VARIANT } from "../lib/constants";
 import AccountsReorderItem from "./AccountsReorderItem";
 import Alert from "./Alert";
 import { Reorder } from "motion/react";
@@ -12,7 +13,7 @@ export default function AccountsDragReorderList({ accounts }) {
   return (
     <>
       {/* Info Alert */}
-      <Alert variant={"info"}>
+      <Alert variant={ALERT_VARIANT.INFO}>
         Drag an account by its handle to change its position. The order is saved
         automatically.
       </Alert>

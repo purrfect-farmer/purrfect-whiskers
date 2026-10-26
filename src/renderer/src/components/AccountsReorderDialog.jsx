@@ -6,7 +6,7 @@ import Alert from "./Alert";
 import AppDialogContent from "./AppDialogContent";
 import DialogCloseButton from "./DialogCloseButton";
 import { LuArrowUpDown } from "react-icons/lu";
-import { REORDER_MODE } from "../lib/constants";
+import { ALERT_VARIANT, REORDER_MODE } from "../lib/constants";
 import SegmentedControl from "./SegmentedControl";
 import useAppStore from "../store/useAppStore";
 import useSettingsStore from "../store/useSettingsStore";
@@ -53,7 +53,7 @@ export default function AccountsReorderDialog() {
       icon={LuArrowUpDown}
     >
       {accounts.length === 0 ? (
-        <Alert variant={"warning"}>
+        <Alert variant={ALERT_VARIANT.WARNING}>
           No accounts added yet. Add an account to start reordering.
         </Alert>
       ) : (

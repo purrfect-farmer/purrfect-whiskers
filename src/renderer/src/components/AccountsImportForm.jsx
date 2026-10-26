@@ -1,3 +1,4 @@
+import { ALERT_VARIANT } from "../lib/constants";
 import {
   Controller,
   FormProvider,
@@ -71,7 +72,7 @@ export default memo(function AccountsImportForm({
         onSubmit={onSubmit}
         className="flex flex-col gap-2 min-w-0"
       >
-        <Alert variant={"warning"} className="text-center">
+        <Alert variant={ALERT_VARIANT.WARNING} className="text-center">
           You are about to import new accounts into the application. Their tags
           are not imported; choose the tags to give them below.
         </Alert>

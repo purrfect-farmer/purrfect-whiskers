@@ -1,3 +1,4 @@
+import { ALERT_VARIANT } from "../lib/constants";
 import { readJsonFile, saveJsonFile } from "../lib/utils";
 
 import Alert from "./Alert";
@@ -125,7 +126,7 @@ export default function BackupAndRestoreDialog() {
       <Tabs tabs={tabs}>
         {/* Backup */}
         <Tabs.Content value="backup" className="flex flex-col gap-2">
-          <Alert variant={"info"}>
+          <Alert variant={ALERT_VARIANT.INFO}>
             Saves every account with its Telegram Web data, plus your settings,
             to one file in the backup folder.
           </Alert>
@@ -137,7 +138,7 @@ export default function BackupAndRestoreDialog() {
 
         {/* Restore */}
         <Tabs.Content value="restore" className="flex flex-col gap-2">
-          <Alert variant={"warning"}>
+          <Alert variant={ALERT_VARIANT.WARNING}>
             Restoring replaces all your accounts and settings with the ones in
             the backup file.
           </Alert>

@@ -8,33 +8,42 @@ import { dialog } from "electron";
 import fs from "fs/promises";
 import path from "path";
 
+/** The problems a path can have on disk */
+const PATH_PROBLEM = Object.freeze({
+  MISSING: "missing",
+  WRONG_KIND: "wrongKind",
+});
+
 /** What each path field needs on disk, and its messages */
 const PATH_CHECKS = {
   [FIELD_TYPE.FILE]: {
     isFile: true,
-    missing: "file not found",
-    wrongKind: "not a file",
+    [PATH_PROBLEM.MISSING]: "file not found",
+    [PATH_PROBLEM.WRONG_KIND]: "not a file",
   },
   [FIELD_TYPE.FOLDER]: {
     isFile: false,
-    missing: "folder not found",
-    wrongKind: "not a folder",
+    [PATH_PROBLEM.MISSING]: "folder not found",
+    [PATH_PROBLEM.WRONG_KIND]: "not a folder",
   },
   [FIELD_TYPE.SAVE]: {
     isFile: false,
-    missing: "the folder to save in was not found",
-    wrongKind: "the folder to save in was not found",
+    [PATH_PROBLEM.MISSING]: "the folder to save in was not found",
+    [PATH_PROBLEM.WRONG_KIND]: "the folder to save in was not found",
   },
 };
 
-/** The problem with a path on disk: "missing", "wrongKind", or null */
+/** The problem with a path on disk, or null */
 async function findPathProblem(target, isFile) {
   try {
     const stat = await fs.stat(target);
 
-    return (isFile ? stat.isFile() : stat.isDirectory()) ? null : "wrongKind";
+    /** Whether the path is the kind the field needs */
+    const isRightKind = isFile ? stat.isFile() : stat.isDirectory();
+
+    return isRightKind ? null : PATH_PROBLEM.WRONG_KIND;
   } catch {
-    return "missing";
+    return PATH_PROBLEM.MISSING;
   }
 }
 
@@ -68,11 +77,17 @@ const toFilters = (extensions) =>
     ? [{ name: extensions.map((ext) => `.${ext}`).join(", "), extensions }]
     : undefined;
 
-/**
- * Opens the system dialog for a path field and resolves with the chosen
- * path, the chosen paths of a multiple file field, or null when cancelled
- */
-export async function pickScriptPath(window, request = {}) {
+/** The properties of an open dialog for a file or folder field */
+function getOpenProperties(type, multiple) {
+  if (type === FIELD_TYPE.FOLDER) return ["openDirectory", "createDirectory"];
+
+  return multiple ? ["openFile", "multiSelections"] : ["openFile"];
+}
+
+/** The path, or paths, chosen in a path field's system dialog, or null */
+export async function pickScriptPath(window, payload) {
+  /** The request from untrusted input */
+  const request = payload && typeof payload === "object" ? payload : {};
   const { type } = request;
 
   if (!PATH_FIELD_TYPES.has(type)) throw new Error("Invalid path field");
@@ -99,12 +114,7 @@ export async function pickScriptPath(window, request = {}) {
   const result = await dialog.showOpenDialog(window, {
     title,
     filters: toFilters(extensions),
-    properties:
-      type === FIELD_TYPE.FOLDER
-        ? ["openDirectory", "createDirectory"]
-        : multiple
-          ? ["openFile", "multiSelections"]
-          : ["openFile"],
+    properties: getOpenProperties(type, multiple),
   });
 
   if (result.canceled || result.filePaths.length === 0) return null;

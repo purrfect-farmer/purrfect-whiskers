@@ -1,7 +1,7 @@
 import useExtensionStore, {
   selectIsUpdating,
 } from "../store/useExtensionStore";
-import { EXTENSION_UPDATE_STATUS } from "../lib/constants";
+import { BADGE_TONE, EXTENSION_UPDATE_STATUS } from "../lib/constants";
 import { HiArrowPath } from "react-icons/hi2";
 import SectionBadge from "./SectionBadge";
 import { IPC } from "../../../shared/constants/ipc";
@@ -12,15 +12,30 @@ import { useShallow } from "zustand/react/shallow";
 
 /** The text and badge tone of each update status */
 const STATUS_BADGES = {
-  [EXTENSION_UPDATE_STATUS.IDLE]: { text: "Not checked yet", tone: "neutral" },
-  [EXTENSION_UPDATE_STATUS.CHECKING]: { text: "Checking", tone: "amber" },
-  [EXTENSION_UPDATE_STATUS.DOWNLOADING]: { text: "Downloading", tone: "amber" },
-  [EXTENSION_UPDATE_STATUS.UP_TO_DATE]: { text: "Up to date", tone: "green" },
+  [EXTENSION_UPDATE_STATUS.IDLE]: {
+    text: "Not checked yet",
+    tone: BADGE_TONE.NEUTRAL,
+  },
+  [EXTENSION_UPDATE_STATUS.CHECKING]: {
+    text: "Checking",
+    tone: BADGE_TONE.PURPLE,
+  },
+  [EXTENSION_UPDATE_STATUS.DOWNLOADING]: {
+    text: "Downloading",
+    tone: BADGE_TONE.PURPLE,
+  },
+  [EXTENSION_UPDATE_STATUS.UP_TO_DATE]: {
+    text: "Up to date",
+    tone: BADGE_TONE.GREEN,
+  },
   [EXTENSION_UPDATE_STATUS.UPDATED]: {
     text: "Updated, reload accounts to use it",
-    tone: "blue",
+    tone: BADGE_TONE.BLUE,
   },
-  [EXTENSION_UPDATE_STATUS.FAILED]: { text: "Update failed", tone: "red" },
+  [EXTENSION_UPDATE_STATUS.FAILED]: {
+    text: "Update failed",
+    tone: BADGE_TONE.RED,
+  },
 };
 
 /** The classes of an action button */
@@ -62,10 +77,10 @@ export default memo(function ExtensionUpdateSection({ extensionPath }) {
   return (
     <div className="flex flex-col gap-2 min-w-0">
       <div className="flex flex-wrap items-center gap-2 min-w-0">
-        <SectionBadge tone="neutral">
+        <SectionBadge tone={BADGE_TONE.NEUTRAL}>
           Installed {currentVersion || "none"}
         </SectionBadge>
-        <SectionBadge tone="neutral">
+        <SectionBadge tone={BADGE_TONE.NEUTRAL}>
           Latest {latestVersion || "unknown"}
         </SectionBadge>
         <span role="status" className="flex items-center gap-1 min-w-0">

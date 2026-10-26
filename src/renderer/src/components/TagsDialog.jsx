@@ -1,3 +1,4 @@
+import { ALERT_VARIANT } from "../lib/constants";
 import * as yup from "yup";
 
 import { Controller, useForm } from "react-hook-form";
@@ -169,13 +170,13 @@ export default function TagsDialog() {
 
       {/* Alert */}
       {tags.length === 0 ? (
-        <Alert variant={"warning"}>
+        <Alert variant={ALERT_VARIANT.WARNING}>
           No tags added yet. You can add tags using the input field above.
         </Alert>
       ) : (
         <>
           {/* Info Alert */}
-          <Alert variant={"info"}>
+          <Alert variant={ALERT_VARIANT.INFO}>
             You can reorder tags by dragging and dropping them. Click on a tag
             to edit its name.
           </Alert>

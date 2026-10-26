@@ -1,3 +1,4 @@
+import { ALERT_VARIANT } from "../lib/constants";
 import { Controller, FormProvider } from "react-hook-form";
 import { memo } from "react";
 
@@ -27,7 +28,7 @@ export default memo(function BulkDeleteForm({
   return (
     <FormProvider {...methods}>
       <form id={id} onSubmit={onSubmit} className="flex flex-col gap-2 min-w-0">
-        <Alert variant={"danger"}>
+        <Alert variant={ALERT_VARIANT.DANGER}>
           {count > 0
             ? `${count} account(s) will be deleted with all their data.`
             : "Select the accounts to delete."}{" "}

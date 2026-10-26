@@ -1,3 +1,4 @@
+import { BADGE_TONE } from "../lib/constants";
 import { Dialog } from "radix-ui";
 
 import AppConnect from "./AppConnect";
@@ -32,12 +33,14 @@ export default function AppInfoDialog() {
         {/* Version */}
         <div className="flex items-center gap-2">
           {currentVersion ? (
-            <SectionBadge tone="neutral">{currentVersion}</SectionBadge>
+            <SectionBadge tone={BADGE_TONE.NEUTRAL}>
+              {currentVersion}
+            </SectionBadge>
           ) : null}
           {hasUpdate ? (
-            <SectionBadge tone="blue">Update available</SectionBadge>
+            <SectionBadge tone={BADGE_TONE.BLUE}>Update available</SectionBadge>
           ) : latestVersion ? (
-            <SectionBadge tone="green">Latest</SectionBadge>
+            <SectionBadge tone={BADGE_TONE.GREEN}>Latest</SectionBadge>
           ) : null}
         </div>
 

@@ -1,6 +1,6 @@
 import Alert from "./Alert";
 import { Progress } from "./Progress";
-import { SCRIPT_STATUS } from "../lib/constants";
+import { ALERT_VARIANT, SCRIPT_STATUS } from "../lib/constants";
 import { memo } from "react";
 import useScriptRunStore from "../store/useScriptRunStore";
 
@@ -17,7 +17,7 @@ export default memo(function ScriptRunStatus() {
         <Progress current={progress.done} max={progress.total} />
       ) : null;
     case SCRIPT_STATUS.FAILED:
-      return <Alert variant={"danger"}>{error}</Alert>;
+      return <Alert variant={ALERT_VARIANT.DANGER}>{error}</Alert>;
     default:
       return null;
   }

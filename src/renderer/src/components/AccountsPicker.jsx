@@ -1,3 +1,4 @@
+import { BADGE_TONE } from "../lib/constants";
 import { useCallback, useState } from "react";
 
 import AccountsPickerItem from "./AccountsPickerItem";
@@ -65,7 +66,11 @@ export default function AccountsPicker({
       <SectionHeader
         title="Accounts"
         badge={
-          <SectionBadge tone={selectedAccounts.length ? "blue" : "neutral"}>
+          <SectionBadge
+            tone={
+              selectedAccounts.length ? BADGE_TONE.BLUE : BADGE_TONE.NEUTRAL
+            }
+          >
             {formatNumber(selectedAccounts.length)} of{" "}
             {formatNumber(accounts.length)}
           </SectionBadge>

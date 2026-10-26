@@ -71,7 +71,7 @@ export async function getAccountSession(account) {
   return found;
 }
 
-/** Forgets every cached session, so the next request reads them again */
+/** Forgets every cached session */
 export function clearCachedSessions() {
   sessions.clear();
   notify();

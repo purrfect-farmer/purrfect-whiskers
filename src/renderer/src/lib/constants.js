@@ -126,3 +126,21 @@ export const EXTENSION_UPDATE_STATUS = Object.freeze({
   UPDATED: "updated",
   FAILED: "failed",
 });
+
+/** The colours of a section badge */
+export const BADGE_TONE = Object.freeze({
+  NEUTRAL: "neutral",
+  ORANGE: "orange",
+  BLUE: "blue",
+  GREEN: "green",
+  RED: "red",
+  PURPLE: "purple",
+});
+
+/** The kinds of alert */
+export const ALERT_VARIANT = Object.freeze({
+  INFO: "info",
+  WARNING: "warning",
+  DANGER: "danger",
+  SUCCESS: "success",
+});

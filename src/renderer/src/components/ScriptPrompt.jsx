@@ -1,3 +1,4 @@
+import { BADGE_TONE } from "../lib/constants";
 import {
   LuCheck,
   LuMessageCircleQuestion,
@@ -16,6 +17,21 @@ import SectionHeader from "./SectionHeader";
 import { cn } from "../lib/utils";
 import { getDefaultValues } from "../../../shared/lib/scriptFields";
 import useScriptFieldsForm from "../hooks/useScriptFieldsForm";
+
+/** One of the script's extra buttons on a prompt */
+const PromptActionButton = memo(function PromptActionButton({
+  action,
+  onPress,
+}) {
+  /** The handler for pressing the button */
+  const press = useCallback(() => onPress(action.value), [action, onPress]);
+
+  return (
+    <PrimaryButton variant="neutral" className="min-w-0" onClick={press}>
+      <span className="truncate">{action.label}</span>
+    </PrimaryButton>
+  );
+});
 
 /** A question from the running script, answered or cancelled by the user */
 export default memo(function ScriptPrompt({ prompt, waiting, onAnswer }) {
@@ -65,7 +81,7 @@ export default memo(function ScriptPrompt({ prompt, waiting, onAnswer }) {
         <SectionHeader
           title="Input Needed"
           badge={
-            <SectionBadge tone="blue">
+            <SectionBadge tone={BADGE_TONE.BLUE}>
               {waiting > 1 ? `1 of ${waiting}` : "Waiting"}
             </SectionBadge>
           }
@@ -121,14 +137,11 @@ export default memo(function ScriptPrompt({ prompt, waiting, onAnswer }) {
           </PrimaryButton>
 
           {actions.map((action) => (
-            <PrimaryButton
+            <PromptActionButton
               key={action.value}
-              variant="neutral"
-              className="min-w-0"
-              onClick={() => pressAction(action.value)}
-            >
-              <span className="truncate">{action.label}</span>
-            </PrimaryButton>
+              action={action}
+              onPress={pressAction}
+            />
           ))}
 
           <PrimaryButton

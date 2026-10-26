@@ -6,7 +6,7 @@ import FormField from "./FormField";
 import IconButton from "./IconButton";
 import Input from "./Input";
 import { cn } from "../lib/utils";
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import useScriptPathField from "../hooks/useScriptPathField";
 
 /** The Browse button's icon and label for each path field type */
@@ -28,6 +28,9 @@ const getBaseName = (path) => path.split(/[\\/]/).pop();
 
 /** A chosen file of a multiple field, with its folder and a remove button */
 const PathRow = memo(function PathRow({ path, disabled, onRemove }) {
+  /** The handler for removing the file */
+  const removePath = useCallback(() => onRemove(path), [onRemove, path]);
+
   return (
     <li
       className={cn(
@@ -51,7 +54,7 @@ const PathRow = memo(function PathRow({ path, disabled, onRemove }) {
       <IconButton
         title="Remove"
         disabled={disabled}
-        onClick={() => onRemove(path)}
+        onClick={removePath}
         className="p-1.5"
       >
         <LuX className="size-4" />
@@ -67,10 +70,16 @@ const PathControl = memo(function PathControl({
   onChange,
   disabled,
 }) {
-  const { browse, remove, dropProps, isDragging, acceptsDrops } =
-    useScriptPathField(field, value, onChange);
+  const { browse, remove, dropProps, isDragging } = useScriptPathField(
+    field,
+    value,
+    onChange,
+  );
 
   const { icon: BrowseIcon, title: browseTitle } = BROWSE[field.type];
+
+  /** The handler for clearing a single path */
+  const clear = useCallback(() => remove(value), [remove, value]);
 
   /** The browse button */
   const browseButton = (
@@ -105,9 +114,7 @@ const PathControl = memo(function PathControl({
             <p className="grow min-w-0 text-neutral-500 dark:text-neutral-400">
               {value.length > 0
                 ? `${value.length} file(s)`
-                : acceptsDrops
-                  ? "Drop files here, or choose them"
-                  : EMPTY_TEXT[field.type]}
+                : "Drop files here, or choose them"}
             </p>
             {browseButton}
           </div>
@@ -123,11 +130,7 @@ const PathControl = memo(function PathControl({
             className="text-ellipsis"
           />
           {value ? (
-            <IconButton
-              title="Clear"
-              disabled={disabled}
-              onClick={() => remove(value)}
-            >
+            <IconButton title="Clear" disabled={disabled} onClick={clear}>
               <LuX className="size-4" />
             </IconButton>
           ) : null}

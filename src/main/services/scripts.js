@@ -1,34 +1,17 @@
 import {
-  SCRIPT_API,
   SCRIPT_CHANNEL,
   SCRIPT_EVENT,
   SCRIPT_HOST_MESSAGE,
 } from "../../shared/constants/ipc";
-import { checkRequest, toCount, toRunAccounts } from "../libs/scriptRuns";
+import { toCount, toResponse, toRunAccounts } from "../libs/scriptRuns";
+
+import { ScriptRequests } from "./scriptRequests";
 import { checkPathValues } from "../libs/scriptPaths";
-import {
-  BrowserWindow,
-  Notification,
-  app,
-  dialog,
-  shell,
-  utilityProcess,
-} from "electron";
-
-import {
-  exists,
-  installScriptFromZip,
-  isPlainName,
-  resolveScript,
-} from "../libs/scriptPackages";
-
-import fs from "fs/promises";
-import { PROMPT_SUBMIT, validateAnswer } from "../../shared/lib/scriptPrompts";
-import { validateValues } from "../../shared/lib/scriptFields";
 import { once } from "events";
 import path from "path";
-
-export { listScripts } from "../libs/scriptPackages";
+import { resolveScript } from "../libs/scriptPackages";
+import { utilityProcess } from "electron";
+import { validateValues } from "../../shared/lib/scriptFields";
 
 /** The process that runs a script */
 const HOST_PATH = path.join(__dirname, "scriptHost.js");
@@ -44,66 +27,6 @@ const OUTPUT_CLOSE_TIMEOUT = 2_000;
 
 /** The most output a run keeps for a reloaded window, in characters */
 const MAX_KEPT_OUTPUT = 1_000_000;
-
-/** The name of the default scripts folder in the documents folder */
-const DEFAULT_FOLDER_NAME = "Purrfect Whiskers Scripts";
-
-/** The package file making the scripts ES modules */
-const PACKAGE_JSON = `${JSON.stringify(
-  { name: "purrfect-whiskers-scripts", private: true, type: "module" },
-  null,
-  2,
-)}\n`;
-
-/** The example script copied into a new default folder */
-const EXAMPLE_SCRIPT_DIR = path
-  .join(__dirname, "../../resources/example-script")
-  .replace("app.asar", "app.asar.unpacked");
-
-/** The default scripts folder, created with an example on first use */
-export async function getDefaultScriptsFolder() {
-  /** The default scripts folder */
-  const folder = path.join(app.getPath("documents"), DEFAULT_FOLDER_NAME);
-
-  if (!(await exists(folder))) {
-    await fs.mkdir(folder, { recursive: true });
-    await fs.writeFile(path.join(folder, "package.json"), PACKAGE_JSON);
-    await fs.cp(EXAMPLE_SCRIPT_DIR, path.join(folder, "example"), {
-      recursive: true,
-    });
-  }
-
-  return folder;
-}
-
-/** Opens a folder picker for the scripts folder */
-export function pickScriptsFolder(defaultPath) {
-  return dialog.showOpenDialog({
-    defaultPath: defaultPath || undefined,
-    properties: ["openDirectory"],
-  });
-}
-
-/** Opens the folder of the script `name` in the file manager */
-export function openScriptFolder(folder, name) {
-  if (typeof folder !== "string" || folder === "" || !isPlainName(name)) {
-    throw new Error("Invalid script");
-  }
-
-  return shell.openPath(path.join(folder, name));
-}
-
-/** Opens a zip picker and installs the chosen script package into `folder` */
-export async function installScript(folder) {
-  const result = await dialog.showOpenDialog({
-    filters: [{ name: "Script package", extensions: ["zip"] }],
-    properties: ["openFile"],
-  });
-
-  if (result.canceled) return { canceled: true };
-
-  return installScriptFromZip(folder, result.filePaths[0]);
-}
 
 /** A runner of one script at a time in its own process */
 export class ScriptRunner {
@@ -150,12 +73,9 @@ export class ScriptRunner {
       name,
       startedAt: Date.now(),
       displayName,
-      notification: null,
       child,
       receiver,
       partitions: new Set(runAccounts.map((account) => account.partition)),
-      pending: new Map(),
-      promptTimers: new Map(),
       result: null,
       ended: false,
       stopping: false,
@@ -164,6 +84,10 @@ export class ScriptRunner {
       output: [],
       outputSize: 0,
     };
+
+    run.requests = new ScriptRequests(run, (type, payload) =>
+      this.emit(run, type, payload),
+    );
 
     this.run = run;
 
@@ -213,7 +137,7 @@ export class ScriptRunner {
   handleMessage(run, message) {
     switch (message?.type) {
       case SCRIPT_HOST_MESSAGE.REQUEST:
-        this.forwardRequest(run, message);
+        run.requests.forward(message);
         break;
 
       case SCRIPT_HOST_MESSAGE.PROGRESS:
@@ -243,147 +167,14 @@ export class ScriptRunner {
     run.exitTimer = setTimeout(() => run.child.kill(), EXIT_GRACE);
   }
 
-  /** Sends a script's request to the renderer, or answers it with an error */
-  forwardRequest(run, message) {
-    if (!Number.isInteger(message.id)) return;
+  /** Answers a pending request of the active run */
+  respond(payload) {
+    const response = toResponse(payload);
 
-    const { request, error } = checkRequest(message, run.partitions);
-
-    if (error) {
-      this.reply(run, message.id, { error });
-      return;
-    }
-
-    if (run.stopping && request.method === SCRIPT_API.PROMPT) {
-      this.reply(run, request.id, { result: null });
-      return;
-    }
-
-    run.pending.set(request.id, request);
-    this.emit(run, SCRIPT_EVENT.REQUEST, request);
-
-    if (request.method === SCRIPT_API.PROMPT) {
-      this.notifyPrompt(run, request.args[0]);
-    }
-
-    if (request.expiresAt) {
-      run.promptTimers.set(
-        request.id,
-        setTimeout(
-          () => this.closePrompt(run, request.id),
-          request.expiresAt - Date.now(),
-        ),
-      );
-    }
+    if (response) this.run?.requests.respond(response);
   }
 
-  /** Shows a system notification for a prompt while the window is unfocused */
-  notifyPrompt(run, prompt) {
-    /** The window showing the run */
-    const window = BrowserWindow.fromWebContents(run.receiver);
-
-    if (!window || window.isFocused() || !Notification.isSupported()) return;
-
-    run.notification?.close();
-    run.notification = new Notification({
-      title: `${run.displayName} needs your input`,
-      body: prompt.title,
-    });
-
-    run.notification.on("click", () => {
-      window.show();
-      window.focus();
-      this.emit(run, SCRIPT_EVENT.SHOW_PROMPT);
-    });
-    run.notification.show();
-  }
-
-  /** Closes the prompt notification once no prompt is waiting */
-  clearNotification(run) {
-    /** Whether a prompt is still waiting */
-    const isPromptWaiting = [...run.pending.values()].some(
-      (request) => request.method === SCRIPT_API.PROMPT,
-    );
-
-    if (isPromptWaiting) return;
-
-    run.notification?.close();
-    run.notification = null;
-  }
-
-  /** Closes an open prompt with no answer */
-  closePrompt(run, id) {
-    clearTimeout(run.promptTimers.get(id));
-    run.promptTimers.delete(id);
-
-    if (!run.pending.delete(id)) return;
-
-    this.reply(run, id, { result: null });
-    this.emit(run, SCRIPT_EVENT.PROMPT_CLOSED, { id });
-    this.clearNotification(run);
-  }
-
-  /** Answers a pending request with the renderer's result or error */
-  respond(id, { result, error } = {}) {
-    const run = this.run;
-    const request = run?.pending.get(id);
-
-    if (!request) return;
-
-    run.pending.delete(id);
-    clearTimeout(run.promptTimers.get(id));
-    run.promptTimers.delete(id);
-    this.clearNotification(run);
-
-    if (error) {
-      this.reply(run, id, { error: String(error) });
-    } else if (request.method === SCRIPT_API.PROMPT && result !== null) {
-      this.replyToPrompt(run, request, result);
-    } else {
-      this.reply(run, id, { result: result ?? null });
-    }
-  }
-
-  /**
-   * Answers a prompt with its validated answer, or an error when invalid
-   * or when a submitted path is not on disk
-   */
-  async replyToPrompt(run, request, answer) {
-    /** The prompt being answered */
-    const prompt = request.args[0];
-    /** The checked answer, or its error */
-    const payload = validateAnswer(prompt, answer);
-
-    if (payload.result?.action === PROMPT_SUBMIT) {
-      const pathError = await checkPathValues(
-        prompt.fields,
-        payload.result.values,
-      );
-
-      if (pathError) {
-        this.reply(run, request.id, { error: pathError });
-        return;
-      }
-    }
-
-    this.reply(run, request.id, payload);
-  }
-
-  /** Posts the answer of a request to the script's process */
-  reply(run, id, payload) {
-    if (!run.ended) {
-      run.child.postMessage({
-        type: SCRIPT_HOST_MESSAGE.RESPONSE,
-        id,
-        ...payload,
-      });
-    }
-  }
-
-  /**
-   * The active run's name, output and state, re-attaching `receiver`.
-   * Pending requests are sent to it again once it has the state.
-   */
+  /** The active run's name, output and state, re-attached to `receiver` */
   attach(receiver) {
     const run = this.run;
 
@@ -391,11 +182,7 @@ export class ScriptRunner {
 
     run.receiver = receiver;
 
-    setImmediate(() => {
-      for (const request of run.pending.values()) {
-        this.emit(run, SCRIPT_EVENT.REQUEST, request);
-      }
-    });
+    setImmediate(() => run.requests.resend());
 
     return {
       name: run.name,
@@ -416,10 +203,7 @@ export class ScriptRunner {
     }
   }
 
-  /**
-   * Stops the active run: first by signalling the script and killing it
-   * after a grace period, then at once on a second stop
-   */
+  /** Stops the active run, killing it at once on a second stop */
   stop() {
     const run = this.run;
 
@@ -434,11 +218,7 @@ export class ScriptRunner {
     run.stopping = true;
     run.child.postMessage({ type: SCRIPT_HOST_MESSAGE.ABORT });
 
-    for (const request of run.pending.values()) {
-      if (request.method === SCRIPT_API.PROMPT) {
-        this.closePrompt(run, request.id);
-      }
-    }
+    run.requests.closePrompts();
 
     this.emit(run, SCRIPT_EVENT.STOPPING);
 
@@ -453,10 +233,7 @@ export class ScriptRunner {
     if (run.ended) return;
 
     run.ended = true;
-    run.pending.clear();
-    this.clearNotification(run);
-
-    for (const timer of run.promptTimers.values()) clearTimeout(timer);
+    run.requests.dispose();
 
     this.emit(run, type, payload);
 
