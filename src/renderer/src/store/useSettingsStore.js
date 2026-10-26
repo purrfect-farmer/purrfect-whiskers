@@ -34,6 +34,8 @@ export default create(
         scriptsFolder: "",
         /** The last options used for each script, without secrets */
         scriptOptions: {},
+        /** Whether the Scripts dialog shows only the output */
+        scriptOutputExpanded: false,
       },
       (set) => ({
         setColumns: (columns) => set({ columns }),
@@ -41,6 +43,8 @@ export default create(
         setTheme: (theme) => set({ theme }),
         setExtensionPath: (extensionPath) => set({ extensionPath }),
         setScriptsFolder: (scriptsFolder) => set({ scriptsFolder }),
+        setScriptOutputExpanded: (scriptOutputExpanded) =>
+          set({ scriptOutputExpanded }),
         setScriptOptions: (name, values) =>
           set((state) => {
             const { [name]: _previous, ...others } = state.scriptOptions;

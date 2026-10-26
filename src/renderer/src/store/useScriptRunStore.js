@@ -15,6 +15,8 @@ export default create((set) => ({
   error: null,
   /** The progress the script reported */
   progress: NO_PROGRESS,
+  /** The folder name of the script whose output is shown, or null */
+  runName: null,
   /** The time the current run started, or null */
   startedAt: null,
   /** The log lines, each with a stable id */

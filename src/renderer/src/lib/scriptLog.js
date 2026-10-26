@@ -54,5 +54,5 @@ export function clearScriptLog() {
   cancelAnimationFrame(frame);
   frame = null;
   pending = "";
-  useScriptRunStore.getState().setRunState({ lines: [] });
+  useScriptRunStore.getState().setRunState({ lines: [], runName: null });
 }

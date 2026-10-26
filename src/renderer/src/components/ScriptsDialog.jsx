@@ -4,10 +4,22 @@ import ScriptsPanel from "./ScriptsPanel";
 import useAccountsSelector from "../hooks/useAccountsSelector";
 import useAppStore from "../store/useAppStore";
 import useScriptRunner from "../hooks/useScriptRunner";
+import useSettingsStore from "../store/useSettingsStore";
 import { useState } from "react";
 
 /** The options of the account selection */
 const SELECTOR_OPTIONS = { initiallySelected: false };
+
+/** The handler for Escape, collapsing an expanded output before closing */
+function collapseOnEscape(event) {
+  const { scriptOutputExpanded, setScriptOutputExpanded } =
+    useSettingsStore.getState();
+
+  if (!scriptOutputExpanded) return;
+
+  event.preventDefault();
+  setScriptOutputExpanded(false);
+}
 
 /** A dialog for running a script on the selected accounts */
 export default function ScriptsDialog() {
@@ -28,6 +40,7 @@ export default function ScriptsDialog() {
       description={"Run a script on the selected accounts"}
       icon={LuSquareTerminal}
       className="max-w-5xl h-[calc(100dvh-5rem)]"
+      onEscapeKeyDown={collapseOnEscape}
     >
       <ScriptsPanel
         selector={selector}

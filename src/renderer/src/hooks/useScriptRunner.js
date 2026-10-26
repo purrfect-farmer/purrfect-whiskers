@@ -122,6 +122,7 @@ export default function useScriptRunner(onRestore) {
       appendScriptLog(`Running ${run.name} (restored after reload)\n`);
       appendScriptLog(run.output);
       setRunState({
+        runName: run.name,
         startedAt: run.startedAt,
         status: run.stopping ? SCRIPT_STATUS.STOPPING : SCRIPT_STATUS.RUNNING,
       });
@@ -136,6 +137,7 @@ export default function useScriptRunner(onRestore) {
 
       clearScriptLog();
       setRunState({
+        runName: name,
         error: null,
         progress: NO_PROGRESS,
         startedAt: Date.now(),
