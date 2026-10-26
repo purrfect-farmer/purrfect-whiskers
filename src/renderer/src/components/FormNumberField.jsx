@@ -2,15 +2,10 @@ import { Controller } from "react-hook-form";
 import { NumberInput } from "./NumberInput";
 import { memo, useState } from "react";
 
-/** Parses `value` as an integer clamped to `min`–`max` */
 const toClampedInteger = (value, min, max) =>
   Math.max(min, Math.min(parseInt(value) || min, max));
 
-/**
- * Keeps the typed text while focused, so the field can be cleared and
- * retyped. Each parsable value is stored clamped, and the text settles
- * on the stored value on blur.
- */
+/** A number input that keeps the typed text while it has focus */
 const NumberFieldControl = memo(function NumberFieldControl({
   field,
   label,
@@ -18,8 +13,10 @@ const NumberFieldControl = memo(function NumberFieldControl({
   max,
   disabled,
 }) {
+  /** The text typed while the input has focus */
   const [draft, setDraft] = useState(null);
 
+  /** The handler for typed text */
   const handleChange = (text) => {
     setDraft(text);
 
@@ -28,11 +25,13 @@ const NumberFieldControl = memo(function NumberFieldControl({
     }
   };
 
+  /** The handler for the step buttons */
   const handleStep = (delta) => {
     setDraft(null);
     field.onChange(toClampedInteger(field.value + delta, min, max));
   };
 
+  /** The handler for leaving the input */
   const handleBlur = () => {
     setDraft(null);
     field.onBlur();
@@ -53,7 +52,7 @@ const NumberFieldControl = memo(function NumberFieldControl({
   );
 });
 
-/** A number input bound to a react-hook-form field, clamped to `min`–`max` */
+/** A number input bound to a form field */
 export default memo(function FormNumberField({
   name,
   label,

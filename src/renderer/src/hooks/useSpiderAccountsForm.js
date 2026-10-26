@@ -12,7 +12,6 @@ import { useForm } from "react-hook-form";
 import useSpiderPurchase from "./useSpiderPurchase";
 import { yupResolver } from "@hookform/resolvers/yup";
 
-/** Most accounts bought at once */
 export const MAX_SPIDER_BATCH = 3;
 
 const schema = yup
@@ -41,10 +40,7 @@ const DEFAULT_VALUES = {
   enableLocalTelegramSession: true,
 };
 
-/**
- * The Spider purchase form. It lives above the dialog with the purchase,
- * so its values survive closing the dialog.
- */
+/** A hook for the Spider purchase form */
 const useSpiderAccountsForm = ({ core }) => {
   const country = core.selectedCountry;
   const { mutation, progress, cancelPurchase } = useSpiderPurchase(country);
@@ -57,7 +53,6 @@ const useSpiderAccountsForm = ({ core }) => {
   /** Maximum purchasable accounts (available stock) */
   const maxCount = country?.quantity ?? 0;
 
-  /** Keeps the count within the stock of the selected country */
   useEffect(() => {
     if (methods.getValues("count") > maxCount) {
       methods.setValue("count", Math.max(1, maxCount));
@@ -99,6 +94,7 @@ const useSpiderAccountsForm = ({ core }) => {
     [maxCount, mutation],
   );
 
+  /** The submit handler of the form */
   const onSubmit = useMemo(
     () => methods.handleSubmit(purchaseAccounts),
     [methods, purchaseAccounts],

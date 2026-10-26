@@ -5,10 +5,6 @@ import { UNTAGGED_TAG, countTagUsage } from "../lib/tags";
 import { cn } from "../lib/utils";
 import { memo, useMemo } from "react";
 
-/**
- * Tag filter chips. The active chip has a button that switches it
- * between showing the accounts with the tag and those without it.
- */
 export default memo(function TagsList({
   accounts,
   tags,
@@ -27,7 +23,6 @@ export default memo(function TagsList({
         const activeExcluded = active && excluded;
         const count = counts.get(tag.id) || 0;
 
-        /** Untagged has its own icon, unless excluded to show tagged ones */
         const Icon =
           tag.id === UNTAGGED_TAG.id && !activeExcluded ? TbTagOff : HiTag;
 

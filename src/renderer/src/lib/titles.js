@@ -1,13 +1,12 @@
-/** How the bulk renamer builds titles */
+/** Modes of the bulk renamer */
 export const RENAME_MODE = Object.freeze({
   NUMBERED: "numbered",
   AFFIX: "affix",
 });
 
-/** Most digits a number can be zero-padded to */
 export const MAX_TITLE_PADDING = 6;
 
-/** Prefix, then the number zero-padded to `padding` digits, then suffix */
+/** A formatter for numbered titles */
 export function formatNumberedTitle({
   prefix = "",
   suffix = "",
@@ -17,7 +16,7 @@ export function formatNumberedTitle({
   return `${prefix}${String(number).padStart(padding, "0")}${suffix}`;
 }
 
-/** The trimmed title of the account at position `index` of a bulk rename */
+/** A builder for one account's bulk rename title */
 export function buildTitle(account, index, values) {
   const title =
     values.mode === RENAME_MODE.AFFIX
@@ -32,7 +31,7 @@ export function buildTitle(account, index, values) {
   return title.trim();
 }
 
-/** `[partition, title]` of each account, numbered in the given order */
+/** A builder for the `[partition, title]` pairs of a bulk rename */
 export function buildTitles(accounts, values) {
   return accounts.map((account, index) => [
     account.partition,

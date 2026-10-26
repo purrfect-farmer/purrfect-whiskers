@@ -35,10 +35,6 @@ const TagOption = (props) => (
   </ComboboxOption>
 );
 
-/**
- * Picks tags from the store. With `allowCreate`, typed names that match
- * no tag are offered and added to the store.
- */
 export default memo(function TagsInput({
   value,
   onChange,

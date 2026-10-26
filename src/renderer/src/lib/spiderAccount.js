@@ -14,10 +14,7 @@ export const OPEN_TELEGRAM_WEB_COMMAND = Object.freeze({
   data: ["telegram-web-k"],
 });
 
-/**
- * The title of the purchase at position `index`: numbered when `title`
- * has a prefix or suffix, otherwise named after the phone number
- */
+/** A builder for a purchased account's title */
 export function buildSpiderTitle({ purchase, index, title }) {
   if (!title.prefix && !title.suffix) {
     return `Spider ${purchase.account["phone"]}`;

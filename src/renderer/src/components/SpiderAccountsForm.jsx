@@ -21,7 +21,7 @@ import { useSpider } from "./SpiderProvider";
 
 const TITLE_FIELDS = ["prefix", "suffix", "startNumber", "padding", "count"];
 
-/** Total price of the accounts being bought */
+/** The total price of the accounts being bought */
 const SpiderTotalPrice = memo(function SpiderTotalPrice({ price }) {
   const count = useWatch({ name: "count" });
 
@@ -32,15 +32,16 @@ const SpiderTotalPrice = memo(function SpiderTotalPrice({ price }) {
   );
 });
 
-/** Title fields, numbered once a prefix or suffix is set, and a preview */
+/** The title fields with a preview of the titles */
 const SpiderTitleFields = memo(function SpiderTitleFields({ disabled }) {
   const [prefix, suffix, startNumber, padding, count] = useWatch({
     name: TITLE_FIELDS,
   });
 
+  /** Whether the titles are numbered */
   const numbered = Boolean(prefix || suffix);
 
-  /** The first and last title */
+  /** The title at an offset from the start number */
   const formatAt = (offset) =>
     formatNumberedTitle({
       prefix,
@@ -49,6 +50,7 @@ const SpiderTitleFields = memo(function SpiderTitleFields({ disabled }) {
       padding,
     }).trim();
 
+  /** The preview of the first and last titles */
   const titlePreview = numbered
     ? count > 1
       ? `${formatAt(0)} … ${formatAt(count - 1)}`
@@ -68,7 +70,7 @@ const SpiderTitleFields = memo(function SpiderTitleFields({ disabled }) {
   );
 });
 
-/** Purchase button, progress and cancellation */
+/** The purchase button, progress and cancel button */
 const SpiderPurchaseActions = memo(function SpiderPurchaseActions({
   maxCount,
   isPending,

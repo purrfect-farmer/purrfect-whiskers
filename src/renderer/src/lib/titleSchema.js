@@ -2,10 +2,7 @@ import * as yup from "yup";
 
 import { MAX_TITLE_PADDING } from "./titles";
 
-/**
- * Fields of a numbered title. Prefix and suffix are kept as typed, so
- * separators such as "-" or " " survive.
- */
+/** Yup fields of a numbered title; prefix and suffix are not trimmed */
 export const numberedTitleFields = {
   prefix: yup.string().default("").label("Prefix"),
   suffix: yup.string().default("").label("Suffix"),

@@ -33,13 +33,14 @@ const DEFAULT_VALUES = {
   ...NUMBERED_TITLE_DEFAULTS,
 };
 
-/** Renames the selected accounts, numbered in their saved order */
+/** A hook for the bulk rename form */
 export default function useBulkRenameForm(selectedAccounts) {
   const methods = useForm({
     resolver: yupResolver(schema),
     defaultValues: DEFAULT_VALUES,
   });
 
+  /** The rename of the selected accounts */
   const renameAccounts = useCallback(
     (values) => {
       const renamed = useAppStore
@@ -55,6 +56,7 @@ export default function useBulkRenameForm(selectedAccounts) {
     [selectedAccounts],
   );
 
+  /** The submit handler of the form */
   const onSubmit = useMemo(
     () => methods.handleSubmit(renameAccounts),
     [methods, renameAccounts],

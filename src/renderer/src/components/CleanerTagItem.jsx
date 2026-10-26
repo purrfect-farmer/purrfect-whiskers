@@ -2,7 +2,7 @@ import Toggle from "./Toggle";
 import { cn } from "../lib/utils";
 import { memo } from "react";
 
-/** A found tag with a toggle choosing whether it is removed */
+/** A found tag with a toggle */
 export default memo(function CleanerTagItem({
   id,
   icon: Icon,

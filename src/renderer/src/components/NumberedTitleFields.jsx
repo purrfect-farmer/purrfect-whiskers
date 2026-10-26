@@ -3,10 +3,7 @@ import FormNumberField from "./FormNumberField";
 import { MAX_TITLE_PADDING } from "../lib/titles";
 import { memo } from "react";
 
-/**
- * Prefix and suffix fields, plus the start number and zero padding
- * when `numbered`
- */
+/** The prefix, suffix, start number and padding fields of a numbered title */
 export default memo(function NumberedTitleFields({
   numbered = true,
   disabled,

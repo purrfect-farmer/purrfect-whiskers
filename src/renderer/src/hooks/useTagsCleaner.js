@@ -16,20 +16,21 @@ const schema = yup
 
 const DEFAULT_VALUES = { skipped: [] };
 
-/**
- * Finds unused and unknown tags and removes them. Every found tag is
- * selected unless the user unchecked it (`skipped`).
- */
+/** A hook for finding and removing unused and unknown tags */
 export default function useTagsCleaner() {
   const tags = useAppStore((state) => state.tags);
   const accounts = useAppStore((state) => state.accounts);
 
+  /** The number of accounts carrying each tag id */
   const usage = useMemo(() => countTagUsage(accounts), [accounts]);
+
+  /** The unused tags and the unknown tag ids */
   const { unused, unknown } = useMemo(
     () => findTagIssues(tags, usage),
     [tags, usage],
   );
 
+  /** The list of found tag ids */
   const foundIds = useMemo(
     () => [...unused.map((tag) => tag.id), ...unknown.map((tag) => tag.id)],
     [unused, unknown],
@@ -40,7 +41,7 @@ export default function useTagsCleaner() {
     defaultValues: DEFAULT_VALUES,
   });
 
-  /** Checks or unchecks a found tag */
+  /** The toggle for a found tag */
   const toggleTag = useCallback(
     (id, checked) => {
       const skipped = methods.getValues("skipped");
@@ -53,6 +54,7 @@ export default function useTagsCleaner() {
     [methods],
   );
 
+  /** The removal of the checked tags */
   const removeTags = useCallback(
     (values) => {
       const skipped = new Set(values.skipped);
@@ -68,6 +70,7 @@ export default function useTagsCleaner() {
     [foundIds, methods],
   );
 
+  /** The submit handler of the form */
   const onSubmit = useMemo(
     () => methods.handleSubmit(removeTags),
     [methods, removeTags],

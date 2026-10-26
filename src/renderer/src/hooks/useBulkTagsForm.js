@@ -32,13 +32,14 @@ const schema = yup
 
 const DEFAULT_VALUES = { add: [], remove: [] };
 
-/** Adds and removes tags on the selected accounts */
+/** A hook for the bulk tags form */
 export default function useBulkTagsForm(selectedAccounts) {
   const methods = useForm({
     resolver: yupResolver(schema),
     defaultValues: DEFAULT_VALUES,
   });
 
+  /** The tag update of the selected accounts */
   const updateTags = useCallback(
     (values) => {
       const updated = useAppStore.getState().updateAccountsTags(
@@ -56,6 +57,7 @@ export default function useBulkTagsForm(selectedAccounts) {
     [selectedAccounts],
   );
 
+  /** The submit handler of the form */
   const onSubmit = useMemo(
     () => methods.handleSubmit(updateTags),
     [methods, updateTags],

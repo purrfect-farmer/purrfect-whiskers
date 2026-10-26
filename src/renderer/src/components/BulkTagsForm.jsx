@@ -6,7 +6,7 @@ import SubmitButton from "./SubmitButton";
 import TagsInput from "./TagsInput";
 import useBulkTagsForm from "../hooks/useBulkTagsForm";
 
-/** A tags input bound to a react-hook-form field */
+/** A tags input bound to a form field */
 const TagsField = ({ name, label, allowCreate, placeholder }) => (
   <Controller
     name={name}
@@ -23,7 +23,7 @@ const TagsField = ({ name, label, allowCreate, placeholder }) => (
   />
 );
 
-/** Adds and removes tags on the selected accounts at once */
+/** A form for adding and removing tags on the selected accounts */
 export default memo(function BulkTagsForm({ selectedAccounts }) {
   const { methods, onSubmit } = useBulkTagsForm(selectedAccounts);
 

@@ -10,12 +10,12 @@ import useTabs from "../hooks/useTabs";
 
 const SELECTOR_OPTIONS = { initiallySelected: false };
 
-/** Renames and tags many accounts at once */
+/** A dialog for renaming and tagging many accounts at once */
 export default function BulkEditDialog() {
   const accounts = useAppStore((state) => state.accounts);
   const tabs = useTabs(["rename", "tags"], "rename");
 
-  /** Starts empty, so nothing changes until accounts are picked */
+  /** The selection of accounts to edit, starting empty */
   const selector = useAccountsSelector(accounts, SELECTOR_OPTIONS);
   const { selectedAccounts } = selector;
 

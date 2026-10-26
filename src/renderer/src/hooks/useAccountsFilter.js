@@ -10,12 +10,13 @@ export default function useAccountsFilter(accounts) {
   const [excluded, setExcluded] = useState(false);
   const tags = useAppStore((state) => state.tags);
 
-  /** Tags offered as filters, led by Untagged once any tag exists */
+  /** The tags offered as filters, led by Untagged */
   const filterTags = useMemo(
     () => (tags.length > 0 ? [UNTAGGED_TAG, ...tags] : tags),
     [tags],
   );
 
+  /** The tag currently filtering the list */
   const activeTag = useMemo(
     () =>
       selectedTag === UNTAGGED_TAG.id
@@ -26,23 +27,19 @@ export default function useAccountsFilter(accounts) {
     [tags, selectedTag],
   );
 
-  /** A deleted tag stops being the filter, along with its exclude mode */
   if (selectedTag && !activeTag) {
     setSelectedTag(null);
     setExcluded(false);
   }
 
-  /**
-   * Clicking a tag clears the search, since search takes precedence below.
-   * A newly selected tag starts as an include filter.
-   */
+  /** Clicking a tag clears the search, since search takes precedence below */
   const selectTag = useCallback((id) => {
     setSearch("");
     setExcluded(false);
     setSelectedTag((prev) => (prev === id ? null : id));
   }, []);
 
-  /** Switches the active tag between including and excluding its accounts */
+  /** The switch between including and excluding the active tag */
   const toggleExcluded = useCallback(() => {
     setSearch("");
     setExcluded((prev) => !prev);

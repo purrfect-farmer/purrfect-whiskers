@@ -12,14 +12,14 @@ export function isTagIdTaken(tags, id, exceptId = null) {
   return tags.some((item) => item.id === id && item.id !== exceptId);
 }
 
-/** Pseudo tag matching accounts without any tag; excluded, it reads "Tagged" */
+/** Pseudo tag matching accounts without any tag */
 export const UNTAGGED_TAG = Object.freeze({
   id: "__untagged__",
   name: "Untagged",
   excludedName: "Tagged",
 });
 
-/** Whether the account carries the tag, or has no tags for `UNTAGGED_TAG` */
+/** A check of whether an account matches a tag filter */
 export function accountMatchesTag(account, tagId) {
   if (tagId === UNTAGGED_TAG.id) {
     return !account.tags?.length;
@@ -28,10 +28,7 @@ export function accountMatchesTag(account, tagId) {
   return Boolean(account.tags?.includes(tagId));
 }
 
-/**
- * Adds `add` and drops `remove` from `tags`, keeping order and uniqueness.
- * Returns `tags` itself when nothing changes.
- */
+/** Applies tag additions and removals, returning `tags` itself when unchanged */
 export function applyTagChanges(tags, add, remove) {
   const current = tags || [];
   const removed = new Set(remove);
@@ -52,7 +49,7 @@ export function applyTagChanges(tags, add, remove) {
   return changed ? next : tags;
 }
 
-/** Counts the accounts carrying each tag id, and those without any tag */
+/** A count of accounts per tag id, including untagged ones */
 export function countTagUsage(accounts) {
   const counts = new Map([[UNTAGGED_TAG.id, 0]]);
 
@@ -69,10 +66,7 @@ export function countTagUsage(accounts) {
   return counts;
 }
 
-/**
- * Tags no account carries (`unused`), and ids accounts carry that are not
- * in `tags` (`unknown`, with how many accounts carry each)
- */
+/** A finder for unused tags and unknown tag ids */
 export function findTagIssues(tags, usage) {
   const known = new Set(tags.map((tag) => tag.id));
 

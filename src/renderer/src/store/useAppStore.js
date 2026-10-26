@@ -133,10 +133,7 @@ export default create(
               item.partition === data.partition ? { ...item, ...data } : item,
             ),
           }),
-        /**
-         * Sets the titles of many accounts from `[partition, title]` pairs.
-         * Returns how many accounts changed.
-         */
+        /** Renames many accounts, returning how many changed */
         renameAccounts: (entries) => {
           const titles = new Map(entries);
           let changed = 0;
@@ -155,10 +152,7 @@ export default create(
           return changed;
         },
 
-        /**
-         * Adds and removes tags on the accounts in `partitions`.
-         * Returns how many accounts changed.
-         */
+        /** Adds and removes tags on many accounts, returning how many changed */
         updateAccountsTags: (partitions, add, remove) => {
           const targets = new Set(partitions);
           let changed = 0;
@@ -272,10 +266,7 @@ export default create(
         addTag: (tag) => set({ tags: [...get().tags, tag] }),
         removeTag: (id) => get().removeTags([id]),
 
-        /**
-         * Removes the tags with `ids` from the tag list and every account.
-         * Returns how many accounts changed.
-         */
+        /** Removes tags from the tag list and every account, returning how many accounts changed */
         removeTags: (ids) => {
           const removed = new Set(ids);
           let changed = 0;

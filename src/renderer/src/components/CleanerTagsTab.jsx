@@ -18,7 +18,7 @@ const TagSection = ({ title, hint, children }) => (
   </section>
 );
 
-/** Found tags, checked unless skipped, and the remove button */
+/** The found tags and the remove button */
 const FoundTags = memo(function FoundTags({
   unused,
   unknown,
@@ -26,8 +26,10 @@ const FoundTags = memo(function FoundTags({
   toggleTag,
 }) {
   const skipped = useWatch({ name: "skipped" });
+  /** The set of unchecked tag ids */
   const skippedIds = useMemo(() => new Set(skipped), [skipped]);
 
+  /** The number of tags to remove */
   const removeCount = foundIds.filter((id) => !skippedIds.has(id)).length;
 
   return (
@@ -83,7 +85,7 @@ const FoundTags = memo(function FoundTags({
   );
 });
 
-/** Finds and removes tags that are unused or unknown */
+/** The Cleaner tab for removing unused and unknown tags */
 export default function CleanerTagsTab() {
   const { methods, onSubmit, unused, unknown, foundIds, toggleTag } =
     useTagsCleaner();

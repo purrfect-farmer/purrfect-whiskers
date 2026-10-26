@@ -15,7 +15,7 @@ const MODE_OPTIONS = [
 
 const PREVIEW_FIELDS = ["mode", "prefix", "suffix", "startNumber", "padding"];
 
-/** A current title and the title it gets */
+/** A row showing a title and its new title */
 const PreviewRow = ({ from, to }) => (
   <li className="flex items-center gap-2 min-w-0">
     <span className="truncate min-w-0 basis-1/2 text-right">{from}</span>
@@ -24,7 +24,7 @@ const PreviewRow = ({ from, to }) => (
   </li>
 );
 
-/** The first and last renamed account */
+/** A preview of the first and last renamed accounts */
 const RenamePreview = memo(function RenamePreview({ accounts }) {
   const [mode, prefix, suffix, startNumber, padding] = useWatch({
     name: PREVIEW_FIELDS,
@@ -38,6 +38,7 @@ const RenamePreview = memo(function RenamePreview({ accounts }) {
     );
   }
 
+  /** The rename values being previewed */
   const values = { mode, prefix, suffix, startNumber, padding };
   const lastIndex = accounts.length - 1;
   const first = accounts[0];
@@ -57,14 +58,14 @@ const RenamePreview = memo(function RenamePreview({ accounts }) {
   );
 });
 
-/** Title fields of the chosen mode */
+/** The title fields of the chosen rename mode */
 const RenameFields = memo(function RenameFields() {
   const mode = useWatch({ name: "mode" });
 
   return <NumberedTitleFields numbered={mode === RENAME_MODE.NUMBERED} />;
 });
 
-/** Renames the selected accounts at once */
+/** A form for renaming the selected accounts */
 export default memo(function BulkRenameForm({ selectedAccounts }) {
   const { methods, onSubmit } = useBulkRenameForm(selectedAccounts);
 

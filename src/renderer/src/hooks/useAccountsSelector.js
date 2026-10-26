@@ -1,9 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 
-/**
- * Selection over a list of accounts, starting with all of them selected,
- * or none with `initiallySelected: false`
- */
+/** Selection over a list of accounts, starting with all of them selected */
 export default function useAccountsSelector(
   accounts,
   { initiallySelected = true } = {},
