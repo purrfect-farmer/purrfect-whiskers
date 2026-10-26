@@ -5,9 +5,16 @@ import { readFile } from "node:fs/promises";
 /** The file describing the Linux distro */
 const OS_RELEASE_PATH = "/etc/os-release";
 
-/** The Linux distro families and their package format */
+/** The only architecture Whiskers is built for on Linux */
+const LINUX_ARCH = "x64";
+
+/** The Linux distro families and their package format, checked in order */
 const DISTRO_PACKAGES = [
-  [/\barch\b/, APP_PACKAGE.PACMAN],
+  [/\bsteamos\b/, APP_PACKAGE.APPIMAGE],
+  [
+    /\b(arch|manjaro|endeavouros|garuda|cachyos|artix|arcolinux)\b/,
+    APP_PACKAGE.PACMAN,
+  ],
   [/\b(debian|ubuntu)\b/, APP_PACKAGE.DEB],
   [/\b(fedora|rhel|centos|suse|opensuse)\b/, APP_PACKAGE.RPM],
 ];
@@ -38,6 +45,7 @@ function detectPackage(osRelease) {
     case "darwin":
       return APP_PACKAGE.DMG;
     case "linux": {
+      if (process.arch !== LINUX_ARCH) return null;
       if (process.env.APPIMAGE) return APP_PACKAGE.APPIMAGE;
 
       /** The distro and the distros it's based on */
