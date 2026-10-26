@@ -10,8 +10,7 @@ import { Dialog } from "radix-ui";
 import IconButton from "./IconButton";
 import Input from "./Input";
 import PrimaryButton from "./PrimaryButton";
-import TagsList from "./TagsList";
-import TagsToggleButton from "./TagsToggleButton";
+import CollapsibleTags from "./CollapsibleTags";
 import ScrollAwareVirtuoso from "./ScrollAwareVirtuoso";
 import { cn } from "../lib/utils";
 import { useCallback } from "react";
@@ -19,7 +18,6 @@ import useAccountsFilter from "../hooks/useAccountsFilter";
 import useAccountsLauncher from "../hooks/useAccountsLauncher";
 import useAppStore from "../store/useAppStore";
 import useDialogState from "../hooks/useDialogState";
-import useSettingsStore from "../store/useSettingsStore";
 
 /** The classes of a header dialog trigger */
 const TRIGGER_BUTTON_CLASS = cn(
@@ -43,11 +41,6 @@ const RUNNING_BADGE = (
 export default function AccountListDialog() {
   const accounts = useAppStore((state) => state.accounts);
   const launchAccount = useAppStore((state) => state.launchAccount);
-  const showAccountTags = useSettingsStore((state) => state.showAccountTags);
-  const setShowAccountTags = useSettingsStore(
-    (state) => state.setShowAccountTags,
-  );
-
   const {
     tags,
     filterTags,
@@ -171,15 +164,6 @@ export default function AccountListDialog() {
               onChange={(ev) => setSearch(ev.target.value)}
             />
 
-            {/* Toggle Tags */}
-            {tags.length > 0 ? (
-              <TagsToggleButton
-                count={tags.length}
-                shown={showAccountTags}
-                onToggle={() => setShowAccountTags(!showAccountTags)}
-              />
-            ) : null}
-
             {/* Toggle Select Mode */}
             <IconButton
               title={selecting ? "Done Selecting" : "Select Accounts"}
@@ -196,11 +180,11 @@ export default function AccountListDialog() {
             </IconButton>
           </div>
 
-          {/* Tags (keep the active tag visible when hidden) */}
-          {showAccountTags || activeTag ? (
-            <TagsList
+          {/* Tags */}
+          {tags.length > 0 ? (
+            <CollapsibleTags
               accounts={accounts}
-              tags={showAccountTags ? filterTags : [activeTag]}
+              tags={filterTags}
               activeTag={activeTag}
               selectTag={selectTag}
               excluded={excluded}

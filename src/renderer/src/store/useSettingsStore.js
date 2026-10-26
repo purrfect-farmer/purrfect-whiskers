@@ -20,8 +20,6 @@ export default create(
         restoreAccountsOnStartup: true,
         /** Whether account details are shown */
         showAccountDetails: true,
-        /** Whether account tags are shown */
-        showAccountTags: true,
         /** The way accounts are reordered */
         accountsReorderMode: REORDER_MODE.VIRTUAL,
         /** Whether account proxies are used */
@@ -46,7 +44,6 @@ export default create(
         setAllowProxies: (allowProxies) => set({ allowProxies }),
         setShowAccountDetails: (showAccountDetails) =>
           set({ showAccountDetails }),
-        setShowAccountTags: (showAccountTags) => set({ showAccountTags }),
         setAccountsReorderMode: (accountsReorderMode) =>
           set({ accountsReorderMode }),
         setShowWebviewToolbar: (showWebviewToolbar) =>
