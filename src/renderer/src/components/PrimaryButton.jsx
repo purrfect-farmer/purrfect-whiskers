@@ -11,10 +11,12 @@ const VARIANT_CLASSES = {
 export default memo(function PrimaryButton({
   as: Component = "button",
   variant = "solid",
+  type = Component === "button" ? "button" : undefined,
   ...props
 }) {
   return (
     <Component
+      type={type}
       {...props}
       className={cn(
         "px-4 py-2.5 rounded-xl",
@@ -22,7 +24,7 @@ export default memo(function PrimaryButton({
         "font-bold",
         VARIANT_CLASSES[variant],
         "disabled:opacity-50",
-        props.className
+        props.className,
       )}
     />
   );

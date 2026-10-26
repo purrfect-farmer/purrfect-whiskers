@@ -20,6 +20,7 @@ export default function AppDonate() {
     <>
       {/* Donate Toggle */}
       <button
+        type="button"
         onClick={() => setShowDonate((prev) => !prev)}
         className={cn(
           "self-center text-xs",

@@ -42,6 +42,7 @@ export default function EditAccountDialogContent({ account, close }) {
       <p className="text-center text-neutral-500 dark:text-neutral-400">OR</p>
 
       <button
+        type="button"
         onClick={removeAccount}
         className={cn(
           "px-4 py-2.5 border border-red-500 text-red-500 rounded-xl",

@@ -28,7 +28,7 @@ export const TabButton = ({
       /** Close Tab */
       closeTab(tab.id);
     },
-    [tab.id, closeTab]
+    [tab.id, closeTab],
   );
 
   /** Scroll into View */
@@ -47,7 +47,7 @@ export const TabButton = ({
         tab.active && "bg-neutral-100 dark:bg-neutral-700",
         "p-1.5 rounded-full shrink-0",
         "flex gap-2 items-center",
-        "cursor-pointer"
+        "cursor-pointer",
       )}
     >
       {/* Icon */}
@@ -62,11 +62,12 @@ export const TabButton = ({
 
       {/* Close Button */}
       <button
+        type="button"
         onClick={handleCloseButtonClick}
         className={cn(
           "p-1 rounded-full",
           "flex items-center justify-center",
-          tab.active && "bg-neutral-200 dark:bg-neutral-600"
+          tab.active && "bg-neutral-200 dark:bg-neutral-600",
         )}
       >
         <HiOutlineXMark className="size-4" />

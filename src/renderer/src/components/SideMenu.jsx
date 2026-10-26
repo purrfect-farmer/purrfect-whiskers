@@ -128,6 +128,7 @@ export default function SideMenu() {
 
       {/* Fullscreen Toggle */}
       <button
+        type="button"
         title="Toggle Fullscreen"
         className="p-2"
         onClick={toggleFullScreen}
@@ -161,7 +162,12 @@ export default function SideMenu() {
       </SideMenuDialog>
 
       {/* Reload */}
-      <button title="Reload App" className="p-2" onClick={reloadApp}>
+      <button
+        type="button"
+        title="Reload App"
+        className="p-2"
+        onClick={reloadApp}
+      >
         <HiOutlineArrowPath className="size-5 text-orange-500" />
       </button>
     </div>

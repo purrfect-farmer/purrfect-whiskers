@@ -32,6 +32,7 @@ export default function DonateNetworkCard({ network }) {
 
           {/* Copy Button */}
           <button
+            type="button"
             title="Copy address"
             onClick={() => copyText(network.address, "Address")}
             className={cn(

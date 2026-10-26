@@ -8,6 +8,7 @@ export const AccountItem = memo(function AccountItem({ account, onLaunch }) {
     <div className="flex gap-2">
       <AccountSummary
         as="button"
+        type="button"
         interactive
         account={account}
         onClick={() => onLaunch(account.partition)}

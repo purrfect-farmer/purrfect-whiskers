@@ -43,6 +43,7 @@ export default function SpiderCountries({
         <div className="flex flex-col gap-2">
           {filteredCountries.map((item) => (
             <button
+              type="button"
               key={`${item.group}-${item.code}`}
               onClick={() => selectCountry(item)}
               className={cn(

@@ -12,6 +12,7 @@ export default function ProxyCountryFilter({
         .concat(countries)
         .map((country) => (
           <button
+            type="button"
             key={country.code || "all"}
             title={country.name}
             onClick={() => onSelect(country.code)}

@@ -17,6 +17,9 @@ import TagsInput from "./TagsInput";
 /** The file types the dropzone accepts */
 const JSON_FILES = { "application/json": [".json"] };
 
+/** The id of the import form */
+const FORM_ID = "accounts-import-form";
+
 /** The picked file, its skipped count or its error */
 const PickedFile = memo(function PickedFile({ skippedCount }) {
   const file = useWatch({ name: "file" });
@@ -62,7 +65,11 @@ export default memo(function AccountsImportForm({
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={onSubmit} className="flex flex-col gap-2 min-w-0">
+      <form
+        id={FORM_ID}
+        onSubmit={onSubmit}
+        className="flex flex-col gap-2 min-w-0"
+      >
         <Alert variant={"warning"} className="text-center">
           You are about to import new accounts into the application. Their tags
           are not imported; choose the tags to give them below.
@@ -77,14 +84,6 @@ export default memo(function AccountsImportForm({
 
         <PickedFile skippedCount={skippedCount} />
 
-        {selector.accounts.length > 0 ? (
-          <AccountsPicker
-            {...selector}
-            showTags={false}
-            disabled={isProcessing}
-          />
-        ) : null}
-
         {/* Tags */}
         <FormField label="Tags">
           <Controller
@@ -98,14 +97,23 @@ export default memo(function AccountsImportForm({
             )}
           />
         </FormField>
-
-        <SubmitButton
-          pendingText="Importing..."
-          disabled={isProcessing || importCount === 0}
-        >
-          Import ({importCount})
-        </SubmitButton>
       </form>
+
+      {selector.accounts.length > 0 ? (
+        <AccountsPicker
+          {...selector}
+          showTags={false}
+          disabled={isProcessing}
+        />
+      ) : null}
+
+      <SubmitButton
+        form={FORM_ID}
+        pendingText="Importing..."
+        disabled={isProcessing || importCount === 0}
+      >
+        Import ({importCount})
+      </SubmitButton>
     </FormProvider>
   );
 });

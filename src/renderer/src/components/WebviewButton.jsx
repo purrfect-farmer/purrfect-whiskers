@@ -3,6 +3,7 @@ import { memo } from "react";
 
 export default memo((props) => (
   <button
+    type="button"
     {...props}
     className={cn(
       "bg-neutral-100 dark:bg-neutral-700",

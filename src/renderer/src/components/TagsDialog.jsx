@@ -78,6 +78,7 @@ const TagItem = memo(function TagItem({ tag }) {
 
         {/* Delete Button */}
         <button
+          type="button"
           title="Delete Tag"
           className={cn(
             "bg-neutral-100 dark:bg-neutral-700",

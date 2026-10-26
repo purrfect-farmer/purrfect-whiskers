@@ -16,6 +16,7 @@ const ReorderItem = memo(function ReorderItem({
       <div className="flex gap-2">
         <div className="min-w-0 min-h-0 grow flex flex-col">{children}</div>
         <button
+          type="button"
           disabled={disabled}
           className={cn(
             "bg-neutral-100 dark:bg-neutral-700",

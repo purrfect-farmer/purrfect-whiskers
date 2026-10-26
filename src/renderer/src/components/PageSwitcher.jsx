@@ -18,6 +18,7 @@ export default memo(function PageSwitcher({ pageCount, currentPage }) {
       {Array.from({ length: pageCount }, (_, pageIndex) => (
         <div key={pageIndex} className="flex gap-1">
           <button
+            type="button"
             title={`Page ${pageIndex + 1}`}
             className={cn(
               "p-2 w-14 rounded-xl border border-transparent",
@@ -36,6 +37,7 @@ export default memo(function PageSwitcher({ pageCount, currentPage }) {
 
           {/* Close Page */}
           <button
+            type="button"
             title={`Close Page ${pageIndex + 1}`}
             className={cn(
               "p-2 rounded-xl border border-transparent",

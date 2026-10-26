@@ -61,6 +61,7 @@ const AccountRow = memo(function AccountRow({
       {/* Controls */}
       {moving ? (
         <button
+          type="button"
           disabled={isMoving}
           title="Place here"
           className={cn(CONTROL_BUTTON_CLASS, "font-bold")}
@@ -72,6 +73,7 @@ const AccountRow = memo(function AccountRow({
         <>
           {/* Move Up */}
           <button
+            type="button"
             title="Move Up"
             disabled={index === 0}
             className={CONTROL_BUTTON_CLASS}
@@ -82,6 +84,7 @@ const AccountRow = memo(function AccountRow({
 
           {/* Move Down */}
           <button
+            type="button"
             title="Move Down"
             disabled={index === total - 1}
             className={CONTROL_BUTTON_CLASS}
@@ -92,6 +95,7 @@ const AccountRow = memo(function AccountRow({
 
           {/* Move Elsewhere */}
           <button
+            type="button"
             title="Move to a position"
             className={CONTROL_BUTTON_CLASS}
             onClick={() => onStartMoving(account.partition)}
@@ -111,6 +115,7 @@ function PlaceAtEndFooter({ context }) {
   return (
     <div className="px-2">
       <button
+        type="button"
         className={cn(
           "w-full px-4 py-2.5 rounded-xl font-bold",
           "bg-neutral-100 dark:bg-neutral-700",
@@ -241,6 +246,7 @@ export default function AccountsVirtualReorderList({ accounts }) {
 
           {/* Cancel */}
           <button
+            type="button"
             title="Cancel"
             className="shrink-0"
             onClick={() => setMoving(null)}
