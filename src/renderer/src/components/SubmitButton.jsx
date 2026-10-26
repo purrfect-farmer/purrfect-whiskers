@@ -9,6 +9,7 @@ export default memo(function SubmitButton({
   className,
   disabled,
   form,
+  variant,
 }) {
   const { isSubmitting } = useFormState();
 
@@ -16,6 +17,7 @@ export default memo(function SubmitButton({
     <PrimaryButton
       type="submit"
       form={form}
+      variant={variant}
       className={className}
       disabled={disabled || isSubmitting}
     >

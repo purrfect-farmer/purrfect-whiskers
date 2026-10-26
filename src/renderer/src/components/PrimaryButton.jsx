@@ -6,6 +6,7 @@ import { cn } from "../lib/utils";
 const VARIANT_CLASSES = {
   solid: "bg-orange-500 text-white",
   neutral: "bg-neutral-100 dark:bg-neutral-700",
+  danger: "bg-red-500 text-white",
 };
 
 /** A full-width button for a dialog's actions */

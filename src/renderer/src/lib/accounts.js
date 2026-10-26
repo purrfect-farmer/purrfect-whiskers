@@ -1,4 +1,5 @@
 import { IPC } from "../../../shared/constants/ipc";
+import { createConcurrencyLimit } from "./concurrencyLimit";
 import useAppStore from "../store/useAppStore";
 
 /** Close the running accounts and open them again on the next frame */
@@ -28,19 +29,34 @@ export async function deleteAccount(partition) {
   useAppStore.getState().removeAccount(partition);
 }
 
-/** Delete accounts one at a time, resolving with the partitions removed */
+/** The number of sessions wiped at the same time */
+const MAX_CONCURRENT_WIPES = 4;
+
+/**
+ * Close accounts, wipe their session data a few at a time, then remove the
+ * wiped ones at once, resolving with the partitions removed
+ */
 export async function deleteAccounts(partitions) {
-  /** The partitions removed */
+  useAppStore.getState().closeAccounts(partitions);
+
+  /** The limit on sessions wiped at once */
+  const limitWipes = createConcurrencyLimit(MAX_CONCURRENT_WIPES);
+
+  /** The partitions wiped */
   const removed = [];
 
-  for (const partition of partitions) {
-    try {
-      await deleteAccount(partition);
-      removed.push(partition);
-    } catch (error) {
-      console.error(error);
-    }
-  }
+  await Promise.all(
+    partitions.map((partition) =>
+      limitWipes(() =>
+        window.electron.ipcRenderer
+          .invoke(IPC.REMOVE_SESSION, partition)
+          .then(() => removed.push(partition))
+          .catch((error) => console.error(error)),
+      ),
+    ),
+  );
+
+  useAppStore.getState().removeAccounts(removed);
 
   return removed;
 }

@@ -202,6 +202,18 @@ export default create(
             ),
           }),
 
+        /** Removes the accounts in `partitions` */
+        removeAccounts: (partitions) => {
+          /** The partitions to remove */
+          const removed = new Set(partitions);
+
+          set({
+            accounts: get().accounts.filter(
+              (item) => !removed.has(item.partition),
+            ),
+          });
+        },
+
         /** Closes an account */
         closeAccount: (partition) =>
           set({

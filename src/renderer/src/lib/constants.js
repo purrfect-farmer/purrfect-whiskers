@@ -68,6 +68,7 @@ export const PROXY_PROVIDER = Object.freeze({
 export const BULK_EDIT_TAB = Object.freeze({
   RENAME: "rename",
   TAGS: "tags",
+  DELETE: "delete",
 });
 
 /** The tabs of the Cleaner dialog */
