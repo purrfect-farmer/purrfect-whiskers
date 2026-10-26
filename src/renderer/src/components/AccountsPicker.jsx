@@ -21,6 +21,7 @@ export default function AccountsPicker({
   itemComponent: Item = AccountsPickerItem,
   getItemProps,
   disabled,
+  showTags = true,
   selected,
   selectedAccounts,
   toggleAccount,
@@ -79,15 +80,17 @@ export default function AccountsPicker({
       />
 
       {/* Tags */}
-      <TagsList
-        accounts={accounts}
-        tags={filterTags}
-        disabled={disabled}
-        activeTag={activeTag}
-        selectTag={selectTag}
-        excluded={excluded}
-        toggleExcluded={toggleExcluded}
-      />
+      {showTags ? (
+        <TagsList
+          accounts={accounts}
+          tags={filterTags}
+          disabled={disabled}
+          activeTag={activeTag}
+          selectTag={selectTag}
+          excluded={excluded}
+          toggleExcluded={toggleExcluded}
+        />
+      ) : null}
 
       <LabelToggle
         disabled={disabled}
