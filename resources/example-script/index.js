@@ -1,156 +1,154 @@
-import fs from "node:fs/promises";
-import path from "node:path";
+import { askForNote, askToKeepAccount } from "./lib/prompts.js";
+import { countStoredItems, getProxy, getTelegramUser } from "./lib/accounts.js";
+
+import { runWithLimit } from "./lib/runWithLimit.js";
+import { saveReport } from "./lib/report.js";
 import { styleText } from "node:util";
 
-/** The folder the summary is saved to, inside the script's folder */
-const OUTPUT_FOLDER = "outputs";
+/** Prints the options the script received, with the secret masked */
+function printOptions(options) {
+  console.log(styleText("bold", "Options"));
 
-/** A pause, standing in for real work such as a request */
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  for (const [key, value] of Object.entries(options)) {
+    /** The value as printed */
+    const shown =
+      key === "apiToken"
+        ? value
+          ? "•••• (set)"
+          : "(empty)"
+        : JSON.stringify(value);
 
-/** The Telegram user in an account's init data, or null */
-function getTelegramUser(account) {
-  try {
-    const user = new URLSearchParams(account.telegramInitData ?? "").get(
-      "user",
-    );
-
-    return user ? JSON.parse(user) : null;
-  } catch {
-    return null;
+    console.log(`  ${key.padEnd(12)} ${shown}`);
   }
 }
 
-/** The proxy of an account as "host:port", or null */
-function getProxy(account) {
-  return account.proxyEnabled && account.proxyHost
-    ? `${account.proxyHost}:${account.proxyPort}`
-    : null;
-}
-
-/**
- * A runner of `task` on every item, `limit` at a time, keeping the order.
- * No new item starts once `signal` is aborted.
- */
-async function runWithLimit(items, limit, signal, task) {
-  /** The result of each item, by position */
-  const results = new Array(items.length);
-
-  /** The position of the next item to start */
-  let next = 0;
-
-  /** A worker taking items until none are left */
-  const worker = async () => {
-    while (next < items.length && !signal.aborted) {
-      const index = next++;
-
-      results[index] = await task(items[index], index);
-    }
-  };
-
-  await Promise.all(Array.from({ length: limit }, worker));
-
-  return results;
-}
-
-/** The summary of one account, logged as it is built */
-async function summarizeAccount(account, session, index, total) {
+/** The report row of one account, reading only what the options ask for */
+async function describeAccount(account, { api, options, tagNames }) {
   /** The account's Telegram user */
   const user = getTelegramUser(account);
 
-  /** The position of the account in the run */
-  const position = styleText("cyan", `[${index + 1}/${total}]`);
-
-  console.log(
-    position,
-    styleText("bold", account.title),
-    user
-      ? `@${user.username ?? user.id}`
-      : styleText("yellow", "(no Telegram user)"),
-  );
-  console.log(
-    "  tags:   ",
-    account.tags?.length ? account.tags.join(", ") : "none",
-  );
-  console.log("  proxy:  ", getProxy(account) ?? "none");
-  console.log(
-    "  session:",
-    session ? `from ${session.source} storage` : "not read or missing",
-  );
-
-  await delay(200);
-
-  return {
-    partition: account.partition,
+  /** The account's row in the report */
+  const row = {
     title: account.title,
-    telegramId: user?.id ?? null,
     username: user?.username ?? null,
-    tags: account.tags ?? [],
+    tags: (account.tags ?? []).map((id) => tagNames.get(id) ?? id),
     proxy: getProxy(account),
-    sessionSource: session?.source ?? null,
+    session: null,
+    storedItems: null,
   };
+
+  if (!user && !(await askToKeepAccount(api, account))) return null;
+
+  if (options.readSessions) {
+    /** The session and where it came from, or null */
+    const found = await api.getSession(account.partition);
+
+    row.session = found ? found.source : "none";
+  }
+
+  if (options.readBackups) {
+    row.storedItems = countStoredItems(await api.getBackup(account.partition));
+  }
+
+  return row;
+}
+
+/** Prints one account's row after its position, e.g. "[2/5]" */
+function printRow(row, position) {
+  console.log(
+    styleText("cyan", position),
+    styleText("bold", row.title),
+    row.username ? `@${row.username}` : styleText("yellow", "(no user)"),
+    row.session ? `· session: ${row.session}` : "",
+    row.storedItems !== null ? `· ${row.storedItems} stored item(s)` : "",
+    row.error ? styleText("red", `· ${row.error}`) : "",
+  );
 }
 
 /**
- * The example script: summarizes the selected accounts and saves the
- * summary to outputs/, reading sessions through `api` when asked to.
+ * The example script, showing every part of the scripts API:
+ * - `options`: the values of the manifest's options, already checked
+ * - `api.getTags`, `api.getSession`, `api.getBackup`: data from the app
+ * - `api.prompt` and `api.confirm`: questions for the user while running
+ * - `api.progress`: the progress bar above the output
+ * - `signal`: aborted when the user presses Stop
  */
 export default async function ({ accounts, options, api, signal }) {
-  console.log(styleText("green", `Running on ${accounts.length} account(s)`));
+  printOptions(options);
+
+  /** The name of each tag, by id */
+  const tagNames = new Map(
+    (await api.getTags()).map((tag) => [tag.id, tag.name]),
+  );
+
+  /** The note saved with the report */
+  const note = options.askForNote
+    ? await askForNote(api, {
+        accounts,
+        tagCount: tagNames.size,
+        fallback: options.note,
+      })
+    : options.note;
+
+  console.log(
+    styleText("green", `\nReading ${accounts.length} account(s),`),
+    `${options.concurrency} at a time`,
+  );
 
   /** The number of accounts finished */
   let finished = 0;
 
-  const results = await runWithLimit(
+  /** The row of each account, null when left out or never started */
+  const rows = await runWithLimit(
     accounts,
     options.concurrency,
     signal,
     async (account, index) => {
+      /** The account's position in the run */
+      const position = `[${index + 1}/${accounts.length}]`;
+
       try {
-        /** The account's Telegram session and its source, when read */
-        const session = options.readSessions
-          ? await api.getSession(account.partition)
-          : null;
+        const row = await describeAccount(account, { api, options, tagNames });
 
-        return {
-          ok: true,
-          ...(await summarizeAccount(account, session, index, accounts.length)),
-        };
+        if (row) {
+          printRow(row, position);
+        } else {
+          console.log(styleText("yellow", position), account.title, "left out");
+        }
+
+        return row;
       } catch (error) {
-        console.error(
-          styleText("red", `  ${account.title} failed:`),
-          error.message,
-        );
+        /** The row of an account that failed */
+        const row = { title: account.title, error: error.message };
 
-        return { ok: false, title: account.title, error: error.message };
+        printRow(row, position);
+
+        return row;
       } finally {
         api.progress(++finished, accounts.length);
       }
     },
   );
 
+  /** The rows of the accounts that were read */
+  const report = rows.filter(Boolean);
+
   if (signal.aborted) {
-    console.log(styleText("yellow", "Stopped; saving what was done"));
+    console.log(styleText("yellow", "\nStopped; saving what was read"));
+  } else if (
+    !(await api.confirm(`Save the report of ${report.length} account(s)?`))
+  ) {
+    console.log("\nReport not saved");
+    return;
   }
 
-  /** The accounts that were handled */
-  const handled = results.filter(Boolean);
+  /** The saved report file */
+  const file = await saveReport({
+    name: options.reportName,
+    format: options.format,
+    note,
+    rows: report,
+  });
 
-  /** The number of accounts that failed */
-  const failed = handled.filter((result) => !result.ok).length;
-
-  /** The summary file of this run */
-  const file = path.join(OUTPUT_FOLDER, `summary-${Date.now()}.json`);
-
-  await fs.mkdir(OUTPUT_FOLDER, { recursive: true });
-  await fs.writeFile(
-    file,
-    JSON.stringify({ note: options.note, accounts: handled }, null, 2),
-  );
-
-  console.log(
-    styleText(failed ? "yellow" : "green", "Done:"),
-    `${handled.length - failed} summarized, ${failed} failed`,
-  );
-  console.log("Summary saved to", path.resolve(file));
+  console.log(styleText("green", "\nReport saved to"), file);
 }

@@ -1,7 +1,7 @@
 {
   "name": "example",
-  "version": "2.0.0",
-  "description": "Summarizes the selected accounts and saves the summary to outputs/",
+  "version": "3.0.0",
+  "description": "Walks through every part of the scripts API on the selected accounts and saves a report to outputs/",
   "author": "Purrfect Whiskers",
   "type": "module",
   "main": "index.js",
@@ -9,6 +9,26 @@
     "displayName": "Example",
     "icon": "icon.svg",
     "options": [
+      {
+        "key": "reportName",
+        "type": "text",
+        "label": "Report name",
+        "description": "Used in the report's file name",
+        "placeholder": "e.g. weekly-check",
+        "default": "summary",
+        "required": true
+      },
+      {
+        "key": "format",
+        "type": "select",
+        "label": "Report format",
+        "required": true,
+        "default": "json",
+        "choices": [
+          { "value": "json", "label": "JSON" },
+          { "value": "csv", "label": "CSV" }
+        ]
+      },
       {
         "key": "concurrency",
         "type": "number",
@@ -22,14 +42,34 @@
         "key": "readSessions",
         "type": "boolean",
         "label": "Read Telegram sessions",
-        "description": "Reads each account's session, which opens it in the background once",
+        "description": "Uses api.getSession; opens each account in the background once",
+        "default": true
+      },
+      {
+        "key": "readBackups",
+        "type": "boolean",
+        "label": "Read full backups",
+        "description": "Uses api.getBackup to count each account's stored data; slower",
+        "default": false
+      },
+      {
+        "key": "askForNote",
+        "type": "boolean",
+        "label": "Ask for a note while running",
+        "description": "Shows a prompt with an image, a timeout and extra buttons",
         "default": true
       },
       {
         "key": "note",
-        "type": "text",
-        "label": "Note",
-        "placeholder": "Saved with the summary"
+        "type": "textarea",
+        "label": "Default note",
+        "placeholder": "Saved with the report"
+      },
+      {
+        "key": "apiToken",
+        "type": "secret",
+        "label": "API token",
+        "description": "Not used; shows that secrets are masked and never remembered"
       }
     ]
   }

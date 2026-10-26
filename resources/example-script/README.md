@@ -1,14 +1,40 @@
 # Example script
 
 A Purrfect Whiskers script is a folder with a `package.json` and an entry file.
+This example uses every part of the scripts API, so it doubles as a guide:
+run it, then read the files below.
 
 ```
 example/
-  package.json   name, version, description, "type": "module", "main",
-                 "whiskers": { "displayName", "icon", "options" }
-  icon.svg       optional; png, jpg, webp or svg up to 256 KB
-  index.js       the entry file ("main", or index.js by default)
+  package.json        name, version, description, "type": "module", "main",
+                      "whiskers": { "displayName", "icon", "options" }
+  icon.svg            optional; png, jpg, webp or svg up to 256 KB
+  index.js            the entry file ("main", or index.js by default)
+  lib/
+    prompts.js        api.prompt: an image, a field, extra buttons, a timeout,
+                      and a prompt about one account
+    card.js           builds the SVG image shown in the prompt
+    accounts.js       reads the Telegram user, proxy and backup size
+    runWithLimit.js   handles a few accounts at a time and stops on Stop
+    report.js         saves the report as JSON or CSV to outputs/
 ```
+
+### What it does
+
+1. Prints its options. The manifest declares one of every option type:
+   text, select, number, yes/no, textarea and secret. The secret is printed
+   masked.
+2. Reads the tag names with `api.getTags()`.
+3. Asks for a note with `api.prompt()`, showing an image, a "No note"
+   button and a 2-minute timeout.
+4. Goes through the accounts a few at a time:
+   - asks whether to keep an account that has no Telegram user
+     (a prompt naming the account);
+   - reads its session with `api.getSession()` and, if turned on, its full
+     backup with `api.getBackup()`;
+   - moves the progress bar with `api.progress()`.
+5. Stops cleanly when you press Stop (`signal`), saving what was read.
+6. Asks with `api.confirm()` before saving the report to `outputs/`.
 
 ## The entry file
 
