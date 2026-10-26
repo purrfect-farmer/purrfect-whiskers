@@ -1,6 +1,7 @@
 import { askForNote, askToKeepAccount } from "./lib/prompts.js";
 import { countStoredItems, getProxy, getTelegramUser } from "./lib/accounts.js";
 
+import { countLines } from "./lib/files.js";
 import { runWithLimit } from "./lib/runWithLimit.js";
 import { saveReport } from "./lib/report.js";
 import { styleText } from "node:util";
@@ -19,6 +20,20 @@ function printOptions(options) {
         : JSON.stringify(value);
 
     console.log(`  ${key.padEnd(12)} ${shown}`);
+  }
+}
+
+/** Reads the files chosen in the "Files to read" option and prints them */
+async function printInputFiles(files) {
+  if (files.length === 0) return;
+
+  console.log(styleText("bold", "\nFiles to read"));
+
+  for (const { file, lines, error } of await countLines(files)) {
+    console.log(
+      `  ${file}`,
+      error ? styleText("red", error) : `${lines} line(s)`,
+    );
   }
 }
 
@@ -75,6 +90,7 @@ function printRow(row, position) {
  */
 export default async function ({ accounts, options, api, signal }) {
   printOptions(options);
+  await printInputFiles(options.inputFiles);
 
   /** The name of each tag, by id */
   const tagNames = new Map(
@@ -148,7 +164,11 @@ export default async function ({ accounts, options, api, signal }) {
     format: options.format,
     note,
     rows: report,
+    folder: options.outputFolder,
+    copyTo: options.exportCopy,
   });
 
   console.log(styleText("green", "\nReport saved to"), file);
+
+  if (options.exportCopy) console.log("Copy saved to", options.exportCopy);
 }

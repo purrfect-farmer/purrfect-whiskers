@@ -15,6 +15,7 @@ example/
                       and a prompt about one account
     card.js           builds the SVG image shown in the prompt
     accounts.js       reads the Telegram user, proxy and backup size
+    files.js          reads the files chosen in a file option
     runWithLimit.js   handles a few accounts at a time and stops on Stop
     report.js         saves the report as JSON or CSV to outputs/
 ```
@@ -22,19 +23,21 @@ example/
 ### What it does
 
 1. Prints its options. The manifest declares one of every option type:
-   text, select, number, yes/no, textarea and secret. The secret is printed
-   masked.
-2. Reads the tag names with `api.getTags()`.
-3. Asks for a note with `api.prompt()`, showing an image, a "No note"
+   text, select, number, yes/no, file (several), folder, save, textarea and
+   secret. The secret is printed masked.
+2. Reads the files chosen in "Files to read" itself, with `fs`.
+3. Reads the tag names with `api.getTags()`.
+4. Asks for a note with `api.prompt()`, showing an image, a "No note"
    button and a 2-minute timeout.
-4. Goes through the accounts a few at a time:
+5. Goes through the accounts a few at a time:
    - asks whether to keep an account that has no Telegram user
      (a prompt naming the account);
    - reads its session with `api.getSession()` and, if turned on, its full
      backup with `api.getBackup()`;
    - moves the progress bar with `api.progress()`.
-5. Stops cleanly when you press Stop (`signal`), saving what was read.
-6. Asks with `api.confirm()` before saving the report to `outputs/`.
+6. Stops cleanly when you press Stop (`signal`), saving what was read.
+7. Asks with `api.confirm()` before saving the report to the chosen
+   folder (or `outputs/`), and a copy where "Also save a copy to" points.
 
 ## The entry file
 
@@ -123,22 +126,39 @@ secrets) and checks them before every run.
     "choices": [{ "value": "fast", "label": "Fast" }, "careful"] },
   { "key": "dryRun", "type": "boolean", "label": "Dry run", "default": true },
   { "key": "message", "type": "textarea", "label": "Message" },
-  { "key": "apiKey", "type": "secret", "label": "API key", "required": true }
+  { "key": "apiKey", "type": "secret", "label": "API key", "required": true },
+  { "key": "input", "type": "file", "label": "Accounts list", "extensions": ["csv"] },
+  { "key": "photos", "type": "file", "label": "Photos", "multiple": true },
+  { "key": "outDir", "type": "folder", "label": "Save reports to" },
+  { "key": "export", "type": "save", "label": "Export to", "defaultName": "export.csv" }
 ]
 ```
 
 | Property | Meaning |
 | --- | --- |
 | `key` | The name in `options`; letters, digits and `_`. |
-| `type` | `text`, `textarea`, `number`, `boolean`, `select` or `secret`. |
+| `type` | `text`, `textarea`, `number`, `boolean`, `select`, `secret`, `file`, `folder` or `save`. |
 | `label`, `description`, `placeholder` | What the user sees. |
 | `required` | The field can't be left empty. |
 | `default` | The starting value. |
 | `min`, `max` | The range of a `number`, which is always a whole number. |
 | `choices` | The values of a `select`: strings or `{ value, label }`. |
+| `extensions` | The file types a `file` or `save` field accepts, e.g. `["csv", "txt"]`. |
+| `multiple` | A `file` field takes several files; its value is a list of paths. |
+| `defaultName` | The file name a `save` field suggests. |
 
 Text is trimmed, except secrets. Secrets are masked and never remembered.
 Fields with an unknown type or an invalid key are left out.
+
+### File, folder and save fields
+
+Their value is a full path (or a list of paths), chosen with the system
+dialog or by dropping files onto the field. The script reads or writes the
+path itself with `fs`. Before a run, and before a prompt's answer reaches the
+script, Whiskers checks that a `file` exists and is a file, a `folder`
+exists and is a folder, and the folder a `save` path goes in exists. Paths
+are remembered like other options. The same field types work in
+`api.prompt`, e.g. to ask for a file in the middle of a run.
 
 ## Running and sharing
 

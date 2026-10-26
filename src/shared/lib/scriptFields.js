@@ -1,14 +1,9 @@
 import * as yup from "yup";
 
-/** The types of a script field */
-export const FIELD_TYPE = Object.freeze({
-  TEXT: "text",
-  TEXTAREA: "textarea",
-  NUMBER: "number",
-  BOOLEAN: "boolean",
-  SELECT: "select",
-  SECRET: "secret",
-});
+import { FIELD_TYPE, PATH_FIELD_TYPES } from "./scriptFieldTypes";
+import { normalizePathField, pathSchema } from "./scriptPathFields";
+
+export { FIELD_TYPE, PATH_FIELD_TYPES };
 
 /** The known field types */
 const FIELD_TYPES = new Set(Object.values(FIELD_TYPE));
@@ -87,6 +82,8 @@ function normalizeField(raw) {
     placeholder: toLabel(raw.placeholder),
     required: raw.required === true,
   };
+
+  if (PATH_FIELD_TYPES.has(type)) return normalizePathField(field, raw);
 
   switch (type) {
     case FIELD_TYPE.NUMBER: {
@@ -227,6 +224,8 @@ function selectSchema(field) {
 
 /** The yup schema of one field */
 function fieldSchema(field) {
+  if (PATH_FIELD_TYPES.has(field.type)) return pathSchema(field);
+
   switch (field.type) {
     case FIELD_TYPE.NUMBER:
       return numberSchema(field);

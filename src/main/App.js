@@ -35,6 +35,7 @@ import { startMirrorServer, stopMirrorServer } from "./server";
 import { Conf } from "electron-conf/main";
 import { IPC } from "../shared/constants/ipc";
 import ProfileRegistry from "./ProfileRegistry";
+import { pickScriptPath } from "./libs/scriptPaths";
 import { buildChromeContextMenu } from "electron-chrome-context-menu";
 import fs from "fs/promises";
 import icon from "../../resources/icon.png?asset";
@@ -152,6 +153,8 @@ class App {
       [IPC.INSTALL_SCRIPT]: withoutEvent(installScript),
       [IPC.GET_SCRIPT_RUN]: (event) => this.scriptRunner.attach(event.sender),
       [IPC.OPEN_SCRIPT_FOLDER]: withoutEvent(openScriptFolder),
+      [IPC.PICK_SCRIPT_PATH]: (event, request) =>
+        pickScriptPath(BrowserWindow.fromWebContents(event.sender), request),
       [IPC.SCRIPT_RESPONSE]: (_event, { id, result, error } = {}) =>
         this.scriptRunner.respond(id, { result, error }),
     };

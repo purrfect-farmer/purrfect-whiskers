@@ -4,6 +4,7 @@ import FormField from "./FormField";
 import FormInputField from "./FormInputField";
 import FormNumberField from "./FormNumberField";
 import LabelToggle from "./LabelToggle";
+import ScriptPathField from "./ScriptPathField";
 import Select from "./Select";
 import Textarea from "./Textarea";
 import { memo } from "react";
@@ -14,6 +15,11 @@ export default memo(function ScriptFieldInput({ field, disabled }) {
   const { key, type, label, description, placeholder } = field;
 
   switch (type) {
+    case FIELD_TYPE.FILE:
+    case FIELD_TYPE.FOLDER:
+    case FIELD_TYPE.SAVE:
+      return <ScriptPathField field={field} disabled={disabled} />;
+
     case FIELD_TYPE.NUMBER:
       return (
         <FormNumberField

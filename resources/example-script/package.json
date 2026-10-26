@@ -1,6 +1,6 @@
 {
   "name": "example",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Walks through every part of the scripts API on the selected accounts and saves a report to outputs/",
   "author": "Purrfect Whiskers",
   "type": "module",
@@ -25,8 +25,14 @@
         "required": true,
         "default": "json",
         "choices": [
-          { "value": "json", "label": "JSON" },
-          { "value": "csv", "label": "CSV" }
+          {
+            "value": "json",
+            "label": "JSON"
+          },
+          {
+            "value": "csv",
+            "label": "CSV"
+          }
         ]
       },
       {
@@ -58,6 +64,35 @@
         "label": "Ask for a note while running",
         "description": "Shows a prompt with an image, a timeout and extra buttons",
         "default": true
+      },
+      {
+        "key": "inputFiles",
+        "type": "file",
+        "label": "Files to read",
+        "description": "Optional; the script counts their lines with fs",
+        "multiple": true,
+        "extensions": [
+          "csv",
+          "json",
+          "txt"
+        ]
+      },
+      {
+        "key": "outputFolder",
+        "type": "folder",
+        "label": "Report folder",
+        "description": "Optional; outputs/ next to the script when empty"
+      },
+      {
+        "key": "exportCopy",
+        "type": "save",
+        "label": "Also save a copy to",
+        "description": "Optional; uses the system Save dialog",
+        "extensions": [
+          "json",
+          "csv"
+        ],
+        "defaultName": "report.json"
       },
       {
         "key": "note",

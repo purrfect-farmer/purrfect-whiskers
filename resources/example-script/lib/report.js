@@ -43,13 +43,16 @@ const toFileName = (text) =>
     .replace(/[^a-z0-9-]+/g, "-")
     .replace(/^-|-$/g, "") || "report";
 
-/** Saves the report to outputs/, returning its full path */
-export async function saveReport({ name, format, note, rows }) {
+/**
+ * Saves the report to `folder`, or outputs/ next to the script, and copies
+ * it to `copyTo` when given. Resolves with the report's full path.
+ */
+export async function saveReport({ name, format, note, rows, folder, copyTo }) {
+  /** The folder the report is saved to */
+  const target = folder || OUTPUT_FOLDER;
+
   /** The report file */
-  const file = path.join(
-    OUTPUT_FOLDER,
-    `${toFileName(name)}-${Date.now()}.${format}`,
-  );
+  const file = path.join(target, `${toFileName(name)}-${Date.now()}.${format}`);
 
   /** The file's content */
   const content =
@@ -57,8 +60,10 @@ export async function saveReport({ name, format, note, rows }) {
       ? toCsv(rows)
       : JSON.stringify({ note, accounts: rows }, null, 2);
 
-  await fs.mkdir(OUTPUT_FOLDER, { recursive: true });
+  await fs.mkdir(target, { recursive: true });
   await fs.writeFile(file, `${content}\n`);
+
+  if (copyTo) await fs.copyFile(file, copyTo);
 
   return path.resolve(file);
 }

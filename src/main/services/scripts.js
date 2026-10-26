@@ -5,6 +5,7 @@ import {
   SCRIPT_HOST_MESSAGE,
 } from "../../shared/constants/ipc";
 import { checkRequest, toCount, toRunAccounts } from "../libs/scriptRuns";
+import { checkPathValues } from "../libs/scriptPaths";
 import {
   BrowserWindow,
   Notification,
@@ -22,7 +23,7 @@ import {
 } from "../libs/scriptPackages";
 
 import fs from "fs/promises";
-import { validateAnswer } from "../../shared/lib/scriptPrompts";
+import { PROMPT_SUBMIT, validateAnswer } from "../../shared/lib/scriptPrompts";
 import { validateValues } from "../../shared/lib/scriptFields";
 import { once } from "events";
 import path from "path";
@@ -130,6 +131,11 @@ export class ScriptRunner {
     const firstError = Object.values(errors)[0];
 
     if (firstError) throw new Error(firstError);
+
+    /** The first path option not found on disk */
+    const pathError = await checkPathValues(fields, values);
+
+    if (pathError) throw new Error(pathError);
 
     /** The process running the script */
     const child = utilityProcess.fork(HOST_PATH, [], {
@@ -338,9 +344,29 @@ export class ScriptRunner {
     }
   }
 
-  /** Answers a prompt with its validated answer, or an error when invalid */
-  replyToPrompt(run, request, answer) {
-    this.reply(run, request.id, validateAnswer(request.args[0], answer));
+  /**
+   * Answers a prompt with its validated answer, or an error when invalid
+   * or when a submitted path is not on disk
+   */
+  async replyToPrompt(run, request, answer) {
+    /** The prompt being answered */
+    const prompt = request.args[0];
+    /** The checked answer, or its error */
+    const payload = validateAnswer(prompt, answer);
+
+    if (payload.result?.action === PROMPT_SUBMIT) {
+      const pathError = await checkPathValues(
+        prompt.fields,
+        payload.result.values,
+      );
+
+      if (pathError) {
+        this.reply(run, request.id, { error: pathError });
+        return;
+      }
+    }
+
+    this.reply(run, request.id, payload);
   }
 
   /** Posts the answer of a request to the script's process */
