@@ -3,10 +3,13 @@ import { MemorySession, StringSession } from "telegram/sessions";
 
 import { NewMessage } from "telegram/events";
 import { SPIDER_LOGIN_METHOD } from "./constants";
+import {
+  TELEGRAM_API_HASH,
+  TELEGRAM_API_ID,
+  TELEGRAM_CLIENT_OPTIONS,
+} from "../../../shared/lib/telegramClient";
 
 /** Telegram Web-K API credentials */
-const TELEGRAM_API_ID = 2496;
-const TELEGRAM_API_HASH = "8da85b0d5bfe62527e5b244c209159c3";
 const TELEGRAM_API_CREDENTIALS = {
   apiId: TELEGRAM_API_ID,
   apiHash: TELEGRAM_API_HASH,
@@ -24,12 +27,9 @@ const LOGIN_CODE_MAX_POLLS = 10;
 /** Creates a Telegram Web-K client */
 function createTelegramClient(session) {
   return new TelegramClient(session, TELEGRAM_API_ID, TELEGRAM_API_HASH, {
-    appVersion: "2.2 K",
-    systemLangCode: "en-US",
-    langCode: "en",
-    deviceModel:
-      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.7977.54 Safari/537.36",
-    systemVersion: "Linux x86_64",
+    ...TELEGRAM_CLIENT_OPTIONS,
+    deviceModel: navigator.userAgent,
+    systemVersion: navigator.platform,
   });
 }
 
