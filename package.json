@@ -83,17 +83,5 @@
     "vite-imagetools": "^12.0.1",
     "vite-plugin-node-polyfills": "^0.28.0",
     "zustand": "^5.0.16"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@tailwindcss/oxide",
-      "bufferutil",
-      "electron",
-      "electron-winstaller",
-      "es5-ext",
-      "esbuild",
-      "sharp",
-      "utf-8-validate"
-    ]
   }
 }
