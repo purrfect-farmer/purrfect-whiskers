@@ -26,6 +26,7 @@ import {
 import { ScriptRunner } from "./services/scripts";
 import { generateUserAgent, syncUserAgents } from "./services/userAgents";
 import {
+  registerShellWebRequest,
   registerWebRequest,
   setSessionRules,
   applyBrowserUserAgentFallback,
@@ -74,7 +75,6 @@ class App {
         preload: join(__dirname, "../preload/index.js"),
         sandbox: false,
         webviewTag: true,
-        webSecurity: false,
       },
     });
 
@@ -292,6 +292,9 @@ class App {
       // Handles
       this.registerIpcHandlers();
       this.registerProfileListeners();
+
+      // Answer the app shell's requests with CORS headers
+      registerShellWebRequest(session.defaultSession);
 
       // Create Window
       this.createWindow();

@@ -1,10 +1,14 @@
-/** Response headers that block embedding or cross-origin access */
+/** Response headers that block embedding or cross-origin isolation */
 const STRIPPED_RESPONSE_HEADERS = new Set([
   "x-frame-options",
   "content-security-policy",
   "cross-origin-embedder-policy",
   "cross-origin-opener-policy",
   "cross-origin-resource-policy",
+]);
+
+/** Response headers that grant or limit cross-origin access */
+const CORS_RESPONSE_HEADERS = new Set([
   "access-control-allow-origin",
   "access-control-allow-credentials",
   "access-control-allow-methods",
@@ -12,7 +16,7 @@ const STRIPPED_RESPONSE_HEADERS = new Set([
 ]);
 
 /**
- * Removes headers that block embedding or cross-origin access
+ * Removes headers that block embedding or cross-origin isolation
  * @param {ReturnType<import("./headers").createHeaders>} headers
  */
 export function stripBlockingHeaders(headers) {
@@ -58,6 +62,7 @@ export function createCorsTracker() {
       /** The remembered CORS headers of the request */
       const request = requests.get(details.id);
 
+      headers.deleteWhere((name) => CORS_RESPONSE_HEADERS.has(name));
       headers.set("Access-Control-Allow-Credentials", "true");
       headers.set("Access-Control-Allow-Headers", request?.headers || "*");
       headers.set("Access-Control-Allow-Origin", request?.origin || "*");

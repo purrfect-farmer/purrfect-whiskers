@@ -93,10 +93,14 @@ function applyFrameReferer(headers, frame) {
 }
 
 /**
- * Registers the request and response listeners of a session once
+ * Registers the request and response listeners of a session once, answering
+ * every response with its request's CORS headers
  * @param {Electron.Session} session
+ * @param {object} [modifiers]
+ * @param {(details: Electron.OnBeforeSendHeadersListenerDetails, headers: ReturnType<typeof createHeaders>) => void} [modifiers.request]
+ * @param {(details: Electron.OnHeadersReceivedListenerDetails, headers: ReturnType<typeof createHeaders>) => void} [modifiers.response]
  */
-export function registerWebRequest(session) {
+function registerListeners(session, modifiers = {}) {
   if (registeredSessions.has(session)) return;
 
   registeredSessions.add(session);
@@ -114,16 +118,7 @@ export function registerWebRequest(session) {
     /** The case-insensitive view of the request headers */
     const headers = createHeaders(requestHeaders);
 
-    if (!isNativeHeaderRequest(details.url)) {
-      applyAndroidWebviewHeaders(headers, getUserAgent(session));
-      applyFrameReferer(headers, details.frame);
-      applyUserAgent(session, headers);
-
-      for (const rule of getMatchingRules(session, details.url)) {
-        applyHeaderModifications(headers, rule.request);
-      }
-    }
-
+    modifiers.request?.(details, headers);
     cors.remember(details.id, headers);
 
     callback({ requestHeaders });
@@ -139,12 +134,7 @@ export function registerWebRequest(session) {
     /** The case-insensitive view of the response headers */
     const headers = createHeaders(responseHeaders);
 
-    stripBlockingHeaders(headers);
-
-    for (const rule of getMatchingRules(session, details.url)) {
-      applyHeaderModifications(headers, rule.response);
-    }
-
+    modifiers.response?.(details, headers);
     cors.apply(details, headers);
 
     callback({
@@ -162,4 +152,39 @@ export function registerWebRequest(session) {
   session.webRequest.onErrorOccurred(URL_FILTER, (details) => {
     cors.forget(details.id);
   });
+}
+
+/**
+ * Registers an account session's listeners once
+ * @param {Electron.Session} session
+ */
+export function registerWebRequest(session) {
+  registerListeners(session, {
+    request(details, headers) {
+      if (isNativeHeaderRequest(details.url)) return;
+
+      applyAndroidWebviewHeaders(headers, getUserAgent(session));
+      applyFrameReferer(headers, details.frame);
+      applyUserAgent(session, headers);
+
+      for (const rule of getMatchingRules(session, details.url)) {
+        applyHeaderModifications(headers, rule.request);
+      }
+    },
+    response(details, headers) {
+      stripBlockingHeaders(headers);
+
+      for (const rule of getMatchingRules(session, details.url)) {
+        applyHeaderModifications(headers, rule.response);
+      }
+    },
+  });
+}
+
+/**
+ * Registers the app shell session's listeners once, adding CORS headers only
+ * @param {Electron.Session} session
+ */
+export function registerShellWebRequest(session) {
+  registerListeners(session);
 }
