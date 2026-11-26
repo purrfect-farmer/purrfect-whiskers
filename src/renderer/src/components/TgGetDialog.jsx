@@ -12,7 +12,7 @@ import FormInputField from "./FormInputField";
 import { FormProvider } from "react-hook-form";
 import LabelToggle from "./LabelToggle";
 import { HiOutlineArrowLeft } from "react-icons/hi2";
-import { LuArrowRightLeft } from "react-icons/lu";
+import { GiSpiderWeb } from "react-icons/gi";
 import PrimaryButton from "./PrimaryButton";
 import { Progress } from "./Progress";
 import TgGetAccountItem from "./TgGetAccountItem";
@@ -64,7 +64,7 @@ export default function TgGetDialog() {
     <AppDialogContent
       title={"TG Get"}
       description={"Transfer accounts to the TG Get bot"}
-      icon={LuArrowRightLeft}
+      icon={GiSpiderWeb}
     >
       {/* Bot link */}
       <p className="text-center text-neutral-500 dark:text-neutral-400">

@@ -6,7 +6,6 @@ import {
   HiOutlinePuzzlePiece,
 } from "react-icons/hi2";
 import {
-  LuArrowRightLeft,
   LuArrowUpDown,
   LuDatabaseBackup,
   LuEraser,
@@ -24,6 +23,7 @@ import CleanerDialog from "./CleanerDialog";
 import { CleanerProvider } from "./CleanerProvider";
 import { Dialog } from "radix-ui";
 import { FaSpider } from "react-icons/fa";
+import { GiSpiderWeb } from "react-icons/gi";
 import Icon from "../assets/images/icon.png";
 import ImportAndExportAccountsDialog from "./ImportAndExportAccountsDialog";
 import LoaderDialog from "./LoaderDialog";
@@ -136,7 +136,7 @@ export default function SideMenu() {
 
       <SideMenuDialog
         title="TG Get"
-        icon={LuArrowRightLeft}
+        icon={GiSpiderWeb}
         open={tgGetDialog.opened}
         onOpenChange={tgGetDialog.setOpened}
       >
