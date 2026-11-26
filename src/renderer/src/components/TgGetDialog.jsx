@@ -1,4 +1,8 @@
-import { ALERT_VARIANT, TG_GET_SCREEN } from "../lib/constants";
+import {
+  ALERT_VARIANT,
+  TG_GET_BOT_USERNAME,
+  TG_GET_SCREEN,
+} from "../lib/constants";
 import AccountSummary from "./AccountSummary";
 import AccountsPicker from "./AccountsPicker";
 import AccountsRadioItem from "./AccountsRadioItem";
@@ -59,6 +63,20 @@ export default function TgGetDialog() {
       description={"Transfer accounts to the TG Get bot"}
       icon={LuArrowRightLeft}
     >
+      {/* Bot link */}
+      <p className="text-center text-neutral-500 dark:text-neutral-400">
+        Open the{" "}
+        <a
+          href={`https://t.me/${TG_GET_BOT_USERNAME}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-orange-500"
+        >
+          TG Get bot
+        </a>
+        .
+      </p>
+
       {/* Main account */}
       {screen === TG_GET_SCREEN.MAIN ? (
         <>

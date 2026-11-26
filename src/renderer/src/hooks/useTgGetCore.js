@@ -133,7 +133,7 @@ export default function useTgGetCore() {
         const tgGet = new TgGet(mainSession);
 
         try {
-          /* Connect, resolve the bot and cancel any open operation */
+          /* Connect the main account and resolve the bot */
           await tgGet.start();
 
           const results = [];

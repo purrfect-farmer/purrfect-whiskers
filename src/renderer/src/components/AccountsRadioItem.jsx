@@ -23,13 +23,10 @@ export default memo(function AccountsRadioItem({
         checked && "ring-2 ring-orange-500 ring-inset",
       )}
     >
-      {/* Selected mark, its space kept to avoid a shift */}
-      <HiCheckCircle
-        className={cn(
-          "size-5 shrink-0 text-orange-500",
-          checked ? "opacity-100" : "opacity-0",
-        )}
-      />
+      {/* Selected mark */}
+      {checked ? (
+        <HiCheckCircle className="size-5 shrink-0 text-orange-500" />
+      ) : null}
     </AccountSummary>
   );
 });

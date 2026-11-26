@@ -103,11 +103,10 @@ export default class TgGet {
       .join(" ");
   }
 
-  /** Connects the main account, resolves the bot and clears any open operation */
+  /** Connects the main account and resolves the bot */
   async start() {
     await this.main.connect();
     this.bot = await this.main.getEntity(TG_GET_BOT_USERNAME);
-    await this.reset();
   }
 
   /** Destroys the main client */
@@ -197,6 +196,9 @@ export default class TgGet {
 
         if (match) loginCode = match[1];
       });
+
+      /* Cancel any open operation so this account starts the bot clean */
+      await this.reset();
 
       /* Send the phone number and wait for the code request */
       onStep?.(TG_GET_STEP.SEND_PHONE);
