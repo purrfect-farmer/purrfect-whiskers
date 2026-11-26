@@ -3,6 +3,7 @@ import * as yup from "yup";
 import { useCallback, useMemo, useState } from "react";
 
 import TgGet from "../lib/TgGet";
+import { deleteAccounts } from "../lib/accounts";
 import { getAccountSession } from "../lib/accountSessions";
 import { hasTelegramUser, saveJsonFile } from "../lib/utils";
 import { holdPartitions } from "../lib/busyPartitions";
@@ -40,6 +41,8 @@ export default function useTgGetCore() {
 
   /** The picked main account */
   const [mainPartition, setMainPartition] = useState(null);
+  /** Whether transferred accounts are removed afterwards */
+  const [removeAfter, setRemoveAfter] = useState(false);
   /** Whether a transfer run is in flight */
   const [running, setRunning] = useState(false);
   /** The current step of each other account, by partition */
@@ -170,6 +173,15 @@ export default function useTgGetCore() {
 
           await saveJsonFile("tg-get-results", results);
 
+          /* Remove the transferred accounts when asked */
+          if (removeAfter) {
+            const transferred = results
+              .filter((item) => item.success)
+              .map((item) => item.account.partition);
+
+            if (transferred.length > 0) await deleteAccounts(transferred);
+          }
+
           return TgGet.summarize(results);
         } finally {
           await tgGet.destroy();
@@ -188,7 +200,7 @@ export default function useTgGetCore() {
           release();
         });
     },
-    [telegramAccounts, mainPartition, others],
+    [telegramAccounts, mainPartition, others, removeAfter],
   );
 
   /** The submit handler of the form */
@@ -204,6 +216,8 @@ export default function useTgGetCore() {
       othersList,
       mainPartition,
       others,
+      removeAfter,
+      setRemoveAfter,
       running,
       steps,
       outcomes,
@@ -218,6 +232,8 @@ export default function useTgGetCore() {
       othersList,
       mainPartition,
       others,
+      removeAfter,
+      setRemoveAfter,
       running,
       steps,
       outcomes,

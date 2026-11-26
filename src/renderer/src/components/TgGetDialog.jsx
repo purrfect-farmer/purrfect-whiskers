@@ -10,6 +10,7 @@ import Alert from "./Alert";
 import AppDialogContent from "./AppDialogContent";
 import FormInputField from "./FormInputField";
 import { FormProvider } from "react-hook-form";
+import LabelToggle from "./LabelToggle";
 import { HiOutlineArrowLeft } from "react-icons/hi2";
 import { LuArrowRightLeft } from "react-icons/lu";
 import PrimaryButton from "./PrimaryButton";
@@ -43,6 +44,8 @@ export default function TgGetDialog() {
     othersList,
     mainPartition,
     others,
+    removeAfter,
+    setRemoveAfter,
     running,
     steps,
     outcomes,
@@ -149,6 +152,14 @@ export default function TgGetDialog() {
                 description="Space- or comma-separated. Each is tried to remove an account's 2FA."
                 disabled={running}
               />
+
+              <LabelToggle
+                checked={removeAfter}
+                disabled={running}
+                onChange={(event) => setRemoveAfter(event.target.checked)}
+              >
+                Remove accounts after transfer
+              </LabelToggle>
 
               <PrimaryButton
                 type="submit"
