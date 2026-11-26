@@ -1,12 +1,12 @@
 import { BADGE_TONE } from "../lib/constants";
 import { useCallback, useState } from "react";
 
+import AutoHeightVirtuoso from "./AutoHeightVirtuoso";
 import Input from "./Input";
 import ProxyCountryFilter from "./ProxyCountryFilter";
 import ProxyListItem from "./ProxyListItem";
 import SectionBadge from "./SectionBadge";
 import SectionHeader from "./SectionHeader";
-import { Virtuoso } from "react-virtuoso";
 import { formatNumber } from "../lib/utils";
 import useProxiesFilter from "../hooks/useProxiesFilter";
 
@@ -18,8 +18,6 @@ const computeItemKey = (_, item) => item.index;
 
 /** A searchable, filterable, virtualized list of proxies */
 export default function ProxyList({ proxies }) {
-  /** The height of the list's content */
-  const [listHeight, setListHeight] = useState(0);
   /** The indexes of the expanded proxies */
   const [expanded, setExpanded] = useState(() => new Set());
   /** The proxies from the previous render */
@@ -111,18 +109,13 @@ export default function ProxyList({ proxies }) {
 
           {/* List */}
           {list.length > 0 ? (
-            <div
-              className="min-h-px -mx-2"
-              style={{ height: Math.min(listHeight, MAX_LIST_HEIGHT) }}
-            >
-              <Virtuoso
-                style={{ height: "100%" }}
-                data={list}
-                totalListHeightChanged={setListHeight}
-                computeItemKey={computeItemKey}
-                itemContent={itemContent}
-              />
-            </div>
+            <AutoHeightVirtuoso
+              className="-mx-2"
+              maxHeight={MAX_LIST_HEIGHT}
+              data={list}
+              computeItemKey={computeItemKey}
+              itemContent={itemContent}
+            />
           ) : (
             <p className="text-center text-neutral-500 dark:text-neutral-400">
               No proxies match your filter.

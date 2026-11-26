@@ -1,8 +1,9 @@
 import { BADGE_TONE } from "../lib/constants";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 
 import AccountsPickerItem from "./AccountsPickerItem";
 import AccountsToggleAll from "./AccountsToggleAll";
+import AutoHeightVirtuoso from "./AutoHeightVirtuoso";
 import Input from "./Input";
 import CollapsibleTags from "./CollapsibleTags";
 import ScrollAwareVirtuoso from "./ScrollAwareVirtuoso";
@@ -33,8 +34,6 @@ export default function AccountsPicker({
   toggleAccount,
   toggleAllAccounts,
 }) {
-  /** The height of the list's content */
-  const [listHeight, setListHeight] = useState(0);
   const {
     filterTags,
     search,
@@ -123,18 +122,13 @@ export default function AccountsPicker({
           />
         </div>
       ) : (
-        <div
-          className="min-h-px -mx-2"
-          style={{ height: Math.min(listHeight, MAX_LIST_HEIGHT) }}
-        >
-          <ScrollAwareVirtuoso
-            style={{ height: "100%" }}
-            data={list}
-            totalListHeightChanged={setListHeight}
-            computeItemKey={computeItemKey}
-            itemContent={itemContent}
-          />
-        </div>
+        <AutoHeightVirtuoso
+          className="-mx-2"
+          maxHeight={MAX_LIST_HEIGHT}
+          data={list}
+          computeItemKey={computeItemKey}
+          itemContent={itemContent}
+        />
       )}
     </div>
   );

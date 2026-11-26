@@ -14,8 +14,7 @@ import LabelToggle from "./LabelToggle";
 import { HiOutlineArrowLeft } from "react-icons/hi2";
 import { GiSpiderWeb } from "react-icons/gi";
 import PrimaryButton from "./PrimaryButton";
-import { Progress } from "./Progress";
-import TgGetAccountItem from "./TgGetAccountItem";
+import TgGetStatusList from "./TgGetStatusList";
 import { useState } from "react";
 import { useTgGet } from "./TgGetProvider";
 
@@ -172,20 +171,13 @@ export default function TgGetDialog() {
 
           {/* Progress and per-account status */}
           {showStatus ? (
-            <div className="flex flex-col gap-2 min-w-0">
-              {running ? (
-                <Progress current={progress} max={others.length} />
-              ) : null}
-
-              {others.map((account) => (
-                <TgGetAccountItem
-                  key={account.partition}
-                  account={account}
-                  step={steps.get(account.partition)}
-                  outcome={outcomes.get(account.partition)}
-                />
-              ))}
-            </div>
+            <TgGetStatusList
+              accounts={others}
+              steps={steps}
+              outcomes={outcomes}
+              running={running}
+              progress={progress}
+            />
           ) : null}
         </>
       ) : null}
