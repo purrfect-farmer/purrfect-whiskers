@@ -139,37 +139,25 @@ export default function useTgGetCore() {
           /* Connect the main account and resolve the bot */
           await tgGet.start();
 
-          const results = [];
+          /* Transfer the others, preparing a few ahead of the bot */
+          const results = await tgGet.transferAccounts(others, {
+            getSession: readSession,
+            passwords,
+            onStep: (account, step) =>
+              setSteps((prev) => new Map(prev).set(account.partition, step)),
+            onOutcome: (outcome) => {
+              if (outcome.success && outcome.seconds) {
+                toast(
+                  `${outcome.account.title}: verifying in ${outcome.seconds} seconds`,
+                );
+              }
 
-          /* Transfer each other account in turn */
-          for (const account of others) {
-            const session = await readSession(account);
-
-            /** The outcome of this account */
-            const outcome = session
-              ? await tgGet.transferAccount({
-                  account,
-                  session,
-                  passwords,
-                  onStep: (step) =>
-                    setSteps((prev) =>
-                      new Map(prev).set(account.partition, step),
-                    ),
-                })
-              : { account, success: false, error: "No session" };
-
-            if (outcome.success && outcome.seconds) {
-              toast(
-                `${account.title}: verifying in ${outcome.seconds} seconds`,
+              setOutcomes((prev) =>
+                new Map(prev).set(outcome.account.partition, outcome),
               );
-            }
-
-            results.push(outcome);
-            setOutcomes((prev) =>
-              new Map(prev).set(account.partition, outcome),
-            );
-            setProgress((count) => count + 1);
-          }
+              setProgress((count) => count + 1);
+            },
+          });
 
           await saveJsonFile("tg-get-results", results);
 

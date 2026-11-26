@@ -1,15 +1,17 @@
 import {
-  BOT_REPLY,
-  BOT_REPLY_TIMEOUT,
   LOGIN_CODE_MAX_POLLS,
   LOGIN_CODE_POLL_INTERVAL,
+  TG_GET_BOT_REPLY,
+  TG_GET_BOT_REPLY_TIMEOUT,
   TG_GET_BOT_USERNAME,
+  TG_GET_PREPARE_AHEAD,
   TG_GET_STEP,
 } from "./constants";
 
 import { TELEGRAM_SERVICE_USER_ID } from "../../../shared/lib/telegramClient";
 import TelegramWebClient from "./telegram/TelegramWebClient";
 import { nameAccounts } from "./cleaner";
+import pLimit from "p-limit";
 import resetTelegramAccount from "./telegram/resetTelegramAccount";
 
 /** Matches Telegram's 5-digit login code */
@@ -25,22 +27,22 @@ function parseBotReply(text) {
     const match = normalized.match(/after\s+(\d+)\s+seconds/);
 
     return {
-      reply: BOT_REPLY.ACCOUNT_RECEIVED,
+      reply: TG_GET_BOT_REPLY.ACCOUNT_RECEIVED,
       seconds: match ? Number(match[1]) : null,
     };
   }
 
   /* The bot sent the code and is asking for it */
   if (normalized.includes("code sent")) {
-    return { reply: BOT_REPLY.CODE_REQUESTED, seconds: null };
+    return { reply: TG_GET_BOT_REPLY.CODE_REQUESTED, seconds: null };
   }
 
   /* The bot cancelled the current request */
   if (/cancell?ed/.test(normalized)) {
-    return { reply: BOT_REPLY.CANCELLED, seconds: null };
+    return { reply: TG_GET_BOT_REPLY.CANCELLED, seconds: null };
   }
 
-  return { reply: BOT_REPLY.UNKNOWN, seconds: null };
+  return { reply: TG_GET_BOT_REPLY.UNKNOWN, seconds: null };
 }
 
 /** Polls `readCode` until it returns a code, or rejects after the last check */
@@ -122,7 +124,7 @@ export default class TgGet {
     /** The expected reply, awaited before the message leaves */
     const reply = this.main.waitForReply(this.bot, {
       filter: (message) => parseBotReply(message.message).reply === expected,
-      timeout: BOT_REPLY_TIMEOUT,
+      timeout: TG_GET_BOT_REPLY_TIMEOUT,
     });
 
     await this.main.sendMessage(this.bot, text);
@@ -132,8 +134,8 @@ export default class TgGet {
 
   /** Cancels any operation the bot still holds; a missing reply is not fatal */
   async reset() {
-    await this.sendAndExpect("/cancel", BOT_REPLY.CANCELLED).catch((error) =>
-      console.warn("The bot did not confirm the cancel:", error),
+    await this.sendAndExpect("/cancel", TG_GET_BOT_REPLY.CANCELLED).catch(
+      (error) => console.warn("The bot did not confirm the cancel:", error),
     );
   }
 
@@ -163,76 +165,153 @@ export default class TgGet {
     }
   }
 
+  /** Connects an account, reads its phone number, removes its 2FA and cleans it */
+  async prepareAccount(client, { passwords, onStep }) {
+    /* Connect and read the account's phone number */
+    onStep(TG_GET_STEP.CONNECT);
+    await client.connect();
+
+    const me = await client.getMe();
+    const phone = me.phone ? `+${me.phone.replace(/^\+/, "")}` : null;
+
+    if (!phone) throw new Error("The account has no phone number");
+
+    /* Remove the 2FA and clean the account */
+    await resetTelegramAccount(client, { passwords }, ({ step }) =>
+      onStep(step),
+    );
+
+    return phone;
+  }
+
   /**
-   * Transfers one account: removes its 2FA, cleans it, relays the login code
-   * through the main account, then hands its devices over. Never rejects.
-   * @param {{account: object, session: string, passwords: string[], onStep: (step: string) => void}} params
+   * Relays a prepared account's login code through the main account, then
+   * hands its devices over, resolving with the seconds until it verifies.
    */
-  async transferAccount({ account, session, passwords, onStep }) {
-    /** The live client of the account being transferred */
-    const client = new TelegramWebClient(session);
-    /** Removes the login-code listener */
-    let stopCodeWatch = null;
+  async handOverAccount(client, { phone, onStep }) {
+    /** The login code Telegram sends to the account */
+    let loginCode = null;
 
-    try {
-      /* Connect and read the account's phone number */
-      onStep?.(TG_GET_STEP.CONNECT);
-      await client.connect();
-
-      const me = await client.getMe();
-      const phone = me.phone ? `+${me.phone.replace(/^\+/, "")}` : null;
-
-      if (!phone) throw new Error("The account has no phone number");
-
-      /* Remove the 2FA and clean the account */
-      await resetTelegramAccount(client, { passwords }, ({ step }) =>
-        onStep?.(step),
-      );
-
-      /* Watch for Telegram's login code on the account */
-      let loginCode = null;
-      stopCodeWatch = client.onMessage([TELEGRAM_SERVICE_USER_ID], (event) => {
+    /* Watch for Telegram's login code on the account */
+    const stopCodeWatch = client.onMessage(
+      [TELEGRAM_SERVICE_USER_ID],
+      (event) => {
         const match = (event.message?.message || "").match(LOGIN_CODE_REGEX);
 
         if (match) loginCode = match[1];
-      });
+      },
+    );
 
+    try {
       /* Cancel any open operation so this account starts the bot clean */
       await this.reset();
 
       /* Send the phone number and wait for the code request */
-      onStep?.(TG_GET_STEP.SEND_PHONE);
-      await this.sendAndExpect(phone, BOT_REPLY.CODE_REQUESTED);
+      onStep(TG_GET_STEP.SEND_PHONE);
+      await this.sendAndExpect(phone, TG_GET_BOT_REPLY.CODE_REQUESTED);
 
       /* Wait for the login code, then relay it */
-      onStep?.(TG_GET_STEP.AWAIT_CODE);
+      onStep(TG_GET_STEP.AWAIT_CODE);
       const code = await waitForLoginCode(() => loginCode);
 
-      onStep?.(TG_GET_STEP.SEND_CODE);
+      onStep(TG_GET_STEP.SEND_CODE);
       const received = await this.sendAndExpect(
         code,
-        BOT_REPLY.ACCOUNT_RECEIVED,
+        TG_GET_BOT_REPLY.ACCOUNT_RECEIVED,
       );
 
-      /* Stop watching once the account is handed over */
-      stopCodeWatch();
-      stopCodeWatch = null;
-
       /* Keep only the bot's device, then drop the web session last */
-      onStep?.(TG_GET_STEP.TERMINATE_DEVICES);
+      onStep(TG_GET_STEP.TERMINATE_DEVICES);
       await this.handOverDevices(client);
 
-      onStep?.(TG_GET_STEP.LOGOUT);
+      onStep(TG_GET_STEP.LOGOUT);
       await client.logout();
 
-      return { account, success: true, seconds: received.seconds };
+      return received.seconds;
+    } finally {
+      /* Stop watching for the login code */
+      stopCodeWatch();
+    }
+  }
+
+  /**
+   * Transfers one account: prepares it, waits for `turn`, then hands it over.
+   * Never rejects; `cleaned` marks a failed account that was already cleaned.
+   * @param {{account: object, getSession: (account: object) => Promise<string|null>, passwords: string[], turn: Promise<void>, onStep: (step: string) => void}} params
+   */
+  async transferAccount({ account, getSession, passwords, turn, onStep }) {
+    /** The live client of the account being transferred */
+    let client = null;
+    /** Whether the account was cleaned */
+    let cleaned = false;
+
+    try {
+      /* Read the account's session */
+      const session = await getSession(account);
+
+      if (!session) throw new Error("No session");
+
+      /* Prepare the account, then wait for its turn with the bot */
+      client = new TelegramWebClient(session);
+      const phone = await this.prepareAccount(client, { passwords, onStep });
+
+      cleaned = true;
+      onStep(TG_GET_STEP.READY);
+      await turn;
+
+      /* Hand the account over */
+      const seconds = await this.handOverAccount(client, { phone, onStep });
+
+      return { account, success: true, seconds };
     } catch (error) {
       console.error(`TG Get failed for "${account.title}":`, error);
 
-      return { account, success: false, error: error.message };
+      return { account, success: false, cleaned, error: error.message };
     } finally {
-      stopCodeWatch?.();
-      await client.destroy();
+      await client?.destroy();
     }
+  }
+
+  /**
+   * Transfers accounts in order: a few are prepared ahead while one at a time
+   * hands over to the bot. Resolves with the outcomes in the same order.
+   * @param {object[]} accounts
+   * @param {{getSession: (account: object) => Promise<string|null>, passwords: string[], onStep: (account: object, step: string) => void, onOutcome: (outcome: object) => void}} params
+   */
+  transferAccounts(accounts, { getSession, passwords, onStep, onOutcome }) {
+    /** The accounts in flight: the one handing over and those prepared ahead */
+    const limit = pLimit(TG_GET_PREPARE_AHEAD + 1);
+    /** Resolves once every account queued so far is finished */
+    let queue = Promise.resolve();
+
+    return Promise.all(
+      accounts.map((account) => {
+        /** This account's turn, once every earlier account is finished */
+        const turn = queue;
+        /** Resolves once this account is finished */
+        const finished = Promise.withResolvers();
+
+        queue = turn.then(() => finished.promise);
+
+        return limit(async () => {
+          try {
+            /** The outcome of this account */
+            const outcome = await this.transferAccount({
+              account,
+              getSession,
+              passwords,
+              turn,
+              onStep: (step) => onStep(account, step),
+            });
+
+            onOutcome(outcome);
+
+            return outcome;
+          } finally {
+            finished.resolve();
+          }
+        });
+      }),
+    );
   }
 }

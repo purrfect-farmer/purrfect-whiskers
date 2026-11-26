@@ -8,6 +8,7 @@ const STEP_LABELS = {
   [TG_GET_STEP.CONNECT]: "Connecting...",
   [TG_GET_STEP.REMOVE_2FA]: "Removing 2FA...",
   [TG_GET_STEP.CLEAN]: "Cleaning...",
+  [TG_GET_STEP.READY]: "Ready",
   [TG_GET_STEP.SEND_PHONE]: "Sending number...",
   [TG_GET_STEP.AWAIT_CODE]: "Waiting for code...",
   [TG_GET_STEP.SEND_CODE]: "Sending code...",

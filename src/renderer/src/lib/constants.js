@@ -155,11 +155,15 @@ export const TG_GET_SCREEN = Object.freeze({
   TRANSFER: "transfer",
 });
 
+/** The accounts TG Get prepares ahead of the one handing over */
+export const TG_GET_PREPARE_AHEAD = 3;
+
 /** The steps of transferring one account to the TG Get bot */
 export const TG_GET_STEP = Object.freeze({
   CONNECT: "connect",
   REMOVE_2FA: "remove-2fa",
   CLEAN: "clean",
+  READY: "ready",
   SEND_PHONE: "send-phone",
   AWAIT_CODE: "await-code",
   SEND_CODE: "send-code",
@@ -168,7 +172,7 @@ export const TG_GET_STEP = Object.freeze({
 });
 
 /** What the TG Get bot's reply means */
-export const BOT_REPLY = Object.freeze({
+export const TG_GET_BOT_REPLY = Object.freeze({
   CODE_REQUESTED: "code-requested",
   ACCOUNT_RECEIVED: "account-received",
   CANCELLED: "cancelled",
@@ -176,7 +180,7 @@ export const BOT_REPLY = Object.freeze({
 });
 
 /** How long to wait for the TG Get bot's expected reply */
-export const BOT_REPLY_TIMEOUT = 180_000;
+export const TG_GET_BOT_REPLY_TIMEOUT = 180_000;
 /** How often the other account is checked for the login code */
 export const LOGIN_CODE_POLL_INTERVAL = 5_000;
 /** The most checks for the login code */
