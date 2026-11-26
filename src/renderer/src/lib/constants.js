@@ -177,8 +177,6 @@ export const BOT_REPLY = Object.freeze({
 
 /** How long to wait for the TG Get bot's expected reply */
 export const BOT_REPLY_TIMEOUT = 180_000;
-/** How long to wait for the bot's reply to a cancel */
-export const BOT_CANCEL_TIMEOUT = 5_000;
 /** How often the other account is checked for the login code */
 export const LOGIN_CODE_POLL_INTERVAL = 5_000;
 /** The most checks for the login code */

@@ -1,14 +1,8 @@
 import * as yup from "yup";
 
-import {
-  parsePasswords,
-  summarizeTransfer,
-  transferAccount,
-} from "../lib/tgGet";
 import { useCallback, useMemo, useState } from "react";
 
-import { TG_GET_BOT_USERNAME } from "../lib/constants";
-import TelegramWebClient from "../lib/telegram/TelegramWebClient";
+import TgGet from "../lib/TgGet";
 import { getAccountSession } from "../lib/accountSessions";
 import { hasTelegramUser, saveJsonFile } from "../lib/utils";
 import { holdPartitions } from "../lib/busyPartitions";
@@ -115,7 +109,7 @@ export default function useTgGetCore() {
       if (others.length === 0) return toast.error("Pick accounts to transfer.");
 
       /** The candidate 2FA passwords */
-      const passwords = parsePasswords(values.twoFA);
+      const passwords = TgGet.parsePasswords(values.twoFA);
       /** The partitions held for the run */
       const release = holdPartitions([
         mainAccount.partition,
@@ -135,13 +129,13 @@ export default function useTgGetCore() {
 
         if (!mainSession) throw new Error("The main account has no session.");
 
-        /** The live main client and the bot it relays through */
-        const main = new TelegramWebClient(mainSession);
+        /** The transfer run through the main account */
+        const tgGet = new TgGet(mainSession);
 
         try {
-          await main.connect();
+          /* Connect, resolve the bot and cancel any open operation */
+          await tgGet.start();
 
-          const bot = await main.getEntity(TG_GET_BOT_USERNAME);
           const results = [];
 
           /* Transfer each other account in turn */
@@ -150,12 +144,10 @@ export default function useTgGetCore() {
 
             /** The outcome of this account */
             const outcome = session
-              ? await transferAccount({
-                  main,
+              ? await tgGet.transferAccount({
                   account,
                   session,
                   passwords,
-                  bot,
                   onStep: (step) =>
                     setSteps((prev) =>
                       new Map(prev).set(account.partition, step),
@@ -178,9 +170,9 @@ export default function useTgGetCore() {
 
           await saveJsonFile("tg-get-results", results);
 
-          return summarizeTransfer(results);
+          return TgGet.summarize(results);
         } finally {
-          await main.destroy();
+          await tgGet.destroy();
         }
       };
 
