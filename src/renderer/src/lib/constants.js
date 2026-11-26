@@ -77,6 +77,12 @@ export const CLEANER_TAB = Object.freeze({
   TAGS: "tags",
 });
 
+/** The screens of the Cleaner's Accounts tab */
+export const CLEANER_SCREEN = Object.freeze({
+  PICK: "pick",
+  RESULTS: "results",
+});
+
 /** Errors returned to a launch-account request */
 export const LAUNCH_ERROR = Object.freeze({
   INVALID_REQUEST: "INVALID_REQUEST",

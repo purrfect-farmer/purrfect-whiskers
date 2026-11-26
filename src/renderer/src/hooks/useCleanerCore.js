@@ -10,6 +10,7 @@ import {
 } from "../lib/cleaner";
 
 import { BROKEN_SESSION_STATUSES } from "../lib/sessionStatus";
+import { CLEANER_SCREEN } from "../lib/constants";
 import { SESSION_STATUS } from "../../../shared/constants/sessionStatus";
 import { deleteAccounts } from "../lib/accounts";
 import { getAccountSessionStatus } from "../lib/accountSession";
@@ -26,6 +27,9 @@ export const CLEANER_TASK = Object.freeze({
   CLEAN: "clean",
 });
 
+/** The accounts to scan start unselected */
+const SCAN_OPTIONS = { initiallySelected: false };
+
 /** Maps accounts to their partitions */
 const toPartitions = (accounts) => accounts.map((item) => item.partition);
 
@@ -39,6 +43,8 @@ export default function useCleanerCore({ onLaunch }) {
   /** The progress and runner of the batches */
   const { target, progress, run } = useBatchRunner();
 
+  /** The screen of the Accounts tab */
+  const [screen, setScreen] = useState(CLEANER_SCREEN.PICK);
   /** The task being run */
   const [task, setTask] = useState(null);
   /** Whether the accounts have been scanned */
@@ -59,9 +65,13 @@ export default function useCleanerCore({ onLaunch }) {
     [accounts, results],
   );
 
-  /** The selection over the listed accounts */
-  const selector = useAccountsSelector(listedAccounts);
-  const { selectedAccounts, setSelected } = selector;
+  /** The selection of the accounts to scan */
+  const scanSelector = useAccountsSelector(accounts, SCAN_OPTIONS);
+  const { selectedAccounts: scanAccounts } = scanSelector;
+
+  /** The selection of the listed accounts to remove */
+  const removeSelector = useAccountsSelector(listedAccounts);
+  const { selectedAccounts, setSelected } = removeSelector;
 
   /** The run of a task behind a toast */
   const runTask = useCallback((name, job, messages) => {
@@ -87,24 +97,27 @@ export default function useCleanerCore({ onLaunch }) {
     [setSelected],
   );
 
-  /** The scan of every account's session */
+  /** The scan of the picked accounts' sessions */
   const scan = useCallback(() => {
     /** The scan job */
-    const scanAccounts = async () => {
-      const { accounts, closeAllAccounts } = useAppStore.getState();
+    const scanPicked = async () => {
+      /** Show the results while they arrive */
+      setScreen(CLEANER_SCREEN.RESULTS);
 
-      closeAllAccounts();
+      /** Close the accounts and reset the last scan */
+      useAppStore.getState().closeAllAccounts();
       setResults(new Map());
       setSelected(new Set());
 
+      /** Check each picked account's session */
       await run(
-        accounts,
+        scanAccounts,
         async (account) => [
           account.partition,
           await getAccountSessionStatus(account),
         ],
         {
-          partitions: toPartitions(accounts),
+          partitions: toPartitions(scanAccounts),
           onBatch: applyStatuses,
         },
       );
@@ -112,12 +125,12 @@ export default function useCleanerCore({ onLaunch }) {
       setHasScanned(true);
     };
 
-    return runTask(CLEANER_TASK.SCAN, scanAccounts, {
+    return runTask(CLEANER_TASK.SCAN, scanPicked, {
       loading: "Scanning accounts...",
       error: "Failed to scan accounts!",
       success: "Accounts were scanned!",
     });
-  }, [run, runTask, setSelected, applyStatuses]);
+  }, [run, runTask, scanAccounts, setSelected, applyStatuses]);
 
   /** The backup and removal of the selected accounts */
   const clean = useCallback(() => {
@@ -208,12 +221,15 @@ export default function useCleanerCore({ onLaunch }) {
 
   return useMemo(
     () => ({
+      screen,
+      setScreen,
       task,
       target,
       progress,
       results,
       hasScanned,
-      selector,
+      scanSelector,
+      removeSelector,
       withBackup,
       setWithBackup,
       scan,
@@ -221,13 +237,15 @@ export default function useCleanerCore({ onLaunch }) {
       launchAccount,
     }),
     [
+      screen,
       withBackup,
       task,
       target,
       progress,
       results,
       hasScanned,
-      selector,
+      scanSelector,
+      removeSelector,
       scan,
       clean,
       launchAccount,

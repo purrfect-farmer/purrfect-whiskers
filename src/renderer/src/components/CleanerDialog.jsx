@@ -2,7 +2,8 @@ import { CLEANER_TASK } from "../hooks/useCleanerCore";
 import AccountsPicker from "./AccountsPicker";
 import Alert from "./Alert";
 import AppDialogContent from "./AppDialogContent";
-import { ALERT_VARIANT, CLEANER_TAB } from "../lib/constants";
+import BackLink from "./BackLink";
+import { ALERT_VARIANT, CLEANER_SCREEN, CLEANER_TAB } from "../lib/constants";
 import CleanerAccountItem from "./CleanerAccountItem";
 import CleanerTagsTab from "./CleanerTagsTab";
 import LabelToggle from "./LabelToggle";
@@ -26,12 +27,15 @@ const BACKUP_CLEAN_LABEL = "Backing up accounts...";
 /** A dialog for removing signed-out accounts and stale tags */
 export default function CleanerDialog() {
   const {
+    screen,
+    setScreen,
     task,
     target,
     progress,
     results,
     hasScanned,
-    selector,
+    scanSelector,
+    removeSelector,
     withBackup,
     setWithBackup,
     scan,
@@ -58,7 +62,9 @@ export default function CleanerDialog() {
   const tabs = useTabs(Object.values(CLEANER_TAB), CLEANER_TAB.ACCOUNTS);
   /** Whether a scan or clean is running */
   const isProcessing = task !== null;
-  const { accounts: listedAccounts, selectedAccounts } = selector;
+  const { accounts: listedAccounts, selectedAccounts } = removeSelector;
+  /** The number of accounts picked for a scan */
+  const scanCount = scanSelector.selectedAccounts.length;
 
   /** The status and launch props of an account row */
   const getItemProps = useCallback(
@@ -81,57 +87,90 @@ export default function CleanerDialog() {
           value={CLEANER_TAB.ACCOUNTS}
           className="flex flex-col gap-2"
         >
-          <Alert variant={ALERT_VARIANT.WARNING} className="text-center">
-            Every account is opened without its proxy to check its Telegram
-            session. Cleaning checks the selected accounts again and keeps any
-            that are signed in.
-          </Alert>
-
-          <PrimaryButton
-            variant={hasScanned ? "neutral" : "solid"}
-            disabled={isProcessing}
-            onClick={scan}
-          >
-            {hasScanned ? "Scan Again" : "Scan Accounts"}
-          </PrimaryButton>
-
-          {isProcessing ? (
+          {/* Accounts to scan */}
+          {screen === CLEANER_SCREEN.PICK ? (
             <>
-              <p className="text-center">{taskLabel}</p>
-              <Progress current={progress} max={target} />
-            </>
-          ) : null}
+              <Alert variant={ALERT_VARIANT.WARNING} className="text-center">
+                Each picked account is opened without its proxy to check its
+                Telegram session. Cleaning checks the selected accounts again
+                and keeps any that are signed in.
+              </Alert>
 
-          {listedAccounts.length > 0 ? (
-            <>
               <AccountsPicker
-                {...selector}
-                itemComponent={CleanerAccountItem}
-                getItemProps={getItemProps}
+                {...scanSelector}
+                title="Accounts to scan"
                 disabled={isProcessing}
                 autoFocusSearch={false}
               />
 
-              <LabelToggle
-                checked={withBackup}
-                disabled={isProcessing}
-                onChange={toggleBackup}
-              >
-                Back up first
-              </LabelToggle>
-
               <PrimaryButton
-                variant={withBackup ? "solid" : "danger"}
-                disabled={isProcessing || selectedAccounts.length === 0}
-                onClick={clean}
+                disabled={isProcessing || scanCount === 0}
+                onClick={scan}
               >
-                {cleanLabel} ({selectedAccounts.length})
+                Scan ({scanCount})
               </PrimaryButton>
             </>
-          ) : hasScanned && !isProcessing ? (
-            <p className="text-center text-neutral-500 dark:text-neutral-400">
-              Every account is signed in.
-            </p>
+          ) : null}
+
+          {/* Scan results */}
+          {screen === CLEANER_SCREEN.RESULTS ? (
+            <>
+              <BackLink
+                onClick={() => setScreen(CLEANER_SCREEN.PICK)}
+                disabled={isProcessing}
+              >
+                Accounts to scan
+              </BackLink>
+
+              <PrimaryButton
+                variant="neutral"
+                disabled={isProcessing || scanCount === 0}
+                onClick={scan}
+              >
+                Scan Again ({scanCount})
+              </PrimaryButton>
+
+              {/* Progress */}
+              {isProcessing ? (
+                <>
+                  <p className="text-center">{taskLabel}</p>
+                  <Progress current={progress} max={target} />
+                </>
+              ) : null}
+
+              {/* Signed-out accounts and removal */}
+              {listedAccounts.length > 0 ? (
+                <>
+                  <AccountsPicker
+                    {...removeSelector}
+                    itemComponent={CleanerAccountItem}
+                    getItemProps={getItemProps}
+                    disabled={isProcessing}
+                    autoFocusSearch={false}
+                  />
+
+                  <LabelToggle
+                    checked={withBackup}
+                    disabled={isProcessing}
+                    onChange={toggleBackup}
+                  >
+                    Back up first
+                  </LabelToggle>
+
+                  <PrimaryButton
+                    variant={withBackup ? "solid" : "danger"}
+                    disabled={isProcessing || selectedAccounts.length === 0}
+                    onClick={clean}
+                  >
+                    {cleanLabel} ({selectedAccounts.length})
+                  </PrimaryButton>
+                </>
+              ) : hasScanned && !isProcessing ? (
+                <p className="text-center text-neutral-500 dark:text-neutral-400">
+                  Every scanned account is signed in.
+                </p>
+              ) : null}
+            </>
           ) : null}
         </Tabs.Content>
 

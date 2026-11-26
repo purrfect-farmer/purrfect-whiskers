@@ -8,29 +8,15 @@ import AccountsPicker from "./AccountsPicker";
 import AccountsRadioItem from "./AccountsRadioItem";
 import Alert from "./Alert";
 import AppDialogContent from "./AppDialogContent";
+import BackLink from "./BackLink";
 import FormInputField from "./FormInputField";
 import { FormProvider } from "react-hook-form";
 import LabelToggle from "./LabelToggle";
-import { HiOutlineArrowLeft } from "react-icons/hi2";
 import { GiSpiderWeb } from "react-icons/gi";
 import PrimaryButton from "./PrimaryButton";
 import TgGetStatusList from "./TgGetStatusList";
 import { useState } from "react";
 import { useTgGet } from "./TgGetProvider";
-
-/** A link that steps back to an earlier screen */
-function BackLink({ onClick, disabled, children }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className="flex justify-center items-center gap-2 text-sm text-orange-500 hover:underline disabled:opacity-50 disabled:no-underline"
-    >
-      <HiOutlineArrowLeft className="size-4" /> {children}
-    </button>
-  );
-}
 
 /** A dialog that steps through picking accounts and transferring them */
 export default function TgGetDialog() {
