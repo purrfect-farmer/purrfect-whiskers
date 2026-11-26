@@ -1,4 +1,4 @@
-import { Api, TelegramClient } from "telegram";
+import { Api } from "telegram";
 import { MemorySession, StringSession } from "telegram/sessions";
 
 import { NewMessage } from "telegram/events";
@@ -6,8 +6,11 @@ import { SPIDER_LOGIN_METHOD } from "./constants";
 import {
   TELEGRAM_API_HASH,
   TELEGRAM_API_ID,
-  TELEGRAM_CLIENT_OPTIONS,
+  TELEGRAM_SERVICE_USER_ID,
 } from "../../../shared/lib/telegramClient";
+import { createTelegramClient, destroyClient } from "./telegram/client";
+
+export { destroyClient };
 
 /** Telegram Web-K API credentials */
 const TELEGRAM_API_CREDENTIALS = {
@@ -15,32 +18,12 @@ const TELEGRAM_API_CREDENTIALS = {
   apiHash: TELEGRAM_API_HASH,
 };
 
-/** Sender of Telegram's login code messages */
-const TELEGRAM_SERVICE_USER_ID = 777000;
 /** Matches a login code */
 const LOGIN_CODE_REGEX = /(\d{5})/;
 /** How often the login code is checked */
 const LOGIN_CODE_POLL_INTERVAL = 5000;
 /** The most checks for a login code */
 const LOGIN_CODE_MAX_POLLS = 10;
-
-/** Creates a Telegram Web-K client */
-function createTelegramClient(session) {
-  return new TelegramClient(session, TELEGRAM_API_ID, TELEGRAM_API_HASH, {
-    ...TELEGRAM_CLIENT_OPTIONS,
-    deviceModel: navigator.userAgent,
-    systemVersion: navigator.platform,
-  });
-}
-
-/** Destroys a client, logging instead of throwing */
-export async function destroyClient(client) {
-  try {
-    await client.destroy();
-  } catch (error) {
-    console.error("Error destroying Telegram client:", error);
-  }
-}
 
 /**
  * Runs the client's login flow and stops it at the first error,

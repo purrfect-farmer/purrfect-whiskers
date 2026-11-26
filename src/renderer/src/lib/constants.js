@@ -144,3 +144,42 @@ export const ALERT_VARIANT = Object.freeze({
   DANGER: "danger",
   SUCCESS: "success",
 });
+
+/** The username of the TG Get transfer bot */
+export const TG_GET_BOT_USERNAME = "tg_get2_bot";
+
+/** The screens of the TG Get flow, in order */
+export const TG_GET_SCREEN = Object.freeze({
+  MAIN: "main",
+  OTHERS: "others",
+  TRANSFER: "transfer",
+});
+
+/** The steps of transferring one account to the TG Get bot */
+export const TG_GET_STEP = Object.freeze({
+  CONNECT: "connect",
+  REMOVE_2FA: "remove-2fa",
+  CLEAN: "clean",
+  SEND_PHONE: "send-phone",
+  AWAIT_CODE: "await-code",
+  SEND_CODE: "send-code",
+  TERMINATE_DEVICES: "terminate-devices",
+  LOGOUT: "logout",
+});
+
+/** What the TG Get bot's reply means */
+export const BOT_REPLY = Object.freeze({
+  CODE_REQUESTED: "code-requested",
+  ACCOUNT_RECEIVED: "account-received",
+  CANCELLED: "cancelled",
+  UNKNOWN: "unknown",
+});
+
+/** How long to wait for the TG Get bot's expected reply */
+export const BOT_REPLY_TIMEOUT = 180_000;
+/** How long to wait for the bot's reply to a cancel */
+export const BOT_CANCEL_TIMEOUT = 5_000;
+/** How often the other account is checked for the login code */
+export const LOGIN_CODE_POLL_INTERVAL = 5_000;
+/** The most checks for the login code */
+export const LOGIN_CODE_MAX_POLLS = 24;

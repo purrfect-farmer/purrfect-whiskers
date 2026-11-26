@@ -20,10 +20,12 @@ const computeItemKey = (_, account) => account.partition;
 /** A searchable, virtualized list of account toggles */
 export default function AccountsPicker({
   accounts,
+  title = "Accounts",
   itemComponent: Item = AccountsPickerItem,
   getItemProps,
   disabled,
   showTags = true,
+  showToggleAll = true,
   autoFocusSearch = true,
   scrollParent,
   selected,
@@ -64,7 +66,7 @@ export default function AccountsPicker({
     <div className="flex flex-col gap-2">
       {/* Account List Heading */}
       <SectionHeader
-        title="Accounts"
+        title={title}
         badge={
           <SectionBadge
             tone={
@@ -102,12 +104,14 @@ export default function AccountsPicker({
         />
       ) : null}
 
-      <AccountsToggleAll
-        list={list}
-        selected={selected}
-        toggleAllAccounts={toggleAllAccounts}
-        disabled={disabled}
-      />
+      {showToggleAll ? (
+        <AccountsToggleAll
+          list={list}
+          selected={selected}
+          toggleAllAccounts={toggleAllAccounts}
+          disabled={disabled}
+        />
+      ) : null}
 
       {scrollParent ? (
         <div className="-mx-2">

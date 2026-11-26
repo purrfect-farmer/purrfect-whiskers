@@ -6,6 +6,7 @@ import {
   HiOutlinePuzzlePiece,
 } from "react-icons/hi2";
 import {
+  LuArrowRightLeft,
   LuArrowUpDown,
   LuDatabaseBackup,
   LuEraser,
@@ -35,6 +36,8 @@ import SideMenuDialog from "./SideMenuDialog";
 import SpiderDialog from "./SpiderDialog";
 import { SpiderProvider } from "./SpiderProvider";
 import TagsDialog from "./TagsDialog";
+import TgGetDialog from "./TgGetDialog";
+import { TgGetProvider } from "./TgGetProvider";
 import { cn } from "../lib/utils";
 import useAppVersion from "../hooks/useAppVersion";
 import useExtensionStore, {
@@ -77,6 +80,8 @@ export default function SideMenu() {
   const spiderDialog = useDialogState();
   /** The open state of the Cleaner dialog */
   const cleanerDialog = useDialogState();
+  /** The open state of the TG Get dialog */
+  const tgGetDialog = useDialogState();
 
   return (
     <div
@@ -127,6 +132,17 @@ export default function SideMenu() {
         <CleanerProvider onLaunch={cleanerDialog.closeDialog}>
           <CleanerDialog />
         </CleanerProvider>
+      </SideMenuDialog>
+
+      <SideMenuDialog
+        title="TG Get"
+        icon={LuArrowRightLeft}
+        open={tgGetDialog.opened}
+        onOpenChange={tgGetDialog.setOpened}
+      >
+        <TgGetProvider>
+          <TgGetDialog />
+        </TgGetProvider>
       </SideMenuDialog>
 
       <SideMenuDialog

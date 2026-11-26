@@ -5,6 +5,12 @@ import { isNode } from "telegram/platform";
 export const TELEGRAM_API_ID = 2496;
 export const TELEGRAM_API_HASH = "8da85b0d5bfe62527e5b244c209159c3";
 
+/** Telegram's own service account, which sends login codes */
+export const TELEGRAM_SERVICE_USER_ID = 777000;
+
+/** The @SpamBot account, which reports spam restrictions */
+export const TELEGRAM_SPAM_BOT_ID = 178220800;
+
 /** The client options shared by every Telegram Web K client */
 export const TELEGRAM_CLIENT_OPTIONS = Object.freeze({
   appVersion: "2.2 K",

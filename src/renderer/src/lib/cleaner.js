@@ -58,7 +58,7 @@ export function isRemovable(outcome, withBackup) {
 }
 
 /** The titles of accounts as "a, b, c and 2 more" */
-const nameAccounts = (accounts) => {
+export const nameAccounts = (accounts) => {
   /** The named titles */
   const titles = accounts.slice(0, MAX_NAMED_TITLES).map((item) => item.title);
   /** The number of accounts left unnamed */
